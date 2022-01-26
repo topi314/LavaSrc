@@ -17,10 +17,10 @@ public class SpotifyConfig{
 
 	public SpotifyConfig(){}
 
-	public SpotifyConfig(String clientId, String clientSecret, String countryCode, String[] providers){
+	public SpotifyConfig(String clientId, String clientSecret, CountryCode countryCode, String[] providers){
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
-		this.countryCode = CountryCode.getByCode(countryCode);
+		this.countryCode = countryCode;
 		this.providers = providers;
 	}
 
