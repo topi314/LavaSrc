@@ -5,7 +5,7 @@ import com.neovisionaries.i18n.CountryCode;
 import static com.github.lavalinkplugins.spotify.SpotifySourceManager.ISRC_PATTERN;
 import static com.github.lavalinkplugins.spotify.SpotifySourceManager.QUERY_PATTERN;
 
-public class SpotifyConfig {
+public class SpotifyConfig{
 
 	private String clientId;
 	private String clientSecret;
@@ -14,6 +14,15 @@ public class SpotifyConfig {
 		"ytsearch:\"" + ISRC_PATTERN + "\"",
 		"ytsearch:" + QUERY_PATTERN
 	};
+
+	public SpotifyConfig(){}
+
+	public SpotifyConfig(String clientId, String clientSecret, String countryCode, String[] providers){
+		this.clientId = clientId;
+		this.clientSecret = clientSecret;
+		this.countryCode = CountryCode.getByCode(countryCode);
+		this.providers = providers;
+	}
 
 	public String getClientId(){
 		return this.clientId;
