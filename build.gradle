@@ -5,7 +5,7 @@ plugins {
 }
 
 group "com.github"
-version "1.0.12"
+version "1.0.13"
 
 sourceCompatibility = 11
 compileJava.options.encoding = "UTF-8"
