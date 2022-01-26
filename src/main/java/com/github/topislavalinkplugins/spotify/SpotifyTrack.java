@@ -1,4 +1,4 @@
-package com.github.lavalinkplugins.spotify;
+package com.github.topislavalinkplugins.spotify;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
@@ -22,8 +22,8 @@ import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static com.github.lavalinkplugins.spotify.SpotifySourceManager.ISRC_PATTERN;
-import static com.github.lavalinkplugins.spotify.SpotifySourceManager.QUERY_PATTERN;
+import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.ISRC_PATTERN;
+import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.QUERY_PATTERN;
 
 public class SpotifyTrack extends DelegatedAudioTrack{
 

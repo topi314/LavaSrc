@@ -1,4 +1,4 @@
-[![](https://jitpack.io/v/TopiSenpai/spotify-plugin.svg)](https://jitpack.io/#TopiSenpai/spotify-plugin)
+[![](https://jitpack.io/v/Topis-Lavalink-Plugins/Spotify-SourceManager.svg)](https://jitpack.io/#Topis-Lavalink-Plugins/Spotify-SourceManager)
 
 # Spotify-SourceManager
 
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.github.Lavalink-Plugins:Spotify-SourceManager:x.y.z'
+  implementation 'com.github.Topis-Lavalink-Plugins:Spotify-SourceManager:x.y.z'
 }
 ```
 
@@ -32,7 +32,7 @@ dependencies {
 
 <dependencies>
   <dependency>
-    <groupId>com.github.Lavalink-Plugins</groupId>
+    <groupId>com.github.Topis-Lavalink-Plugins</groupId>
     <artifactId>Spotify-SourceManager</artifactId>
     <version>x.y.z</version>
   </dependency>

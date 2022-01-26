@@ -1,9 +1,9 @@
-package com.github.lavalinkplugins.spotify;
+package com.github.topislavalinkplugins.spotify;
 
 import com.neovisionaries.i18n.CountryCode;
 
-import static com.github.lavalinkplugins.spotify.SpotifySourceManager.ISRC_PATTERN;
-import static com.github.lavalinkplugins.spotify.SpotifySourceManager.QUERY_PATTERN;
+import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.ISRC_PATTERN;
+import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.QUERY_PATTERN;
 
 public class SpotifyConfig{
 

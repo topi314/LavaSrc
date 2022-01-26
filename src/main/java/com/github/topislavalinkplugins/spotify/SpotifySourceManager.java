@@ -1,4 +1,4 @@
-package com.github.lavalinkplugins.spotify;
+package com.github.topislavalinkplugins.spotify;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;

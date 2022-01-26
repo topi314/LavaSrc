@@ -1,4 +1,4 @@
-package com.github.lavalinkplugins.spotify;
+package com.github.topislavalinkplugins.spotify;
 
 public class SpotifyTrackNotFoundException extends RuntimeException{
 
