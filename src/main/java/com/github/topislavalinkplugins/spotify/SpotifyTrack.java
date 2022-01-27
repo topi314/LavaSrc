@@ -117,7 +117,7 @@ public class SpotifyTrack extends DelegatedAudioTrack{
 		return this.spotifySourceManager;
 	}
 
-	public AudioItem loadItem(String query) throws ExecutionException, InterruptedException{
+	public AudioItem loadItem(String query) {
 		var cf = new CompletableFuture<AudioItem>();
 		this.spotifySourceManager.getAudioPlayerManager().loadItem(query, new AudioLoadResultHandler(){
 
@@ -141,8 +141,7 @@ public class SpotifyTrack extends DelegatedAudioTrack{
 				cf.completeExceptionally(exception);
 			}
 		});
-		cf.join();
-		return cf.get();
+		return cf.join();
 	}
 
 	@Override
