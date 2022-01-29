@@ -62,7 +62,7 @@ public class SpotifySourceManager implements AudioSourceManager{
 					try{
 						var clientCredentials = this.clientCredentialsRequest.execute();
 						this.spotify.setAccessToken(clientCredentials.getAccessToken());
-						Thread.sleep(clientCredentials.getExpiresIn() * 1000);
+						Thread.sleep((clientCredentials.getExpiresIn() - 10) * 1000L);
 					}
 					catch(IOException | SpotifyWebApiException | ParseException e){
 						log.error("Failed to update the spotify access token. Retrying in 1 minute ", e);
