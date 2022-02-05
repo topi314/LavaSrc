@@ -68,21 +68,20 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 playerManager.registerSourceManager(new AppleMusicSourceManager(null, "us", playerManager));
 ```
 
-#### All supported URL types are:
+### All supported URL types are:
 
-### Spotify
+#### Spotify
 * spsearch:animals architects
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
 * https://open.spotify.com/playlist/37i9dQZF1DXaZvoHOvRg3p
 * https://open.spotify.com/artist/3ZztVuWxHzNpl0THurTFCv
 
-### Apple Music
+#### Apple Music
 * amsearch:animals architects
 * https://music.apple.com/cy/album/animals/1533388849?i=1533388859
 * https://music.apple.com/cy/album/for-those-that-wish-to-exist/1533388849
 * https://music.apple.com/us/playlist/architects-essentials/pl.40e568c609ae4b1eba58b6e89f4cd6a5
 * https://music.apple.com/cy/artist/architects/182821355
-
 
 ---
