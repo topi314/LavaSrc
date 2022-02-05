@@ -1,5 +1,6 @@
 package com.github.topislavalinkplugins.sources.applemusic;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class AppleMusicClient{
 	private Instant tokenExpire;
 
 	public AppleMusicClient(String country){
-		this.jackson = new ObjectMapper();
+		this.jackson = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		this.country = country;
 		this.updateToken();
 	}
