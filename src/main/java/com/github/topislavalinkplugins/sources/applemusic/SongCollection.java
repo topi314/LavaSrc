@@ -6,7 +6,7 @@ public class SongCollection{
 
 	public String id, type, href;
 	public Attributes attributes;
-	public Relationships releationships;
+	public Relationships relationships;
 
 	public static class Attributes{
 

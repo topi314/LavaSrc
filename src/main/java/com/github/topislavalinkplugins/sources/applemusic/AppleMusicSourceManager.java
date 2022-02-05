@@ -92,11 +92,11 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		var album = this.appleMusicClient.getAlbum(id);
 		var tracks = new ArrayList<AudioTrack>();
 
-		for(var track : album.data.get(0).releationships.tracks.data){
+		for(var track : album.data.get(0).relationships.tracks.data){
 			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
 		}
 
-		if(album.data.get(0).releationships.tracks.next != null){
+		if(album.data.get(0).relationships.tracks.next != null){
 			Song.Wrapper paging = null;
 			var offset = 100;
 			do{
@@ -119,11 +119,11 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		var playlist = this.appleMusicClient.getPlaylist(id);
 		var tracks = new ArrayList<AudioTrack>();
 
-		for(var track : playlist.data.get(0).releationships.tracks.data){
+		for(var track : playlist.data.get(0).relationships.tracks.data){
 			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
 		}
 
-		if(playlist.data.get(0).releationships.tracks.next != null){
+		if(playlist.data.get(0).relationships.tracks.next != null){
 			Song.Wrapper paging = null;
 			var offset = 100;
 			do{
