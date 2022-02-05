@@ -4,7 +4,7 @@
 
 A collection [Lavaplayer](https://github.com/sedmelluq/lavaplayer) Source Managers. 
 * [Spotify](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results
-* [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to https://github.com/aleclol for helping me here)
+* [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [aleclol](https://github.com/aleclol) for helping me here)
 
 `*tracks are played via YouTube or other configurable sources`
 
