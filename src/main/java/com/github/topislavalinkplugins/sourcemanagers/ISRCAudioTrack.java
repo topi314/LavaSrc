@@ -1,9 +1,11 @@
-package com.github.topislavalinkplugins.spotify;
+package com.github.topislavalinkplugins.sourcemanagers;
 
+import com.github.topislavalinkplugins.sourcemanagers.applemusic.AppleMusicSourceManager;
+import com.github.topislavalinkplugins.sourcemanagers.applemusic.Song;
+import com.github.topislavalinkplugins.sourcemanagers.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -20,21 +22,31 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
-import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.ISRC_PATTERN;
-import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.QUERY_PATTERN;
+import static com.github.topislavalinkplugins.sourcemanagers.ISRCAudioSourceManager.ISRC_PATTERN;
+import static com.github.topislavalinkplugins.sourcemanagers.ISRCAudioSourceManager.QUERY_PATTERN;
 
-public class SpotifyTrack extends DelegatedAudioTrack{
+public class ISRCAudioTrack extends DelegatedAudioTrack{
 
-	private static final Logger log = LoggerFactory.getLogger(SpotifyTrack.class);
+	private static final Logger log = LoggerFactory.getLogger(ISRCAudioTrack.class);
 
-	private final String isrc;
-	private final String artworkURL;
-	private final SpotifySourceManager spotifySourceManager;
+	protected final String isrc;
+	protected final String artworkURL;
+	protected final ISRCAudioSourceManager sourceManager;
 
-	public SpotifyTrack(String title, String identifier, String isrc, Image[] images, String uri, ArtistSimplified[] artists, Integer trackDuration, SpotifySourceManager spotifySourceManager){
-		this(new AudioTrackInfo(title,
+	public ISRCAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, ISRCAudioSourceManager sourceManager){
+		super(trackInfo);
+		this.isrc = isrc;
+		this.artworkURL = artworkURL;
+		this.sourceManager = sourceManager;
+	}
+
+	public static ISRCAudioTrack ofAppleMusic(Song song, AppleMusicSourceManager sourceManager){
+		return new ISRCAudioTrack(new AudioTrackInfo(song.attributes.name, song.attributes.artistName, song.attributes.durationInMillis, song.id, false, song.attributes.url), song.attributes.isrc, song.attributes.artwork.getUrl(), sourceManager);
+	}
+
+	public static ISRCAudioTrack ofSpotify(String title, String identifier, String isrc, Image[] images, ArtistSimplified[] artists, Integer trackDuration, SpotifySourceManager spotifySourceManager){
+		return new ISRCAudioTrack(new AudioTrackInfo(title,
 			artists.length == 0 ? "unknown" : artists[0].getName(),
 			trackDuration.longValue(),
 			identifier,
@@ -43,19 +55,12 @@ public class SpotifyTrack extends DelegatedAudioTrack{
 		), isrc, images.length == 0 ? null : images[0].getUrl(), spotifySourceManager);
 	}
 
-	public SpotifyTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, SpotifySourceManager spotifySourceManager){
-		super(trackInfo);
-		this.isrc = isrc;
-		this.artworkURL = artworkURL;
-		this.spotifySourceManager = spotifySourceManager;
+	public static ISRCAudioTrack ofSpotify(TrackSimplified track, Album album, SpotifySourceManager spotifySourceManager){
+		return ofSpotify(track.getName(), track.getId(), null, album.getImages(), track.getArtists(), track.getDurationMs(), spotifySourceManager);
 	}
 
-	public static SpotifyTrack of(TrackSimplified track, Album album, SpotifySourceManager spotifySourceManager){
-		return new SpotifyTrack(track.getName(), track.getId(), null, album.getImages(), track.getUri(), track.getArtists(), track.getDurationMs(), spotifySourceManager);
-	}
-
-	public static SpotifyTrack of(Track track, SpotifySourceManager spotifySourceManager){
-		return new SpotifyTrack(track.getName(), track.getId(), track.getExternalIds().getExternalIds().getOrDefault("isrc", null), track.getAlbum().getImages(), track.getUri(), track.getArtists(), track.getDurationMs(), spotifySourceManager);
+	public static ISRCAudioTrack ofSpotify(Track track, SpotifySourceManager spotifySourceManager){
+		return ofSpotify(track.getName(), track.getId(), track.getExternalIds().getExternalIds().getOrDefault("isrc", null), track.getAlbum().getImages(), track.getArtists(), track.getDurationMs(), spotifySourceManager);
 	}
 
 	public String getISRC(){
@@ -67,19 +72,18 @@ public class SpotifyTrack extends DelegatedAudioTrack{
 	}
 
 	private String getTrackTitle(){
-		var query = trackInfo.title;
-		if(!trackInfo.author.equals("unknown")){
-			query += " " + trackInfo.author;
+		var query = this.trackInfo.title;
+		if(!this.trackInfo.author.equals("unknown")){
+			query += " " + this.trackInfo.author;
 		}
 		return query;
 	}
 
 	@Override
 	public void process(LocalAudioTrackExecutor executor) throws Exception{
-		var config = this.spotifySourceManager.getConfig();
 		AudioItem track = null;
 
-		for(String provider : config.getProviders()){
+		for(String provider : this.sourceManager.getProviders()){
 			if(provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)){
 				log.warn("Can not use spotify search as provider!");
 				continue;
@@ -109,17 +113,17 @@ public class SpotifyTrack extends DelegatedAudioTrack{
 			processDelegate((InternalAudioTrack) track, executor);
 			return;
 		}
-		throw new FriendlyException("No matching Spotify track found", Severity.COMMON, new SpotifyTrackNotFoundException());
+		throw new FriendlyException("No matching track found", FriendlyException.Severity.COMMON, new TrackNotFoundException());
 	}
 
 	@Override
 	public AudioSourceManager getSourceManager(){
-		return this.spotifySourceManager;
+		return this.sourceManager;
 	}
 
-	public AudioItem loadItem(String query) {
+	public AudioItem loadItem(String query){
 		var cf = new CompletableFuture<AudioItem>();
-		this.spotifySourceManager.getAudioPlayerManager().loadItem(query, new AudioLoadResultHandler(){
+		this.sourceManager.getAudioPlayerManager().loadItem(query, new AudioLoadResultHandler(){
 
 			@Override
 			public void trackLoaded(AudioTrack track){
@@ -146,7 +150,7 @@ public class SpotifyTrack extends DelegatedAudioTrack{
 
 	@Override
 	protected AudioTrack makeShallowClone(){
-		return new SpotifyTrack(getInfo(), isrc, artworkURL, spotifySourceManager);
+		return new ISRCAudioTrack(getInfo(), this.isrc, this.artworkURL, this.sourceManager);
 	}
 
 }
