@@ -1,8 +1,8 @@
-package com.github.topislavalinkplugins.sources;
+package com.github.topislavalinkplugins.sourcemanagers;
 
-import com.github.topislavalinkplugins.sources.applemusic.AppleMusicSourceManager;
-import com.github.topislavalinkplugins.sources.applemusic.Song;
-import com.github.topislavalinkplugins.sources.spotify.SpotifySourceManager;
+import com.github.topislavalinkplugins.sourcemanagers.applemusic.AppleMusicSourceManager;
+import com.github.topislavalinkplugins.sourcemanagers.applemusic.Song;
+import com.github.topislavalinkplugins.sourcemanagers.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -23,8 +23,8 @@ import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.github.topislavalinkplugins.sources.ISRCAudioSourceManager.ISRC_PATTERN;
-import static com.github.topislavalinkplugins.sources.ISRCAudioSourceManager.QUERY_PATTERN;
+import static com.github.topislavalinkplugins.sourcemanagers.ISRCAudioSourceManager.ISRC_PATTERN;
+import static com.github.topislavalinkplugins.sourcemanagers.ISRCAudioSourceManager.QUERY_PATTERN;
 
 public class ISRCAudioTrack extends DelegatedAudioTrack{
 
@@ -113,7 +113,7 @@ public class ISRCAudioTrack extends DelegatedAudioTrack{
 			processDelegate((InternalAudioTrack) track, executor);
 			return;
 		}
-		throw new FriendlyException("No matching Spotify track found", FriendlyException.Severity.COMMON, new TrackNotFoundException());
+		throw new FriendlyException("No matching track found", FriendlyException.Severity.COMMON, new TrackNotFoundException());
 	}
 
 	@Override

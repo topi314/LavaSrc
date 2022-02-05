@@ -1,4 +1,4 @@
-package com.github.topislavalinkplugins.sources;
+package com.github.topislavalinkplugins.sourcemanagers;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;

@@ -1,7 +1,7 @@
-package com.github.topislavalinkplugins.sources.spotify;
+package com.github.topislavalinkplugins.sourcemanagers.spotify;
 
-import com.github.topislavalinkplugins.sources.ISRCAudioSourceManager;
-import com.github.topislavalinkplugins.sources.ISRCAudioTrack;
+import com.github.topislavalinkplugins.sourcemanagers.ISRCAudioSourceManager;
+import com.github.topislavalinkplugins.sourcemanagers.ISRCAudioTrack;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;

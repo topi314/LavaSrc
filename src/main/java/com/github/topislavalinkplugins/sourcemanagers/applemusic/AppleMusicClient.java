@@ -1,4 +1,4 @@
-package com.github.topislavalinkplugins.sources.applemusic;
+package com.github.topislavalinkplugins.sourcemanagers.applemusic;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
