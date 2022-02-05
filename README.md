@@ -1,4 +1,4 @@
-[![](https://jitpack.io/v/Topis-Lavalink-Plugins/Spotify-SourceManager.svg)](https://jitpack.io/#Topis-Lavalink-Plugins/Spotify-SourceManager)
+[![](https://jitpack.io/v/Topis-Lavalink-Plugins/Source-Managers.svg)](https://jitpack.io/#Topis-Lavalink-Plugins/Source-Managers)
 
 # Source-Managers
 
