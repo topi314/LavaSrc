@@ -1,11 +1,11 @@
-package com.github.topislavalinkplugins.spotify;
+package com.github.topislavalinkplugins.sources.spotify;
 
+import com.github.topislavalinkplugins.sources.ISRCAudioSourceManager;
+import com.github.topislavalinkplugins.sources.ISRCAudioTrack;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import org.apache.hc.core5.http.ParseException;
 import org.slf4j.Logger;
@@ -19,42 +19,34 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import static com.sedmelluq.discord.lavaplayer.tools.DataFormatTools.readNullableText;
-import static com.sedmelluq.discord.lavaplayer.tools.DataFormatTools.writeNullableText;
-
-public class SpotifySourceManager implements AudioSourceManager{
+public class SpotifySourceManager extends ISRCAudioSourceManager{
 
 	public static final Pattern SPOTIFY_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?open\\.spotify\\.com/(user/[a-zA-Z0-9-_]+/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
-	public static final String ISRC_PATTERN = "%ISRC%";
-	public static final String QUERY_PATTERN = "%QUERY%";
 
 	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
 	private final SpotifyApi spotify;
 	private final SpotifyConfig config;
 	private final ClientCredentialsRequest clientCredentialsRequest;
-	private final AudioPlayerManager audioPlayerManager;
 	private final Thread thread;
 
-	public SpotifySourceManager(SpotifyConfig config, AudioPlayerManager audioPlayerManager){
-		if(config.getClientId() == null || config.getClientId().isEmpty()){
+	public SpotifySourceManager(String[] providers, SpotifyConfig spotifyConfig, AudioPlayerManager audioPlayerManager){
+		super(providers, audioPlayerManager);
+		if(spotifyConfig.getClientId() == null || spotifyConfig.getClientId().isEmpty()){
 			throw new IllegalArgumentException("Spotify client id must be set");
 		}
-		if(config.getClientSecret() == null || config.getClientSecret().isEmpty()){
+		if(spotifyConfig.getClientSecret() == null || spotifyConfig.getClientSecret().isEmpty()){
 			throw new IllegalArgumentException("Spotify secret must be set");
 		}
-		this.config = config;
-		this.audioPlayerManager = audioPlayerManager;
-		this.spotify = new SpotifyApi.Builder().setClientId(config.getClientId()).setClientSecret(config.getClientSecret()).build();
+		this.spotify = new SpotifyApi.Builder().setClientId(spotifyConfig.getClientId()).setClientSecret(spotifyConfig.getClientSecret()).build();
+		this.config = spotifyConfig;
 		this.clientCredentialsRequest = this.spotify.clientCredentials().build();
 
 		thread = new Thread(() -> {
@@ -79,9 +71,6 @@ public class SpotifySourceManager implements AudioSourceManager{
 		thread.start();
 	}
 
-	public AudioPlayerManager getAudioPlayerManager(){
-		return this.audioPlayerManager;
-	}
 
 	@Override
 	public String getSourceName(){
@@ -125,23 +114,6 @@ public class SpotifySourceManager implements AudioSourceManager{
 	}
 
 	@Override
-	public boolean isTrackEncodable(AudioTrack track){
-		return true;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException{
-		var spotifyTrack = (SpotifyTrack) track;
-		writeNullableText(output, spotifyTrack.getISRC());
-		writeNullableText(output, spotifyTrack.getArtworkURL());
-	}
-
-	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException{
-		return new SpotifyTrack(trackInfo, readNullableText(input), readNullableText(input), this);
-	}
-
-	@Override
 	public void shutdown(){
 		this.thread.interrupt();
 	}
@@ -155,13 +127,13 @@ public class SpotifySourceManager implements AudioSourceManager{
 
 		var tracks = new ArrayList<AudioTrack>();
 		for(var item : searchResult.getItems()){
-			tracks.add(SpotifyTrack.of(item, this));
+			tracks.add(ISRCAudioTrack.ofSpotify(item, this));
 		}
 		return new BasicAudioPlaylist("Search results for: " + query, tracks, null, true);
 	}
 
 	public AudioItem getTrack(String id) throws IOException, ParseException, SpotifyWebApiException{
-		return SpotifyTrack.of(this.spotify.getTrack(id).build().execute(), this);
+		return ISRCAudioTrack.ofSpotify(this.spotify.getTrack(id).build().execute(), this);
 	}
 
 	public AudioItem getAlbum(String id) throws IOException, ParseException, SpotifyWebApiException{
@@ -172,7 +144,7 @@ public class SpotifySourceManager implements AudioSourceManager{
 		do{
 			paging = this.spotify.getAlbumsTracks(id).limit(ALBUM_MAX_PAGE_ITEMS).offset(paging == null ? 0 : paging.getOffset() + ALBUM_MAX_PAGE_ITEMS).build().execute();
 			for(var track : paging.getItems()){
-				tracks.add(SpotifyTrack.of(track, album, this));
+				tracks.add(ISRCAudioTrack.ofSpotify(track, album, this));
 			}
 		}
 		while(paging.getNext() != null);
@@ -191,7 +163,7 @@ public class SpotifySourceManager implements AudioSourceManager{
 				if(item.getIsLocal() || item.getTrack() == null || item.getTrack().getType() != ModelObjectType.TRACK){
 					continue;
 				}
-				tracks.add(SpotifyTrack.of((Track) item.getTrack(), this));
+				tracks.add(ISRCAudioTrack.ofSpotify((Track) item.getTrack(), this));
 			}
 		}
 		while(paging.getNext() != null);
@@ -205,14 +177,10 @@ public class SpotifySourceManager implements AudioSourceManager{
 
 		var tracks = new ArrayList<AudioTrack>();
 		for(var track : artistTracks){
-			tracks.add(SpotifyTrack.of(track, this));
+			tracks.add(ISRCAudioTrack.ofSpotify(track, this));
 		}
 
 		return new BasicAudioPlaylist(artist.getName() + "'s Top Tracks", tracks, null, false);
-	}
-
-	public SpotifyConfig getConfig(){
-		return config;
 	}
 
 }

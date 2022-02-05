@@ -1,27 +1,19 @@
-package com.github.topislavalinkplugins.spotify;
+package com.github.topislavalinkplugins.sources.spotify;
 
 import com.neovisionaries.i18n.CountryCode;
-
-import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.ISRC_PATTERN;
-import static com.github.topislavalinkplugins.spotify.SpotifySourceManager.QUERY_PATTERN;
 
 public class SpotifyConfig{
 
 	private String clientId;
 	private String clientSecret;
 	private CountryCode countryCode = CountryCode.US;
-	private String[] providers = {
-		"ytsearch:\"" + ISRC_PATTERN + "\"",
-		"ytsearch:" + QUERY_PATTERN
-	};
 
 	public SpotifyConfig(){}
 
-	public SpotifyConfig(String clientId, String clientSecret, CountryCode countryCode, String[] providers){
+	public SpotifyConfig(String clientId, String clientSecret, CountryCode countryCode){
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.countryCode = countryCode;
-		this.providers = providers;
 	}
 
 	public String getClientId(){
@@ -46,14 +38,6 @@ public class SpotifyConfig{
 
 	public void setCountryCode(String countryCode){
 		this.countryCode = CountryCode.getByCode(countryCode);
-	}
-
-	public String[] getProviders(){
-		return providers;
-	}
-
-	public void setProviders(String[] providers){
-		this.providers = providers;
 	}
 
 }
