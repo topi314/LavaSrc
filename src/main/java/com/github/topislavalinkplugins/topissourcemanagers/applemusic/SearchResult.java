@@ -1,4 +1,4 @@
-package com.github.topislavalinkplugins.sourcemanagers.applemusic;
+package com.github.topislavalinkplugins.topissourcemanagers.applemusic;
 
 public class SearchResult{
 

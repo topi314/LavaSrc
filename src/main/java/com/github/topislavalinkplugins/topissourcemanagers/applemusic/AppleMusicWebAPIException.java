@@ -1,4 +1,4 @@
-package com.github.topislavalinkplugins.sourcemanagers.applemusic;
+package com.github.topislavalinkplugins.topissourcemanagers.applemusic;
 
 import org.apache.hc.core5.http.HttpException;
 

@@ -1,4 +1,4 @@
-package com.github.topislavalinkplugins.sourcemanagers.spotify;
+package com.github.topislavalinkplugins.topissourcemanagers.spotify;
 
 import com.neovisionaries.i18n.CountryCode;
 

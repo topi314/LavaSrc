@@ -1,8 +1,8 @@
-package com.github.topislavalinkplugins.sourcemanagers;
+package com.github.topislavalinkplugins.topissourcemanagers;
 
-import com.github.topislavalinkplugins.sourcemanagers.applemusic.AppleMusicSourceManager;
-import com.github.topislavalinkplugins.sourcemanagers.applemusic.Song;
-import com.github.topislavalinkplugins.sourcemanagers.spotify.SpotifySourceManager;
+import com.github.topislavalinkplugins.topissourcemanagers.applemusic.AppleMusicSourceManager;
+import com.github.topislavalinkplugins.topissourcemanagers.applemusic.Song;
+import com.github.topislavalinkplugins.topissourcemanagers.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -23,8 +23,8 @@ import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.github.topislavalinkplugins.sourcemanagers.ISRCAudioSourceManager.ISRC_PATTERN;
-import static com.github.topislavalinkplugins.sourcemanagers.ISRCAudioSourceManager.QUERY_PATTERN;
+import static com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager.ISRC_PATTERN;
+import static com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager.QUERY_PATTERN;
 
 public class ISRCAudioTrack extends DelegatedAudioTrack{
 

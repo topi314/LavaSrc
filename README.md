@@ -1,6 +1,6 @@
-[![](https://jitpack.io/v/Topis-Lavalink-Plugins/Source-Managers.svg)](https://jitpack.io/#Topis-Lavalink-Plugins/Source-Managers)
+[![](https://jitpack.io/v/Topis-Lavalink-Plugins/Topis-Source-Managers.svg)](https://jitpack.io/#Topis-Lavalink-Plugins/Topis-Source-Managers)
 
-# Source-Managers
+# Topis-Source-Managers
 
 A collection [Lavaplayer](https://github.com/sedmelluq/lavaplayer) Source Managers. 
 * [Spotify](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results
@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.github.Topis-Lavalink-Plugins:Source-Managers:x.y.z'
+  implementation 'com.github.Topis-Lavalink-Plugins:Topis-Source-Managers:x.y.z'
 }
 ```
 
@@ -37,7 +37,7 @@ dependencies {
 <dependencies>
   <dependency>
     <groupId>com.github.Topis-Lavalink-Plugins</groupId>
-    <artifactId>Source-Managers</artifactId>
+    <artifactId>Topis-Source-Managers</artifactId>
     <version>x.y.z</version>
   </dependency>
 </dependencies>
