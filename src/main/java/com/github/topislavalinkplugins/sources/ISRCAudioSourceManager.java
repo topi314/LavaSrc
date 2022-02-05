@@ -14,13 +14,11 @@ public abstract class ISRCAudioSourceManager implements AudioSourceManager{
 
 	public static final String ISRC_PATTERN = "%ISRC%";
 	public static final String QUERY_PATTERN = "%QUERY%";
-
+	protected final AudioPlayerManager audioPlayerManager;
 	protected String[] providers = {
 		"ytsearch:\"" + ISRC_PATTERN + "\"",
 		"ytsearch:" + QUERY_PATTERN
 	};
-	;
-	protected final AudioPlayerManager audioPlayerManager;
 
 	protected ISRCAudioSourceManager(String[] providers, AudioPlayerManager audioPlayerManager){
 		if(providers != null && providers.length > 0){

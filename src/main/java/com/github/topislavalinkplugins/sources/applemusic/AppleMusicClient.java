@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -33,6 +34,7 @@ public class AppleMusicClient{
 	public void updateToken(){
 		try{
 			this.token = getToken();
+			System.out.println("TOKEN: " + this.token);
 			this.tokenExpire = getTokenExpire();
 		}
 		catch(IOException | AppleMusicWebException e){
@@ -42,11 +44,7 @@ public class AppleMusicClient{
 
 	public String getToken() throws IOException, AppleMusicWebException{
 		var document = Jsoup.parse(request("GET", null, null, "https://music.apple.com/cy/album/animals/1533388849"), null, "https://music.apple.com/");
-		var node = document.selectFirst("meta[name=desktop-music-app/config/environment]");
-		if(node == null){
-			return null;
-		}
-		return node.data();
+		return jackson.readTree(URLDecoder.decode(document.selectFirst("meta[name=desktop-music-app/config/environment]").attr("content"), StandardCharsets.UTF_8)).get("MEDIA_API").get("token").asText();
 	}
 
 	public Instant getTokenExpire() throws IOException, AppleMusicWebException{

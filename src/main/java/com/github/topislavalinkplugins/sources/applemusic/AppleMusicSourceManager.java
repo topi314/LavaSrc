@@ -7,17 +7,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
-import org.apache.hc.core5.http.ParseException;
-import se.michaelthelin.spotify.enums.ModelObjectType;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.specification.Paging;
-import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
-import se.michaelthelin.spotify.model_objects.specification.Track;
-import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 public class AppleMusicSourceManager extends ISRCAudioSourceManager{
@@ -100,11 +92,11 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		var album = this.appleMusicClient.getAlbum(id);
 		var tracks = new ArrayList<AudioTrack>();
 
-		for (var track : album.data.get(0).releationships.tracks.data) {
+		for(var track : album.data.get(0).releationships.tracks.data){
 			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
 		}
 
-		if (album.data.get(0).releationships.tracks.next != null) {
+		if(album.data.get(0).releationships.tracks.next != null){
 			Song.Wrapper paging = null;
 			var offset = 100;
 			do{
@@ -127,11 +119,11 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		var playlist = this.appleMusicClient.getPlaylist(id);
 		var tracks = new ArrayList<AudioTrack>();
 
-		for (var track : playlist.data.get(0).releationships.tracks.data) {
+		for(var track : playlist.data.get(0).releationships.tracks.data){
 			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
 		}
 
-		if (playlist.data.get(0).releationships.tracks.next != null){
+		if(playlist.data.get(0).releationships.tracks.next != null){
 			Song.Wrapper paging = null;
 			var offset = 100;
 			do{
