@@ -55,11 +55,10 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 					return this.getPlaylist(id);
 
 				case "artist":
-					throw new UnsupportedOperationException("Apple Music does not support artist pages");
-					//return this.getArtist(id);
+					return this.getArtist(id);
 			}
 		}
-		catch(IOException | AppleMusicWebException e){
+		catch(IOException | AppleMusicWebAPIException e){
 			throw new RuntimeException(e);
 		}
 		return null;
@@ -70,7 +69,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 
 	}
 
-	public AudioItem getSearch(String query) throws IOException, AppleMusicWebException{
+	public AudioItem getSearch(String query) throws IOException, AppleMusicWebAPIException{
 		var searchResult = this.appleMusicClient.searchSongs(query, 25);
 
 		if(searchResult.results.songs.data.size() == 0){
@@ -84,11 +83,11 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		return new BasicAudioPlaylist("Search results for: " + query, tracks, null, true);
 	}
 
-	public AudioItem getTrack(String id) throws IOException, AppleMusicWebException{
+	public AudioItem getTrack(String id) throws IOException, AppleMusicWebAPIException{
 		return ISRCAudioTrack.ofAppleMusic(this.appleMusicClient.getSong(id).data.get(0), this);
 	}
 
-	public AudioItem getAlbum(String id) throws IOException, AppleMusicWebException{
+	public AudioItem getAlbum(String id) throws IOException, AppleMusicWebAPIException{
 		var album = this.appleMusicClient.getAlbum(id);
 		var tracks = new ArrayList<AudioTrack>();
 
@@ -115,7 +114,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		return new BasicAudioPlaylist(album.data.get(0).attributes.name, tracks, null, false);
 	}
 
-	public AudioItem getPlaylist(String id) throws IOException, AppleMusicWebException{
+	public AudioItem getPlaylist(String id) throws IOException, AppleMusicWebAPIException{
 		var playlist = this.appleMusicClient.getPlaylist(id);
 		var tracks = new ArrayList<AudioTrack>();
 
@@ -142,17 +141,16 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		return new BasicAudioPlaylist(playlist.data.get(0).attributes.name, tracks, null, false);
 	}
 
-	/*
-	public AudioItem getArtist(String id) throws IOException, ParseException, SpotifyWebApiException{
-		var artist = this.appleMusicClient.getArtist(id).build().execute();
-		var artistTracks = this.spotify.getArtistsTopTracks(id, this.config.getCountryCode()).build().execute();
+
+	public AudioItem getArtist(String id) throws IOException, AppleMusicWebAPIException{
+		var topTracks = this.appleMusicClient.getArtistTopSongs(id);
 
 		var tracks = new ArrayList<AudioTrack>();
-		for(var track : artistTracks){
-			tracks.add(ISRCAudioTrack.of(track, this));
+		for(var track : topTracks.data){
+			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
 		}
 
-		return new BasicAudioPlaylist(artist.getName() + "'s Top Tracks", tracks, null, false);
-	}*/
+		return new BasicAudioPlaylist(topTracks.data.get(0).attributes.artistName + "'s Top Tracks", tracks, null, false);
+	}
 
 }

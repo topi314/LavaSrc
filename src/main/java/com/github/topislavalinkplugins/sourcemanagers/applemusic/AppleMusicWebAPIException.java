@@ -2,9 +2,9 @@ package com.github.topislavalinkplugins.sourcemanagers.applemusic;
 
 import org.apache.hc.core5.http.HttpException;
 
-public class AppleMusicWebException extends HttpException{
+public class AppleMusicWebAPIException extends HttpException{
 
-	public AppleMusicWebException(String message){
+	public AppleMusicWebAPIException(String message){
 		super(message);
 	}
 

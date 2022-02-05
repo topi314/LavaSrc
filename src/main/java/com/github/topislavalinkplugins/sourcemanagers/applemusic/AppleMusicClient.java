@@ -38,17 +38,17 @@ public class AppleMusicClient{
 			System.out.println("TOKEN: " + this.token);
 			this.tokenExpire = getTokenExpire();
 		}
-		catch(IOException | AppleMusicWebException e){
+		catch(IOException | AppleMusicWebAPIException e){
 			log.error("Failed to get Apple Music token", e);
 		}
 	}
 
-	public String getToken() throws IOException, AppleMusicWebException{
+	public String getToken() throws IOException, AppleMusicWebAPIException{
 		var document = Jsoup.parse(request("GET", null, null, "https://music.apple.com/cy/album/animals/1533388849"), null, "https://music.apple.com/");
 		return jackson.readTree(URLDecoder.decode(document.selectFirst("meta[name=desktop-music-app/config/environment]").attr("content"), StandardCharsets.UTF_8)).get("MEDIA_API").get("token").asText();
 	}
 
-	public Instant getTokenExpire() throws IOException, AppleMusicWebException{
+	public Instant getTokenExpire() throws IOException, AppleMusicWebAPIException{
 		return Instant.ofEpochSecond(jackson.readTree(Base64.getDecoder().decode(this.token.split("\\.")[1])).get("exp").asLong());
 	}
 
@@ -63,48 +63,54 @@ public class AppleMusicClient{
 		return Map.of("Authorization", "Bearer " + this.token);
 	}
 
-	public SearchResult searchSongs(String query, int limit) throws IOException, AppleMusicWebException{
+	public SearchResult searchSongs(String query, int limit) throws IOException, AppleMusicWebAPIException{
 		this.checkToken();
 
 		return getClass(SearchResult.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/search?term=%s&limit=%d", this.country, URLEncoder.encode(query, StandardCharsets.UTF_8), limit);
 	}
 
-	public Song.Wrapper getSong(String id) throws IOException, AppleMusicWebException{
+	public Song.Wrapper getSong(String id) throws IOException, AppleMusicWebAPIException{
 		this.checkToken();
 
 		return getClass(Song.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/songs/%s", this.country, id);
 	}
 
-	public SongCollection.Wrapper getAlbum(String id) throws IOException, AppleMusicWebException{
+	public SongCollection.Wrapper getAlbum(String id) throws IOException, AppleMusicWebAPIException{
 		this.checkToken();
 
 		return getClass(SongCollection.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/albums/%s", this.country, id);
 	}
 
-	public Song.Wrapper getAlbumSongs(String id, int limit, int offset) throws IOException, AppleMusicWebException{
+	public Song.Wrapper getAlbumSongs(String id, int limit, int offset) throws IOException, AppleMusicWebAPIException{
 		this.checkToken();
 
 		return getClass(Song.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/albums/%s/tracks?limit=%d&offset=%d", this.country, id, limit, offset);
 	}
 
-	public SongCollection.Wrapper getPlaylist(String id) throws IOException, AppleMusicWebException{
+	public SongCollection.Wrapper getPlaylist(String id) throws IOException, AppleMusicWebAPIException{
 		this.checkToken();
 
 		return getClass(SongCollection.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/playlists/%s", this.country, id);
 	}
 
-	public Song.Wrapper getPlaylistSongs(String id, int limit, int offset) throws IOException, AppleMusicWebException{
+	public Song.Wrapper getPlaylistSongs(String id, int limit, int offset) throws IOException, AppleMusicWebAPIException{
 		this.checkToken();
 
 		return getClass(Song.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/playlists/%s/tracks?limit=%d&offset=%d", this.country, id, limit, offset);
 	}
 
+	public Song.Wrapper getArtistTopSongs(String id)  throws IOException, AppleMusicWebAPIException{
+		this.checkToken();
 
-	public <T> T getClass(Class<T> clazz, Map<String, String> headers, String url, Object... params) throws IOException, AppleMusicWebException{
+		return getClass(Song.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/artists/%s/view/top-songs", this.country, id);
+	}
+
+
+	public <T> T getClass(Class<T> clazz, Map<String, String> headers, String url, Object... params) throws IOException, AppleMusicWebAPIException{
 		return jackson.readValue(request("GET", headers, null, url, params), clazz);
 	}
 
-	public InputStream request(String method, Map<String, String> headers, String body, String route, Object... params) throws IOException, AppleMusicWebException{
+	public InputStream request(String method, Map<String, String> headers, String body, String route, Object... params) throws IOException, AppleMusicWebAPIException{
 		var con = (HttpURLConnection) new URL(String.format(route, params)).openConnection();
 		con.setRequestMethod(method);
 		if(headers != null){
@@ -123,7 +129,7 @@ public class AppleMusicClient{
 		}
 		con.disconnect();
 		if(con.getResponseCode() != 200){
-			throw new AppleMusicWebException(con.getResponseMessage());
+			throw new AppleMusicWebAPIException(con.getResponseMessage());
 		}
 		return con.getInputStream();
 	}
