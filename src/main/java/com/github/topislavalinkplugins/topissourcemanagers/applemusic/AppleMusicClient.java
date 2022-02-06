@@ -35,7 +35,6 @@ public class AppleMusicClient{
 	public void updateToken(){
 		try{
 			this.token = getToken();
-			System.out.println("TOKEN: " + this.token);
 			this.tokenExpire = getTokenExpire();
 		}
 		catch(IOException | AppleMusicWebAPIException e){
@@ -99,7 +98,7 @@ public class AppleMusicClient{
 		return getClass(Song.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/playlists/%s/tracks?limit=%d&offset=%d", this.country, id, limit, offset);
 	}
 
-	public Song.Wrapper getArtistTopSongs(String id)  throws IOException, AppleMusicWebAPIException{
+	public Song.Wrapper getArtistTopSongs(String id) throws IOException, AppleMusicWebAPIException{
 		this.checkToken();
 
 		return getClass(Song.Wrapper.class, getHeaders(), "https://api.music.apple.com/v1/catalog/%s/artists/%s/view/top-songs", this.country, id);

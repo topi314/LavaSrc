@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 
-	public static final Pattern APPLE_MUSIC_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist)(/[a-zA-Z\\-]+)?/(?<identifier>[a-zA-Z0-9.]+)(\\?i=(?<identifier2>\\d+))?");
+	public static final Pattern APPLE_MUSIC_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist)(/[a-zA-Z0-9\\-]+)?/(?<identifier>[a-zA-Z0-9.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final String SEARCH_PREFIX = "amsearch:";
 	public static final int MAX_PAGE_ITEMS = 300;
 
@@ -91,25 +91,19 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		var album = this.appleMusicClient.getAlbum(id);
 		var tracks = new ArrayList<AudioTrack>();
 
-		for(var track : album.data.get(0).relationships.tracks.data){
-			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
-		}
-
-		if(album.data.get(0).relationships.tracks.next != null){
-			Song.Wrapper paging = null;
-			var offset = 100;
-			do{
-				paging = this.appleMusicClient.getAlbumSongs(id, MAX_PAGE_ITEMS, paging == null ? 0 : offset + MAX_PAGE_ITEMS);
-				offset += MAX_PAGE_ITEMS;
-				for(var item : paging.data){
-					if(!item.type.equals("songs")){
-						continue;
-					}
-					tracks.add(ISRCAudioTrack.ofAppleMusic(item, this));
+		Song.Wrapper paging;
+		var offset = 0;
+		do{
+			paging = this.appleMusicClient.getAlbumSongs(id, MAX_PAGE_ITEMS, offset);
+			offset += MAX_PAGE_ITEMS;
+			for(var item : paging.data){
+				if(!item.type.equals("songs")){
+					continue;
 				}
+				tracks.add(ISRCAudioTrack.ofAppleMusic(item, this));
 			}
-			while(paging.next != null);
 		}
+		while(paging.next != null);
 
 		return new BasicAudioPlaylist(album.data.get(0).attributes.name, tracks, null, false);
 	}
@@ -118,29 +112,22 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		var playlist = this.appleMusicClient.getPlaylist(id);
 		var tracks = new ArrayList<AudioTrack>();
 
-		for(var track : playlist.data.get(0).relationships.tracks.data){
-			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
-		}
-
-		if(playlist.data.get(0).relationships.tracks.next != null){
-			Song.Wrapper paging = null;
-			var offset = 100;
-			do{
-				paging = this.appleMusicClient.getPlaylistSongs(id, MAX_PAGE_ITEMS, paging == null ? 0 : offset + MAX_PAGE_ITEMS);
-				offset += MAX_PAGE_ITEMS;
-				for(var item : paging.data){
-					if(!item.type.equals("songs")){
-						continue;
-					}
-					tracks.add(ISRCAudioTrack.ofAppleMusic(item, this));
+		Song.Wrapper paging;
+		var offset = 0;
+		do{
+			paging = this.appleMusicClient.getPlaylistSongs(id, MAX_PAGE_ITEMS, offset);
+			offset += MAX_PAGE_ITEMS;
+			for(var item : paging.data){
+				if(!item.type.equals("songs")){
+					continue;
 				}
+				tracks.add(ISRCAudioTrack.ofAppleMusic(item, this));
 			}
-			while(paging.next != null);
 		}
+		while(paging.next != null);
 
 		return new BasicAudioPlaylist(playlist.data.get(0).attributes.name, tracks, null, false);
 	}
-
 
 	public AudioItem getArtist(String id) throws IOException, AppleMusicWebAPIException{
 		var topTracks = this.appleMusicClient.getArtistTopSongs(id);

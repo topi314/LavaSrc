@@ -6,7 +6,6 @@ public class SongCollection{
 
 	public String id, type, href;
 	public Attributes attributes;
-	public Relationships relationships;
 
 	public static class Attributes{
 
@@ -23,12 +22,6 @@ public class SongCollection{
 			}
 
 		}
-
-	}
-
-	public static class Relationships{
-
-		public Song.Wrapper tracks;
 
 	}
 
