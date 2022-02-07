@@ -3,26 +3,41 @@ package com.github.topislavalinkplugins.topissourcemanagers.applemusic;
 import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager;
 import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioTrack;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class AppleMusicSourceManager extends ISRCAudioSourceManager{
+public class AppleMusicSourceManager extends ISRCAudioSourceManager implements HttpConfigurable{
+
+	private static final Logger log = LoggerFactory.getLogger(AppleMusicSourceManager.class);
 
 	public static final Pattern APPLE_MUSIC_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist)(/[a-zA-Z0-9\\-]+)?/(?<identifier>[a-zA-Z0-9.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final String SEARCH_PREFIX = "amsearch:";
 	public static final int MAX_PAGE_ITEMS = 300;
 
-	private final AppleMusicClient appleMusicClient;
+	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+	private final String catalog = "us";
 
 	public AppleMusicSourceManager(String[] providers, String country, AudioPlayerManager audioPlayerManager){
 		super(providers, audioPlayerManager);
-		this.appleMusicClient = new AppleMusicClient(country);
 	}
 
 	@Override
@@ -64,80 +79,37 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 		return null;
 	}
 
+	public AudioItem getSearch(String query) throws IOException{
+		var uri = "https://api.music.apple.com/v1/catalog/"+catalog+"/search?term=" + query + "&limit=" + 25;
+		try(var response = this.httpInterfaceManager.getInterface().execute(new HttpGet(uri)){
+			if (response.getStatusLine().getStatusCode() != 200){
+				throw new IOException("HTTP error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
+			}
+			var json = JsonBrowser.parse(response.getEntity().getContent());
+			json.get("data").
+		}
+
+
+	}
+
 	@Override
 	public void shutdown(){
-
+		try{
+			this.httpInterfaceManager.close();
+		}
+		catch(IOException e){
+			log.error("Failed to close HTTP interface manager", e);
+		}
 	}
 
-	public AudioItem getSearch(String query) throws IOException, AppleMusicWebAPIException{
-		var searchResult = this.appleMusicClient.searchSongs(query, 25);
-
-		if(searchResult.results.songs.data.size() == 0){
-			return AudioReference.NO_TRACK;
-		}
-
-		var tracks = new ArrayList<AudioTrack>();
-		for(var item : searchResult.results.songs.data){
-			tracks.add(ISRCAudioTrack.ofAppleMusic(item, this));
-		}
-		return new BasicAudioPlaylist("Search results for: " + query, tracks, null, true);
+	@Override
+	public void configureRequests(Function<RequestConfig, RequestConfig> configurator){
+		this.httpInterfaceManager.configureRequests(configurator);
 	}
 
-	public AudioItem getTrack(String id) throws IOException, AppleMusicWebAPIException{
-		return ISRCAudioTrack.ofAppleMusic(this.appleMusicClient.getSong(id).data.get(0), this);
-	}
-
-	public AudioItem getAlbum(String id) throws IOException, AppleMusicWebAPIException{
-		var album = this.appleMusicClient.getAlbum(id);
-		var tracks = new ArrayList<AudioTrack>();
-
-		Song.Wrapper paging;
-		var offset = 0;
-		do{
-			paging = this.appleMusicClient.getAlbumSongs(id, MAX_PAGE_ITEMS, offset);
-			offset += MAX_PAGE_ITEMS;
-			for(var item : paging.data){
-				if(!item.type.equals("songs")){
-					continue;
-				}
-				tracks.add(ISRCAudioTrack.ofAppleMusic(item, this));
-			}
-		}
-		while(paging.next != null);
-
-		return new BasicAudioPlaylist(album.data.get(0).attributes.name, tracks, null, false);
-	}
-
-	public AudioItem getPlaylist(String id) throws IOException, AppleMusicWebAPIException{
-		var playlist = this.appleMusicClient.getPlaylist(id);
-		var tracks = new ArrayList<AudioTrack>();
-
-		Song.Wrapper paging;
-		var offset = 0;
-		do{
-			paging = this.appleMusicClient.getPlaylistSongs(id, MAX_PAGE_ITEMS, offset);
-			offset += MAX_PAGE_ITEMS;
-			for(var item : paging.data){
-				if(!item.type.equals("songs")){
-					continue;
-				}
-				tracks.add(ISRCAudioTrack.ofAppleMusic(item, this));
-			}
-		}
-		while(paging.next != null);
-
-		return new BasicAudioPlaylist(playlist.data.get(0).attributes.name, tracks, null, false);
-	}
-
-	public AudioItem getArtist(String id) throws IOException, AppleMusicWebAPIException{
-		var topTracks = this.appleMusicClient.getArtistTopSongs(id);
-
-		var tracks = new ArrayList<AudioTrack>();
-		for(var track : topTracks.data){
-			tracks.add(ISRCAudioTrack.ofAppleMusic(track, this));
-		}
-
-		return new BasicAudioPlaylist(topTracks.data.get(0).attributes.artistName + "'s Top Tracks", tracks, null, false);
+	@Override
+	public void configureBuilder(Consumer<HttpClientBuilder> configurator){
+		this.httpInterfaceManager.configureBuilder(configurator);
 	}
 
 }
