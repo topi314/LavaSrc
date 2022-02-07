@@ -10,17 +10,22 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -34,10 +39,18 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 	public static final int MAX_PAGE_ITEMS = 300;
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-	private final String catalog = "us";
+	private final String countryCode;
+	private String token;
+	private Instant tokenExpire;
 
-	public AppleMusicSourceManager(String[] providers, String country, AudioPlayerManager audioPlayerManager){
+	public AppleMusicSourceManager(String[] providers, String countryCode, AudioPlayerManager audioPlayerManager){
 		super(providers, audioPlayerManager);
+		if(countryCode == null || countryCode.isEmpty()){
+			this.countryCode = "us";
+		}
+		else{
+			this.countryCode = countryCode;
+		}
 	}
 
 	@Override
@@ -64,7 +77,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 					if(id2 == null || id2.isEmpty()){
 						return this.getAlbum(id);
 					}
-					return this.getTrack(id2);
+					return this.getSong(id2);
 
 				case "playlist":
 					return this.getPlaylist(id);
@@ -73,23 +86,113 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 					return this.getArtist(id);
 			}
 		}
-		catch(IOException | AppleMusicWebAPIException e){
+		catch(IOException e){
 			throw new RuntimeException(e);
 		}
 		return null;
 	}
 
-	public AudioItem getSearch(String query) throws IOException{
-		var uri = "https://api.music.apple.com/v1/catalog/"+catalog+"/search?term=" + query + "&limit=" + 25;
-		try(var response = this.httpInterfaceManager.getInterface().execute(new HttpGet(uri)){
-			if (response.getStatusLine().getStatusCode() != 200){
+	public String requestToken() throws IOException{
+		var request = new HttpGet("https://music.apple.com");
+		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
+			var document = Jsoup.parse(response.getEntity().getContent(), null, "");
+			return JsonBrowser.parse(URLDecoder.decode(document.selectFirst("meta[name=desktop-music-app/config/environment]").attr("content"), StandardCharsets.UTF_8)).get("MEDIA_API").get("token").text();
+		}
+	}
+
+
+	public String getToken() throws IOException{
+		if(this.token == null || this.tokenExpire == null || this.tokenExpire.isBefore(Instant.now())){
+			this.token = this.requestToken();
+			this.tokenExpire = Instant.ofEpochSecond(JsonBrowser.parse(new String(Base64.getDecoder().decode(this.token.split("\\.")[1]))).get("exp").asLong(0));
+		}
+		return this.token;
+	}
+
+	public JsonBrowser getJson(String uri) throws IOException{
+		var request = new HttpGet(uri);
+		request.addHeader("Authorization", "Bearer " + this.getToken());
+		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
+			if(response.getStatusLine().getStatusCode() != 200){
 				throw new IOException("HTTP error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
 			}
-			var json = JsonBrowser.parse(response.getEntity().getContent());
-			json.get("data").
+			return JsonBrowser.parse(response.getEntity().getContent());
 		}
+	}
 
+	public AudioItem getSearch(String query) throws IOException{
+		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/search?term=" + query + "&limit=" + 25);
+		return new BasicAudioPlaylist("Apple Music Search: " + query, parseTracks(json.get("results").get("songs")), null, true);
+	}
 
+	public AudioItem getAlbum(String id) throws IOException{
+		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/albums/" + id);
+
+		var tracks = new ArrayList<AudioTrack>();
+		JsonBrowser page;
+		var offset = 0;
+		do{
+			page = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/albums/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
+			offset += MAX_PAGE_ITEMS;
+
+			tracks.addAll(parseTracks(page));
+		}
+		while(page.get("next").text() != null);
+
+		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
+	}
+
+	public AudioItem getPlaylist(String id) throws IOException{
+		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/playlists/" + id);
+
+		var tracks = new ArrayList<AudioTrack>();
+		JsonBrowser page;
+		var offset = 0;
+		do{
+			page = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/playlists/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
+			offset += MAX_PAGE_ITEMS;
+
+			tracks.addAll(parseTracks(page));
+		}
+		while(page.get("next").text() != null);
+
+		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
+	}
+
+	public AudioItem getArtist(String id) throws IOException{
+		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/artists/" + id + "/view/top-songs");
+		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("artistName").text() + "'s Top Tracks", parseTracks(json), null, false);
+	}
+
+	public AudioItem getSong(String id) throws IOException{
+		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/songs/" + id);
+		return parseTrack(json.get("data").index(0));
+	}
+
+	private List<AudioTrack> parseTracks(JsonBrowser json){
+		var tracks = new ArrayList<AudioTrack>();
+		for(var value : json.get("data").values()){
+			tracks.add(this.parseTrack(value));
+		}
+		return tracks;
+	}
+
+	private AudioTrack parseTrack(JsonBrowser json){
+		var attributes = json.get("attributes");
+		var artwork = attributes.get("artwork");
+		return new ISRCAudioTrack(
+			new AudioTrackInfo(
+				attributes.get("name").text(),
+				attributes.get("artistName").text(),
+				attributes.get("durationInMillis").asLong(0),
+				json.get("id").text(),
+				false,
+				artwork.get("url").text()
+			),
+			attributes.get("isrc").text(),
+			artwork.get("url").text().replace("{w}", artwork.get("width").text()).replace("{h}", artwork.get("height").text()),
+			this
+		);
 	}
 
 	@Override
