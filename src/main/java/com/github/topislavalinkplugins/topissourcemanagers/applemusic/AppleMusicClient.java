@@ -59,7 +59,7 @@ public class AppleMusicClient{
 	}
 
 	public Map<String, String> getHeaders(){
-		return Map.of("Authorization", "Bearer " + this.token);
+		return Map.of("Authorization", "Bearer " + this.token, "Origin", "https://music.apple.com");
 	}
 
 	public SearchResult searchSongs(String query, int limit) throws IOException, AppleMusicWebAPIException{
