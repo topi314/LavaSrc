@@ -38,7 +38,7 @@ dependencies {
   <dependency>
     <groupId>com.github.Topis-Lavalink-Plugins</groupId>
     <artifactId>Topis-Source-Managers</artifactId>
-    <version>x.y.z</version>
+    <version>vx.y.z</version>
   </dependency>
 </dependencies>
 ```
