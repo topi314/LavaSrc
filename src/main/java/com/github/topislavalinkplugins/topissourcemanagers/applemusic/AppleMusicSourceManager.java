@@ -112,6 +112,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 	public JsonBrowser getJson(String uri) throws IOException{
 		var request = new HttpGet(uri);
 		request.addHeader("Authorization", "Bearer " + this.getToken());
+		request.addHeader("Origin", "https://music.apple.com");
 		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
 			if(response.getStatusLine().getStatusCode() != 200){
 				throw new IOException("HTTP error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
