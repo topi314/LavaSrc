@@ -22,6 +22,9 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager{
 
 	public AppleMusicSourceManager(String[] providers, String country, AudioPlayerManager audioPlayerManager){
 		super(providers, audioPlayerManager);
+
+		// we need to set the origin header to access the Apple Music api and apparently HttpURLConnection blocks some headers to be set. here we allow origin to be set.
+		System.setProperty("jdk.httpclient.allowRestrictedHeaders", "Origin");
 		this.appleMusicClient = new AppleMusicClient(country);
 	}
 
