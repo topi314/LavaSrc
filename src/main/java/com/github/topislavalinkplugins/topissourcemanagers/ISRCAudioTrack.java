@@ -1,7 +1,5 @@
 package com.github.topislavalinkplugins.topissourcemanagers;
 
-import com.github.topislavalinkplugins.topissourcemanagers.applemusic.AppleMusicSourceManager;
-import com.github.topislavalinkplugins.topissourcemanagers.applemusic.Song;
 import com.github.topislavalinkplugins.topissourcemanagers.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
@@ -39,10 +37,6 @@ public class ISRCAudioTrack extends DelegatedAudioTrack{
 		this.isrc = isrc;
 		this.artworkURL = artworkURL;
 		this.sourceManager = sourceManager;
-	}
-
-	public static ISRCAudioTrack ofAppleMusic(Song song, AppleMusicSourceManager sourceManager){
-		return new ISRCAudioTrack(new AudioTrackInfo(song.attributes.name, song.attributes.artistName, song.attributes.durationInMillis, song.id, false, song.attributes.url), song.attributes.isrc, song.attributes.artwork.getUrl(), sourceManager);
 	}
 
 	public static ISRCAudioTrack ofSpotify(String title, String identifier, String isrc, Image[] images, ArtistSimplified[] artists, Integer trackDuration, SpotifySourceManager spotifySourceManager){
