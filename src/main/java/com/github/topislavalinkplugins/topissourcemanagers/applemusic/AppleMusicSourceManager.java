@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -122,7 +123,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 	}
 
 	public AudioItem getSearch(String query) throws IOException{
-		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/search?term=" + query + "&limit=" + 25);
+		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25);
 		return new BasicAudioPlaylist("Apple Music Search: " + query, parseTracks(json.get("results").get("songs")), null, true);
 	}
 
