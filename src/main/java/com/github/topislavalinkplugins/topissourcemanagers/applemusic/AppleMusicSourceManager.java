@@ -189,7 +189,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 				attributes.get("durationInMillis").asLong(0),
 				json.get("id").text(),
 				false,
-				artwork.get("url").text()
+				attributes.get("url").text()
 			),
 			attributes.get("isrc").text(),
 			artwork.get("url").text().replace("{w}", artwork.get("width").text()).replace("{h}", artwork.get("height").text()),
