@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.exceptions.detailed.NotFoundException;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Track;
@@ -108,6 +109,9 @@ public class SpotifySourceManager extends ISRCAudioSourceManager{
 			}
 		}
 		catch(IOException | ParseException | SpotifyWebApiException e){
+			if (e instanceof NotFoundException) {
+				return AudioReference.NO_TRACK;
+			}
 			throw new RuntimeException(e);
 		}
 		return null;
