@@ -71,20 +71,21 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 				return null;
 			}
 
+			var countryCode = matcher.group("countrycode");
 			var id = matcher.group("identifier");
 			switch(matcher.group("type")){
 				case "album":
 					var id2 = matcher.group("identifier2");
 					if(id2 == null || id2.isEmpty()){
-						return this.getAlbum(id);
+						return this.getAlbum(id, countryCode);
 					}
-					return this.getSong(id2);
+					return this.getSong(id2, countryCode);
 
 				case "playlist":
-					return this.getPlaylist(id);
+					return this.getPlaylist(id, countryCode);
 
 				case "artist":
-					return this.getArtist(id);
+					return this.getArtist(id, countryCode);
 			}
 		}
 		catch(IOException e){
@@ -133,7 +134,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 		return new BasicAudioPlaylist("Apple Music Search: " + query, parseTracks(json.get("results").get("songs")), null, true);
 	}
 
-	public AudioItem getAlbum(String id) throws IOException{
+	public AudioItem getAlbum(String id, String countryCode) throws IOException{
 		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/albums/" + id);
 		if(json == null){
 			return AudioReference.NO_TRACK;
@@ -153,7 +154,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
 	}
 
-	public AudioItem getPlaylist(String id) throws IOException{
+	public AudioItem getPlaylist(String id, String countryCode) throws IOException{
 		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/playlists/" + id);
 		if(json == null){
 			return AudioReference.NO_TRACK;
@@ -173,7 +174,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
 	}
 
-	public AudioItem getArtist(String id) throws IOException{
+	public AudioItem getArtist(String id, String countryCode) throws IOException{
 		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/artists/" + id + "/view/top-songs");
 		if(json == null){
 			return AudioReference.NO_TRACK;
@@ -181,7 +182,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("artistName").text() + "'s Top Tracks", parseTracks(json), null, false);
 	}
 
-	public AudioItem getSong(String id) throws IOException{
+	public AudioItem getSong(String id, String countryCode) throws IOException{
 		var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/songs/" + id);
 		if(json == null){
 			return AudioReference.NO_TRACK;
