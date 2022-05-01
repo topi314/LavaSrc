@@ -35,7 +35,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 
 	private static final Logger log = LoggerFactory.getLogger(AppleMusicSourceManager.class);
 
-	public static final Pattern APPLE_MUSIC_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist)(/[a-zA-Z0-9\\-]+)?/(?<identifier>[a-zA-Z0-9.]+)(\\?i=(?<identifier2>\\d+))?");
+	public static final Pattern APPLE_MUSIC_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final String SEARCH_PREFIX = "amsearch:";
 	public static final int MAX_PAGE_ITEMS = 300;
 
@@ -74,6 +74,9 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 			var countryCode = matcher.group("countrycode");
 			var id = matcher.group("identifier");
 			switch(matcher.group("type")){
+				case "song":
+					return this.getSong(id, countryCode);
+
 				case "album":
 					var id2 = matcher.group("identifier2");
 					if(id2 == null || id2.isEmpty()){
