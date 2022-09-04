@@ -47,6 +47,9 @@ dependencies {
 
 
 ### Spotify
+
+To get a spotifyClientId & spotifyClientSecret you must go [here](https://developer.spotify.com/dashboard) and create a new application. Then you can copy the Client ID & Client Secret.
+
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
