@@ -3,6 +3,7 @@ package com.github.topislavalinkplugins.topissourcemanagers.applemusic;
 import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager;
 import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioTrack;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -19,6 +20,7 @@ import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInput;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -60,6 +62,15 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 	}
 
 	@Override
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException{
+		return new AppleMusicTrack(trackInfo,
+			DataFormatTools.readNullableText(input),
+			DataFormatTools.readNullableText(input),
+			this
+		);
+	}
+
+	@Override
 	public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference){
 		try{
 			if(reference.identifier.startsWith(SEARCH_PREFIX)){
@@ -97,19 +108,23 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 		return null;
 	}
 
-	public String requestToken() throws IOException{
+	public void requestToken() throws IOException{
 		var request = new HttpGet("https://music.apple.com");
 		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
 			var document = Jsoup.parse(response.getEntity().getContent(), null, "");
-			return JsonBrowser.parse(URLDecoder.decode(document.selectFirst("meta[name=desktop-music-app/config/environment]").attr("content"), StandardCharsets.UTF_8)).get("MEDIA_API").get("token").text();
+			var element = document.selectFirst("meta[name=desktop-music-app/config/environment]");
+			if (element == null) {
+				throw new IOException("Could not find token");
+			}
+			this.token = JsonBrowser.parse(URLDecoder.decode(element.attr("content"), StandardCharsets.UTF_8)).get("MEDIA_API").get("token").text();
+			this.tokenExpire = Instant.ofEpochSecond(JsonBrowser.parse(new String(Base64.getDecoder().decode(this.token.split("\\.")[1]))).get("exp").asLong(0));
 		}
 	}
 
 
 	public String getToken() throws IOException{
 		if(this.token == null || this.tokenExpire == null || this.tokenExpire.isBefore(Instant.now())){
-			this.token = this.requestToken();
-			this.tokenExpire = Instant.ofEpochSecond(JsonBrowser.parse(new String(Base64.getDecoder().decode(this.token.split("\\.")[1]))).get("exp").asLong(0));
+			this.requestToken();
 		}
 		return this.token;
 	}
@@ -204,7 +219,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 	private AudioTrack parseTrack(JsonBrowser json){
 		var attributes = json.get("attributes");
 		var artwork = attributes.get("artwork");
-		return new ISRCAudioTrack(
+		return new AppleMusicTrack(
 			new AudioTrackInfo(
 				attributes.get("name").text(),
 				attributes.get("artistName").text(),

@@ -47,9 +47,4 @@ public abstract class ISRCAudioSourceManager implements AudioSourceManager{
 		DataFormatTools.writeNullableText(output, isrcAudioTrack.getArtworkURL());
 	}
 
-	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException{
-		return new ISRCAudioTrack(trackInfo, DataFormatTools.readNullableText(input), DataFormatTools.readNullableText(input), this);
-	}
-
 }

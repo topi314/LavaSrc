@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
@@ -13,18 +14,13 @@ import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.michaelthelin.spotify.model_objects.specification.Album;
-import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
-import se.michaelthelin.spotify.model_objects.specification.Image;
-import se.michaelthelin.spotify.model_objects.specification.Track;
-import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.util.concurrent.CompletableFuture;
 
 import static com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager.ISRC_PATTERN;
 import static com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager.QUERY_PATTERN;
 
-public class ISRCAudioTrack extends DelegatedAudioTrack{
+public abstract class ISRCAudioTrack extends DelegatedAudioTrack{
 
 	private static final Logger log = LoggerFactory.getLogger(ISRCAudioTrack.class);
 
@@ -37,24 +33,6 @@ public class ISRCAudioTrack extends DelegatedAudioTrack{
 		this.isrc = isrc;
 		this.artworkURL = artworkURL;
 		this.sourceManager = sourceManager;
-	}
-
-	public static ISRCAudioTrack ofSpotify(String title, String identifier, String isrc, Image[] images, ArtistSimplified[] artists, Integer trackDuration, SpotifySourceManager spotifySourceManager){
-		return new ISRCAudioTrack(new AudioTrackInfo(title,
-			artists.length == 0 ? "unknown" : artists[0].getName(),
-			trackDuration.longValue(),
-			identifier,
-			false,
-			"https://open.spotify.com/track/" + identifier
-		), isrc, images.length == 0 ? null : images[0].getUrl(), spotifySourceManager);
-	}
-
-	public static ISRCAudioTrack ofSpotify(TrackSimplified track, Album album, SpotifySourceManager spotifySourceManager){
-		return ofSpotify(track.getName(), track.getId(), null, album.getImages(), track.getArtists(), track.getDurationMs(), spotifySourceManager);
-	}
-
-	public static ISRCAudioTrack ofSpotify(Track track, SpotifySourceManager spotifySourceManager){
-		return ofSpotify(track.getName(), track.getId(), track.getExternalIds().getExternalIds().getOrDefault("isrc", null), track.getAlbum().getImages(), track.getArtists(), track.getDurationMs(), spotifySourceManager);
 	}
 
 	public String getISRC(){
@@ -115,7 +93,7 @@ public class ISRCAudioTrack extends DelegatedAudioTrack{
 		return this.sourceManager;
 	}
 
-	public AudioItem loadItem(String query){
+	private AudioItem loadItem(String query){
 		var cf = new CompletableFuture<AudioItem>();
 		this.sourceManager.getAudioPlayerManager().loadItem(query, new AudioLoadResultHandler(){
 
@@ -131,7 +109,7 @@ public class ISRCAudioTrack extends DelegatedAudioTrack{
 
 			@Override
 			public void noMatches(){
-				cf.complete(null);
+				cf.complete(AudioReference.NO_TRACK);
 			}
 
 			@Override
@@ -140,11 +118,6 @@ public class ISRCAudioTrack extends DelegatedAudioTrack{
 			}
 		});
 		return cf.join();
-	}
-
-	@Override
-	protected AudioTrack makeShallowClone(){
-		return new ISRCAudioTrack(getInfo(), this.isrc, this.artworkURL, this.sourceManager);
 	}
 
 }
