@@ -145,6 +145,7 @@ public class SpotifySourceManager extends ISRCAudioSourceManager implements Http
 				return null;
 			}
 			if(response.getStatusLine().getStatusCode() != 200){
+				log.error("Spotify API returned status code " + response.getStatusLine().getStatusCode() + " for " + uri + ": " + response.getStatusLine().getReasonPhrase() + " (" + response.getEntity().getContent() + ")");
 				throw new IOException("HTTP error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
 			}
 			return JsonBrowser.parse(response.getEntity().getContent());

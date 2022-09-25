@@ -55,7 +55,7 @@ public abstract class ISRCAudioTrack extends DelegatedAudioTrack{
 	public void process(LocalAudioTrackExecutor executor) throws Exception{
 		AudioItem track = null;
 
-		for(String provider : this.sourceManager.getProviders()){
+		for(var provider : this.sourceManager.getProviders()){
 			if(provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)){
 				log.warn("Can not use spotify search as provider!");
 				continue;
