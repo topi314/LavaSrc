@@ -52,7 +52,7 @@ public class DeezerAudioTrack extends DelegatedAudioTrack{
 		getUserToken.setHeader("Cookie", "sid=" + sessionID);
 		json = HttpClientTools.fetchResponseAsJson(httpInterface, getUserToken);
 		var userLicenseToken = json.get("results").get("USER").get("OPTIONS").get("license_token").text();
-		var apiToken = json.get("results").get("checkForm").text();
+		var apiToken = json.get("results").get("checkFormLogin").text();
 
 
 		var getTrackToken = new HttpPost(DeezerAudioSourceManager.DEEZER_PRIVATE_API_BASE + "?method=song.getData&input=3&api_version=1.0&api_token=" + apiToken);
