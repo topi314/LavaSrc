@@ -50,7 +50,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	public DeezerAudioSourceManager(String masterDecryptionKey){
 		this.masterDecryptionKey = masterDecryptionKey;
-		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	}
 
 	@Override
