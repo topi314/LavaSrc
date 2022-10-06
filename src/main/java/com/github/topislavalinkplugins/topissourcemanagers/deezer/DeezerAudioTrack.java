@@ -44,28 +44,28 @@ public class DeezerAudioTrack extends DelegatedAudioTrack{
 		var httpInterface = this.sourceManager.getHttpInterface();
 
 		var getSessionID = new HttpPost(DeezerAudioSourceManager.DEEZER_PRIVATE_API_BASE + "?method=deezer.ping&input=3&api_version=1.0&api_token=");
-		var json = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
-		var sessionID = json.get("results").get("SESSION").text();
+		var sessionJSON = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
+		var sessionID = sessionJSON.get("results").get("SESSION").text();
 
 
 		var getUserToken = new HttpPost(DeezerAudioSourceManager.DEEZER_PRIVATE_API_BASE + "?method=deezer.getUserData&input=3&api_version=1.0&api_token=");
 		getUserToken.setHeader("Cookie", "sid=" + sessionID);
-		json = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
-		var userLicenseToken = json.get("results").get("USER").get("OPTIONS").get("license_token").text();
-		var apiToken = json.get("results").get("checkForm").text();
+		var userTokenJSON = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
+		var userLicenseToken = userTokenJSON.get("results").get("USER").get("OPTIONS").get("license_token").text();
+		var apiToken = userTokenJSON.get("results").get("checkForm").text();
 
 
 		var getTrackToken = new HttpPost(DeezerAudioSourceManager.DEEZER_PRIVATE_API_BASE + "?method=song.getData&input=3&api_version=1.0&api_token=" + apiToken);
 		getTrackToken.setHeader("Cookie", "sid=" + sessionID);
 		getTrackToken.setEntity(new StringEntity("{\"sng_id\":\"" + this.trackInfo.identifier + "\"}", ContentType.APPLICATION_JSON));
-		json = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
-		var trackToken = json.get("results").get("TRACK_TOKEN").text();
+		var trackTokenJSON = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
+		var trackToken = trackTokenJSON.get("results").get("TRACK_TOKEN").text();
 
 
 		var getMediaURL = new HttpPost(DeezerAudioSourceManager.DEEZER_MEDIA_BASE + "/get_url");
 		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + userLicenseToken + "\",\"media\": [{\"type\": \"FULL\",\"formats\": [{\"cipher\": \"BF_CBC_STRIPE\", \"format\": \"MP3_128\"}]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
-		json = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
-		return new URI(json.get("data").index(0).get("media").index(0).get("sources").index(0).get("url").text());
+		var mediaJSON = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
+		return new URI(mediaJSON.get("data").index(0).get("media").index(0).get("sources").index(0).get("url").text());
 	}
 
 	private byte[] getTrackDecryptionKey() throws NoSuchAlgorithmException{
