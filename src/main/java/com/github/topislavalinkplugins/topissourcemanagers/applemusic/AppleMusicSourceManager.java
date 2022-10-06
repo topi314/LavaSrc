@@ -1,7 +1,6 @@
 package com.github.topislavalinkplugins.topissourcemanagers.applemusic;
 
-import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager;
-import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioTrack;
+import com.github.topislavalinkplugins.topissourcemanagers.mirror.MirroringAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -33,11 +32,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class AppleMusicSourceManager extends ISRCAudioSourceManager implements HttpConfigurable{
+public class AppleMusicSourceManager extends MirroringAudioSourceManager implements HttpConfigurable{
 
 	private static final Logger log = LoggerFactory.getLogger(AppleMusicSourceManager.class);
 
-	public static final Pattern APPLE_MUSIC_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
+	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final String SEARCH_PREFIX = "amsearch:";
 	public static final int MAX_PAGE_ITEMS = 300;
 
@@ -63,7 +62,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException{
-		return new AppleMusicTrack(trackInfo,
+		return new AppleMusicAudioTrack(trackInfo,
 			DataFormatTools.readNullableText(input),
 			DataFormatTools.readNullableText(input),
 			this
@@ -77,7 +76,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()).trim());
 			}
 
-			var matcher = APPLE_MUSIC_URL_PATTERN.matcher(reference.identifier);
+			var matcher = URL_PATTERN.matcher(reference.identifier);
 			if(!matcher.find()){
 				return null;
 			}
@@ -113,7 +112,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
 			var document = Jsoup.parse(response.getEntity().getContent(), null, "");
 			var element = document.selectFirst("meta[name=desktop-music-app/config/environment]");
-			if (element == null) {
+			if(element == null){
 				throw new IOException("Could not find token");
 			}
 			this.token = JsonBrowser.parse(URLDecoder.decode(element.attr("content"), StandardCharsets.UTF_8)).get("MEDIA_API").get("token").text();
@@ -133,15 +132,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 		var request = new HttpGet(uri);
 		request.addHeader("Authorization", "Bearer " + this.getToken());
 		request.addHeader("Origin", "https://music.apple.com");
-		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
-			if(response.getStatusLine().getStatusCode() == 404){
-				return null;
-			}
-			if(response.getStatusLine().getStatusCode() != 200){
-				throw new IOException("HTTP error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
-			}
-			return JsonBrowser.parse(response.getEntity().getContent());
-		}
+		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	public AudioItem getSearch(String query) throws IOException{
@@ -219,7 +210,7 @@ public class AppleMusicSourceManager extends ISRCAudioSourceManager implements H
 	private AudioTrack parseTrack(JsonBrowser json){
 		var attributes = json.get("attributes");
 		var artwork = attributes.get("artwork");
-		return new AppleMusicTrack(
+		return new AppleMusicAudioTrack(
 			new AudioTrackInfo(
 				attributes.get("name").text(),
 				attributes.get("artistName").text(),

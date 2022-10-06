@@ -1,16 +1,14 @@
-package com.github.topislavalinkplugins.topissourcemanagers;
+package com.github.topislavalinkplugins.topissourcemanagers.mirror;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
-import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public abstract class ISRCAudioSourceManager implements AudioSourceManager{
+public abstract class MirroringAudioSourceManager implements AudioSourceManager{
 
 	public static final String ISRC_PATTERN = "%ISRC%";
 	public static final String QUERY_PATTERN = "%QUERY%";
@@ -20,7 +18,7 @@ public abstract class ISRCAudioSourceManager implements AudioSourceManager{
 		"ytsearch:" + QUERY_PATTERN
 	};
 
-	protected ISRCAudioSourceManager(String[] providers, AudioPlayerManager audioPlayerManager){
+	protected MirroringAudioSourceManager(String[] providers, AudioPlayerManager audioPlayerManager){
 		if(providers != null && providers.length > 0){
 			this.providers = providers;
 		}
@@ -42,7 +40,7 @@ public abstract class ISRCAudioSourceManager implements AudioSourceManager{
 
 	@Override
 	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException{
-		var isrcAudioTrack = ((ISRCAudioTrack) track);
+		var isrcAudioTrack = ((MirroringAudioTrack) track);
 		DataFormatTools.writeNullableText(output, isrcAudioTrack.getISRC());
 		DataFormatTools.writeNullableText(output, isrcAudioTrack.getArtworkURL());
 	}

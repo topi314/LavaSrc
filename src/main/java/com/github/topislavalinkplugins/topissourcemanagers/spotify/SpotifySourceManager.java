@@ -1,7 +1,6 @@
 package com.github.topislavalinkplugins.topissourcemanagers.spotify;
 
-import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager;
-import com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioTrack;
+import com.github.topislavalinkplugins.topissourcemanagers.mirror.MirroringAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -34,9 +33,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class SpotifySourceManager extends ISRCAudioSourceManager implements HttpConfigurable{
+public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable{
 
-	public static final Pattern SPOTIFY_URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?open\\.spotify\\.com/(user/[a-zA-Z0-9-_]+/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
+	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?open\\.spotify\\.com/(user/[a-zA-Z0-9-_]+/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
@@ -47,12 +46,11 @@ public class SpotifySourceManager extends ISRCAudioSourceManager implements Http
 
 	private final String clientId;
 	private final String clientSecret;
-	private final String countryCode;
 
 	private String token;
 	private Instant tokenExpire;
 
-	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager){
+	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, AudioPlayerManager audioPlayerManager){
 		super(providers, audioPlayerManager);
 
 		if(clientId == null || clientId.isEmpty()){
@@ -64,12 +62,6 @@ public class SpotifySourceManager extends ISRCAudioSourceManager implements Http
 			throw new IllegalArgumentException("Spotify secret must be set");
 		}
 		this.clientSecret = clientSecret;
-		if(countryCode == null || countryCode.isEmpty()){
-			this.countryCode = "US";
-		}
-		else{
-			this.countryCode = countryCode;
-		}
 	}
 
 	@Override
@@ -93,7 +85,7 @@ public class SpotifySourceManager extends ISRCAudioSourceManager implements Http
 				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()).trim());
 			}
 
-			var matcher = SPOTIFY_URL_PATTERN.matcher(reference.identifier);
+			var matcher = URL_PATTERN.matcher(reference.identifier);
 			if(!matcher.find()){
 				return null;
 			}
@@ -123,11 +115,10 @@ public class SpotifySourceManager extends ISRCAudioSourceManager implements Http
 		var request = new HttpPost("https://accounts.spotify.com/api/token");
 		request.addHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((this.clientId + ":" + this.clientSecret).getBytes(StandardCharsets.UTF_8)));
 		request.setEntity(new UrlEncodedFormEntity(List.of(new BasicNameValuePair("grant_type", "client_credentials")), StandardCharsets.UTF_8));
-		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
-			var json = JsonBrowser.parse(response.getEntity().getContent());
-			this.token = json.get("access_token").text();
-			this.tokenExpire = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
-		}
+
+		var json = HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		this.token = json.get("access_token").text();
+		this.tokenExpire = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
 	}
 
 	public String getToken() throws IOException{
@@ -140,16 +131,7 @@ public class SpotifySourceManager extends ISRCAudioSourceManager implements Http
 	public JsonBrowser getJson(String uri) throws IOException{
 		var request = new HttpGet(uri);
 		request.addHeader("Authorization", "Bearer " + this.getToken());
-		try(var response = this.httpInterfaceManager.getInterface().execute(request)){
-			if(response.getStatusLine().getStatusCode() == 404){
-				return null;
-			}
-			if(response.getStatusLine().getStatusCode() != 200){
-				log.error("Spotify API returned status code " + response.getStatusLine().getStatusCode() + " for " + uri + ": " + response.getStatusLine().getReasonPhrase() + " (" + response.getEntity().getContent() + ")");
-				throw new IOException("HTTP error " + response.getStatusLine().getStatusCode() + ": " + response.getStatusLine().getReasonPhrase());
-			}
-			return JsonBrowser.parse(response.getEntity().getContent());
-		}
+		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	public AudioItem getSearch(String query) throws IOException{

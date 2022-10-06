@@ -1,5 +1,6 @@
-package com.github.topislavalinkplugins.topissourcemanagers;
+package com.github.topislavalinkplugins.topissourcemanagers.mirror;
 
+import com.github.topislavalinkplugins.topissourcemanagers.applemusic.AppleMusicSourceManager;
 import com.github.topislavalinkplugins.topissourcemanagers.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
@@ -17,18 +18,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager.ISRC_PATTERN;
-import static com.github.topislavalinkplugins.topissourcemanagers.ISRCAudioSourceManager.QUERY_PATTERN;
+import static com.github.topislavalinkplugins.topissourcemanagers.mirror.MirroringAudioSourceManager.ISRC_PATTERN;
+import static com.github.topislavalinkplugins.topissourcemanagers.mirror.MirroringAudioSourceManager.QUERY_PATTERN;
 
-public abstract class ISRCAudioTrack extends DelegatedAudioTrack{
+public abstract class MirroringAudioTrack extends DelegatedAudioTrack{
 
-	private static final Logger log = LoggerFactory.getLogger(ISRCAudioTrack.class);
+	private static final Logger log = LoggerFactory.getLogger(MirroringAudioTrack.class);
 
 	protected final String isrc;
 	protected final String artworkURL;
-	protected final ISRCAudioSourceManager sourceManager;
+	protected final MirroringAudioSourceManager sourceManager;
 
-	public ISRCAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, ISRCAudioSourceManager sourceManager){
+	public MirroringAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, MirroringAudioSourceManager sourceManager){
 		super(trackInfo);
 		this.isrc = isrc;
 		this.artworkURL = artworkURL;
@@ -57,7 +58,12 @@ public abstract class ISRCAudioTrack extends DelegatedAudioTrack{
 
 		for(var provider : this.sourceManager.getProviders()){
 			if(provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)){
-				log.warn("Can not use spotify search as provider!");
+				log.warn("Can not use spotify search as search provider!");
+				continue;
+			}
+
+			if(provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)){
+				log.warn("Can not use apple music search as search provider!");
 				continue;
 			}
 

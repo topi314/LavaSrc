@@ -1,4 +1,4 @@
-package com.github.topislavalinkplugins.topissourcemanagers;
+package com.github.topislavalinkplugins.topissourcemanagers.mirror;
 
 public class TrackNotFoundException extends RuntimeException{
 
