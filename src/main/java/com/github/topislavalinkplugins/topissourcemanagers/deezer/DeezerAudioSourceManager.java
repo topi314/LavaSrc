@@ -15,7 +15,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +37,9 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	public static final String SEARCH_PREFIX = "dsearch:";
 	public static final String ISRC_PREFIX = "disrc:";
 	public static final String SHARE_URL = "https://deezer.page.link/";
-	public static final String DEEZER_PUBLIC_API_BASE = "https://api.deezer.com/2.0";
-	public static final String DEEZER_PRIVATE_API_BASE = "https://www.deezer.com/ajax/gw-light.php";
-	public static final String DEEZER_MEDIA_BASE = "https://media.deezer.com/v1";
+	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
+	public static final String PRIVATE_API_BASE = "https://www.deezer.com/ajax/gw-light.php";
+	public static final String MEDIA_BASE = "https://media.deezer.com/v1";
 
 	private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
 
@@ -144,7 +143,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private AudioItem getTrackByISRC(String isrc) throws IOException{
-		var json = this.getJson(DEEZER_PUBLIC_API_BASE + "/track/isrc:" + isrc);
+		var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
 		if(json == null) {
 			return AudioReference.NO_TRACK;
 		}
@@ -152,22 +151,22 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private AudioItem getSearch(String query) throws IOException{
-		var json = this.getJson(DEEZER_PUBLIC_API_BASE + "/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
+		var json = this.getJson(PUBLIC_API_BASE + "/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
 
 		var tracks = this.parseTracks(json);
 		return new BasicAudioPlaylist("Deezer Search: " + query, tracks, null, true);
 	}
 
 	private AudioItem getAlbum(String id) throws IOException{
-		var json = this.getJson(DEEZER_PUBLIC_API_BASE + "/album/" + id);
+		var json = this.getJson(PUBLIC_API_BASE + "/album/" + id);
 		if(json == null) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json), null, false);
+		return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
 	}
 
 	private AudioItem getTrack(String id) throws IOException{
-		var json = this.getJson(DEEZER_PUBLIC_API_BASE + "/track/" + id);
+		var json = this.getJson(PUBLIC_API_BASE + "/track/" + id);
 		if(json == null) {
 			return AudioReference.NO_TRACK;
 		}
@@ -175,15 +174,15 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private AudioItem getPlaylist(String id) throws IOException{
-		var json = this.getJson(DEEZER_PUBLIC_API_BASE + "/playlist/" + id);
+		var json = this.getJson(PUBLIC_API_BASE + "/playlist/" + id);
 		if(json == null) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json), null, false);
+		return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
 	}
 
 	private AudioItem getArtist(String id) throws IOException{
-		var json = this.getJson(DEEZER_PUBLIC_API_BASE + "/artist/" + id + "/top?limit=50");
+		var json = this.getJson(PUBLIC_API_BASE + "/artist/" + id + "/top?limit=50");
 		if(json == null) {
 			return AudioReference.NO_TRACK;
 		}

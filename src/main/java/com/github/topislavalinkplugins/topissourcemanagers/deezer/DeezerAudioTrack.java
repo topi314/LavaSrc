@@ -2,6 +2,7 @@ package com.github.topislavalinkplugins.topissourcemanagers.deezer;
 
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
@@ -41,30 +42,31 @@ public class DeezerAudioTrack extends DelegatedAudioTrack{
 	}
 
 	private URI getTrackMediaURI() throws IOException, URISyntaxException{
-		var httpInterface = this.sourceManager.getHttpInterface();
-
-		var getSessionID = new HttpPost(DeezerAudioSourceManager.DEEZER_PRIVATE_API_BASE + "?method=deezer.ping&input=3&api_version=1.0&api_token=");
-		var json = HttpClientTools.fetchResponseAsJson(httpInterface, getSessionID);
+		var getSessionID = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.ping&input=3&api_version=1.0&api_token=");
+		var json = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getSessionID);
 		var sessionID = json.get("results").get("SESSION").text();
 
 
-		var getUserToken = new HttpPost(DeezerAudioSourceManager.DEEZER_PRIVATE_API_BASE + "?method=deezer.getUserData&input=3&api_version=1.0&api_token=");
+		var getUserToken = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.getUserData&input=3&api_version=1.0&api_token=");
 		getUserToken.setHeader("Cookie", "sid=" + sessionID);
-		var userTokenJSON = HttpClientTools.fetchResponseAsJson(httpInterface, getUserToken);
+		var userTokenJSON = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getUserToken);
 		var userLicenseToken = userTokenJSON.get("results").get("USER").get("OPTIONS").get("license_token").text();
 		var apiToken = userTokenJSON.get("results").get("checkForm").text();
 
 
-		var getTrackToken = new HttpPost(DeezerAudioSourceManager.DEEZER_PRIVATE_API_BASE + "?method=song.getData&input=3&api_version=1.0&api_token=" + apiToken);
-		getTrackToken.setHeader("Cookie", "sid=" + sessionID);
+		var getTrackToken = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=song.getData&input=3&api_version=1.0&api_token=" + apiToken);
 		getTrackToken.setEntity(new StringEntity("{\"sng_id\":\"" + this.trackInfo.identifier + "\"}", ContentType.APPLICATION_JSON));
-		var trackTokenJSON = HttpClientTools.fetchResponseAsJson(httpInterface, getTrackToken);
+		var trackTokenJSON = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getTrackToken);
 		var trackToken = trackTokenJSON.get("results").get("TRACK_TOKEN").text();
 
 
-		var getMediaURL = new HttpPost(DeezerAudioSourceManager.DEEZER_MEDIA_BASE + "/get_url");
+		var getMediaURL = new HttpPost(DeezerAudioSourceManager.MEDIA_BASE + "/get_url");
 		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + userLicenseToken + "\",\"media\": [{\"type\": \"FULL\",\"formats\": [{\"cipher\": \"BF_CBC_STRIPE\", \"format\": \"MP3_128\"}]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
-		var mediaURLJSON = HttpClientTools.fetchResponseAsJson(httpInterface, getMediaURL);
+		var mediaURLJSON = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getMediaURL);
+		var error = mediaURLJSON.get("data").index(0).get("errors").index(0);
+		if(error.get("code").asLong(0) != 0){
+			throw new FriendlyException("Error while loading track: " + error.get("message").text(), FriendlyException.Severity.COMMON, new DeezerTrackLoadingException());
+		}
 		return new URI(mediaURLJSON.get("data").index(0).get("media").index(0).get("sources").index(0).get("url").text());
 	}
 

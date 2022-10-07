@@ -56,7 +56,10 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack{
 	public void process(LocalAudioTrackExecutor executor) throws Exception{
 		AudioItem track = null;
 
+		System.out.println("Processing track: " + this.trackInfo.identifier);
+
 		for(var provider : this.sourceManager.getProviders()){
+			System.out.println("Trying provider: " + provider);
 			if(provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)){
 				log.warn("Can not use spotify search as search provider!");
 				continue;
@@ -105,21 +108,25 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack{
 
 			@Override
 			public void trackLoaded(AudioTrack track){
+				System.out.println("Track loaded: " + track.getIdentifier());
 				cf.complete(track);
 			}
 
 			@Override
 			public void playlistLoaded(AudioPlaylist playlist){
+				System.out.println("Playlist loaded: " + playlist.getName());
 				cf.complete(playlist);
 			}
 
 			@Override
 			public void noMatches(){
+				System.out.println("No matches found for: " + query);
 				cf.complete(AudioReference.NO_TRACK);
 			}
 
 			@Override
 			public void loadFailed(FriendlyException exception){
+				System.out.println("Failed to load: " + query);
 				cf.completeExceptionally(exception);
 			}
 		});
