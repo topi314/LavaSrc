@@ -133,7 +133,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
     public AudioItem getSearch(String query) throws IOException {
         var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25);
-        if (json == null) {
+        if (json == null || json.get("results").get("songs").get("data").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         return new BasicAudioPlaylist("Apple Music Search: " + query, parseTracks(json.get("results").get("songs")), null, true);
@@ -156,6 +156,10 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
         }
         while (page.get("next").text() != null);
 
+        if (tracks.isEmpty()) {
+            return AudioReference.NO_TRACK;
+        }
+
         return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
     }
 
@@ -176,12 +180,16 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
         }
         while (page.get("next").text() != null);
 
+        if (tracks.isEmpty()) {
+            return AudioReference.NO_TRACK;
+        }
+
         return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
     }
 
     public AudioItem getArtist(String id, String countryCode) throws IOException {
         var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/artists/" + id + "/view/top-songs");
-        if (json == null) {
+        if (json == null || json.get("data").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("artistName").text() + "'s Top Tracks", parseTracks(json), null, false);

@@ -153,6 +153,9 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
     private AudioItem getSearch(String query) throws IOException {
         var json = this.getJson(PUBLIC_API_BASE + "/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
+        if (json == null || json.get("data").values().isEmpty()) {
+            return AudioReference.NO_TRACK;
+        }
 
         var tracks = this.parseTracks(json);
         return new BasicAudioPlaylist("Deezer Search: " + query, tracks, null, true);
@@ -160,7 +163,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
     private AudioItem getAlbum(String id) throws IOException {
         var json = this.getJson(PUBLIC_API_BASE + "/album/" + id);
-        if (json == null) {
+        if (json == null || json.get("tracks").get("data").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
@@ -176,7 +179,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
     private AudioItem getPlaylist(String id) throws IOException {
         var json = this.getJson(PUBLIC_API_BASE + "/playlist/" + id);
-        if (json == null) {
+        if (json == null || json.get("tracks").get("data").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
@@ -184,7 +187,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
     private AudioItem getArtist(String id) throws IOException {
         var json = this.getJson(PUBLIC_API_BASE + "/artist/" + id + "/top?limit=50");
-        if (json == null) {
+        if (json == null || json.get("data").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         return new BasicAudioPlaylist(json.get("data").index(0).get("artist").get("name").text() + "'s Top Tracks", this.parseTracks(json), null, false);

@@ -140,7 +140,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
     public AudioItem getSearch(String query) throws IOException {
         var json = this.getJson("https://api.spotify.com/v1/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track,album,playlist,artist");
-        if (json == null) {
+        if (json == null || json.get("tracks").get("items").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
 
@@ -148,30 +148,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     }
 
     public AudioItem getRecommendations(String query) throws IOException {
-        var seedArtists = "";
-        var seedTracks = "";
-        var seedGenres = "";
-
-        var i = 0;
-        for (var seed : query.split("\\|")) {
-            if (i == 0) {
-                seedArtists = seed;
-            } else if (i == 1) {
-                seedTracks = seed;
-            } else if (i == 2) {
-                seedGenres = seed;
-            } else {
-                break;
-            }
-            i++;
-        }
-
-        var json = this.getJson("https://api.spotify.com/v1/recommendations"
-                + "?seedArtists=" + URLEncoder.encode(seedArtists, StandardCharsets.UTF_8)
-                + "&seedTracks=" + URLEncoder.encode(seedTracks, StandardCharsets.UTF_8)
-                + "&seedGenres=" + URLEncoder.encode(seedGenres, StandardCharsets.UTF_8)
-        );
-        if (json == null) {
+        var json = this.getJson("https://api.spotify.com/v1/recommendations?" + query);
+        if (json == null || json.get("tracks").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
 
@@ -195,6 +173,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
         }
         while (page.get("next").text() != null);
 
+        if (tracks.isEmpty()) {
+            return AudioReference.NO_TRACK;
+        }
+
         return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
 
     }
@@ -216,13 +198,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
         }
         while (page.get("next").text() != null);
 
+        if (tracks.isEmpty()) {
+            return AudioReference.NO_TRACK;
+        }
+
         return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
 
     }
 
     public AudioItem getArtist(String id) throws IOException {
         var json = this.getJson("https://api.spotify.com/v1/artists/" + id + "/top-tracks");
-        if (json == null) {
+        if (json == null || json.get("tracks").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         return new BasicAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json), null, false);
