@@ -1,35 +1,19 @@
-plugins {
-	id "java"
-	id "java-library"
-	id "maven-publish"
+allprojects {
+    group = "com.github.TopiSenpai.LavaSrc"
+
+    repositories {
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        maven { url "https://m2.dv8tion.net/releases" }
+        jcenter()
+    }
 }
 
-group "com.github"
-version "2.0.7"
+subprojects {
+    apply plugin: "java"
 
-sourceCompatibility = 11
-compileJava.options.encoding = "UTF-8"
+    version "3.0.0"
 
-
-repositories {
-	mavenCentral()
-	maven { url "https://jitpack.io" }
-
-	jcenter()
-}
-
-dependencies {
-    compileOnly "com.github.walkyst:lavaplayer-fork:1.3.97"
-	api "se.michaelthelin.spotify:spotify-web-api-java:7.0.0"
-    implementation 'org.jsoup:jsoup:1.14.3'
-}
-
-publishing {
-	publications {
-		maven(MavenPublication) {
-			pom {
-				from components.java
-			}
-		}
-	}
+    sourceCompatibility = 11
+    compileJava.options.encoding = "UTF-8"
 }
