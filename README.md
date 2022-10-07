@@ -131,8 +131,8 @@ plugins:
 ## Supported URLs and Queries
 
 ### Spotify
-* spsearch:animals architects
-* sprec:seed_artists=3ZztVuWxHzNpl0THurTFCv,4MzJMcHQBl9SIYSjwWn8QW&seed_genres=metalcore&seed_tracks=5ofoB8PFmocBXFBEWVb6Vz,6I5zXzSDByTEmYZ7ePVQeB
+* `spsearch:animals architects`
+* `sprec:seed_artists=3ZztVuWxHzNpl0THurTFCv,4MzJMcHQBl9SIYSjwWn8QW&seed_genres=metalcore&seed_tracks=5ofoB8PFmocBXFBEWVb6Vz,6I5zXzSDByTEmYZ7ePVQeB`
   (check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/browse/get-recommendations/) for the full query parameter list)
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
@@ -140,15 +140,15 @@ plugins:
 * https://open.spotify.com/artist/3ZztVuWxHzNpl0THurTFCv
 
 ### Apple Music
-* amsearch:animals architects
+* `amsearch:animals architects`
 * https://music.apple.com/cy/album/animals/1533388849?i=1533388859
 * https://music.apple.com/cy/album/for-those-that-wish-to-exist/1533388849
 * https://music.apple.com/us/playlist/architects-essentials/pl.40e568c609ae4b1eba58b6e89f4cd6a5
 * https://music.apple.com/cy/artist/architects/182821355
 
 ### Deezer
-* dzsearch:animals architects
-* dzisrc:USEP42058010
+* `dzsearch:animals architects`
+* `dzisrc:USEP42058010`
 * https://deezer.page.link/U6BTQ2Q1KpmNt2yh8
 * https://www.deezer.com/track/1090538082
 * https://www.deezer.com/album/175537082
