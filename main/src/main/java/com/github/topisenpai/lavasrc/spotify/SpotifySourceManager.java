@@ -144,7 +144,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             return AudioReference.NO_TRACK;
         }
 
-        return new BasicAudioPlaylist("Search results for: " + query, parseTracks(json), null, true);
+        return new BasicAudioPlaylist("Search results for: " + query, parseTrackItems(json.get("tracks")), null, true);
     }
 
     public AudioItem getRecommendations(String query) throws IOException {

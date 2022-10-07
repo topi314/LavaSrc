@@ -2,5 +2,5 @@ build
 .gradle
 .idea
 !gradle/wrapper/gradle-wrapper.jar
-application.yml
+plugin/application.yml
 logs/
