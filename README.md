@@ -107,7 +107,7 @@ To get your Spotify clientId & clientSecret go [here](https://developer.spotify.
 (YES `plugins` IS AT ROOT IN THE YAML)
 ```yaml
 plugins:
-  topissourcemanagers:
+  lavasrc:
     providers: # Custom providers for track loading. This is the default
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
