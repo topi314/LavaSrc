@@ -44,14 +44,13 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
     private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-
     private final String clientId;
     private final String clientSecret;
-
+    private final String countryCode;
     private String token;
     private Instant tokenExpire;
 
-    public SpotifySourceManager(String[] providers, String clientId, String clientSecret, AudioPlayerManager audioPlayerManager) {
+    public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
         super(providers, audioPlayerManager);
 
         if (clientId == null || clientId.isEmpty()) {
@@ -63,6 +62,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             throw new IllegalArgumentException("Spotify secret must be set");
         }
         this.clientSecret = clientSecret;
+
+        if (countryCode == null || countryCode.isEmpty()) {
+            countryCode = "US";
+        }
+        this.countryCode = countryCode;
     }
 
     @Override
@@ -194,7 +198,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             page = this.getJson("https://api.spotify.com/v1/playlists/" + id + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset);
             offset += PLAYLIST_MAX_PAGE_ITEMS;
 
-            tracks.addAll(this.parseTrackItems(page));
+            for (var value : page.get("items").values()) {
+                tracks.add(this.parseTrack(value.get("track")));
+            }
+
         }
         while (page.get("next").text() != null);
 
@@ -207,7 +214,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     }
 
     public AudioItem getArtist(String id) throws IOException {
-        var json = this.getJson("https://api.spotify.com/v1/artists/" + id + "/top-tracks");
+        var json = this.getJson("https://api.spotify.com/v1/artists/" + id + "/top-tracks?market="+this.countryCode);
         if (json == null || json.get("tracks").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }

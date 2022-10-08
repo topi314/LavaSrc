@@ -34,7 +34,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
     public AudioPlayerManager configure(AudioPlayerManager manager) {
         if (this.sourcesConfig.isSpotify()) {
             log.info("Loading Spotify-SourceManager...");
-            manager.registerSourceManager(new SpotifySourceManager(this.pluginConfig.getProviders(), this.spotifyConfig.getClientId(), this.spotifyConfig.getClientSecret(), manager));
+            manager.registerSourceManager(new SpotifySourceManager(this.pluginConfig.getProviders(), this.spotifyConfig.getClientId(), this.spotifyConfig.getClientSecret(), this.spotifyConfig.getCountryCode(), manager));
         }
         if (this.sourcesConfig.isAppleMusic()) {
             log.info("Loading Apple-Music-SourceManager...");

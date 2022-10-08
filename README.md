@@ -61,8 +61,8 @@ To get a Spotify clientId & clientSecret you must go [here](https://developer.sp
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new SpotifySourceManager with the default providers, clientId, clientSecret and AudioPlayerManager and register it
-playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, clientSecret, playerManager));
+// create a new SpotifySourceManager with the default providers, clientId, clientSecret, countryCode and AudioPlayerManager and register it
+playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, clientSecret, countryCode, playerManager));
 ```
 
 #### Apple Music
@@ -102,6 +102,8 @@ lavalink:
 
 For all supported urls and queries see [here](#supported-urls-and-queries)
 
+For an `application.yml` example see [here](https://github.com/TopiSenpai/LavaSrc/blob/master/application.yml.example)
+
 To get your Spotify clientId & clientSecret go [here](https://developer.spotify.com/dashboard/applications) & then copy them into your `application.yml` like the following.
 
 (YES `plugins` IS AT ROOT IN THE YAML)
@@ -120,6 +122,7 @@ plugins:
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
+      countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
     deezer:
