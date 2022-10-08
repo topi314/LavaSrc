@@ -143,7 +143,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     }
 
     public AudioItem getSearch(String query) throws IOException {
-        var json = this.getJson("https://api.spotify.com/v1/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track,album,playlist,artist");
+        var json = this.getJson("https://api.spotify.com/v1/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track");
         if (json == null || json.get("tracks").get("items").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
