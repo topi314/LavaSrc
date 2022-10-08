@@ -181,7 +181,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             return AudioReference.NO_TRACK;
         }
 
-        return new BasicAudioPlaylist(json.get("data").get("name").text(), tracks, null, false);
+        return new BasicAudioPlaylist(json.get("name").text(), tracks, null, false);
 
     }
 
@@ -209,7 +209,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             return AudioReference.NO_TRACK;
         }
 
-        return new BasicAudioPlaylist(json.get("data").get("name").text(), tracks, null, false);
+        return new BasicAudioPlaylist(json.get("name").text(), tracks, null, false);
 
     }
 
