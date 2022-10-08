@@ -136,7 +136,7 @@ plugins:
   (check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/browse/get-recommendations/) for the full query parameter list)
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
-* https://open.spotify.com/playlist/37i9dQZF1DXaZvoHOvRg3p
+* https://open.spotify.com/playlist/7HAO9R9v203gkaPAgknOMp
 * https://open.spotify.com/artist/3ZztVuWxHzNpl0THurTFCv
 
 ### Apple Music
