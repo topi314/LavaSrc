@@ -22,6 +22,9 @@ server: # REST and WS server
   port: 2333
   address: 0.0.0.0
 lavalink:
+  plugins:
+    - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
+      repository: "https://jitpack.io"
   server:
     password: "youshallnotpass"
     sources:
