@@ -145,7 +145,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
     private AudioItem getTrackByISRC(String isrc) throws IOException {
         var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
-        if (json == null) {
+        if (json == null || json.get("id").isNull()) {
             return AudioReference.NO_TRACK;
         }
         return this.parseTrack(json);
