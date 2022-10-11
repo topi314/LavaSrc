@@ -78,7 +78,7 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 
             provider = provider.replace(QUERY_PATTERN, getTrackTitle());
             track = loadItem(provider);
-            if (track != null) {
+            if (track != AudioReference.NO_TRACK) {
                 break;
             }
         }
