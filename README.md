@@ -4,7 +4,7 @@
 
 A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer) Audio Source Managers and Lavalink Plugin.
 * [Spotify*](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results
-* [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [aleclol](https://github.com/aleclol) for helping me)
+* [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
 
 `*tracks are searched & played via YouTube or other configurable sources`
