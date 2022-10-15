@@ -12,7 +12,7 @@ allprojects {
 subprojects {
     apply plugin: "java"
 
-    version "3.0.3"
+    version "3.0.6"
 
     sourceCompatibility = 11
     compileJava.options.encoding = "UTF-8"
