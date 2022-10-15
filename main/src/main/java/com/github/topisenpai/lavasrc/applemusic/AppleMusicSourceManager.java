@@ -37,6 +37,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
     public static final String SEARCH_PREFIX = "amsearch:";
     public static final int MAX_PAGE_ITEMS = 300;
+    public static final String API_BASE = "https://api.music.apple.com/v1/";
     private static final Logger log = LoggerFactory.getLogger(AppleMusicSourceManager.class);
     private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
     private final String countryCode;
@@ -132,7 +133,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     }
 
     public AudioItem getSearch(String query) throws IOException {
-        var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25);
+        var json = this.getJson(API_BASE + "catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25);
         if (json == null || json.get("results").get("songs").get("data").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
@@ -140,7 +141,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     }
 
     public AudioItem getAlbum(String id, String countryCode) throws IOException {
-        var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/albums/" + id);
+        var json = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id);
         if (json == null) {
             return AudioReference.NO_TRACK;
         }
@@ -149,7 +150,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
         JsonBrowser page;
         var offset = 0;
         do {
-            page = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/albums/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
+            page = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
             offset += MAX_PAGE_ITEMS;
 
             tracks.addAll(parseTracks(page));
@@ -164,7 +165,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     }
 
     public AudioItem getPlaylist(String id, String countryCode) throws IOException {
-        var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/playlists/" + id);
+        var json = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id);
         if (json == null) {
             return AudioReference.NO_TRACK;
         }
@@ -173,7 +174,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
         JsonBrowser page;
         var offset = 0;
         do {
-            page = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/playlists/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
+            page = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
             offset += MAX_PAGE_ITEMS;
 
             tracks.addAll(parseTracks(page));
@@ -188,7 +189,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     }
 
     public AudioItem getArtist(String id, String countryCode) throws IOException {
-        var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/artists/" + id + "/view/top-songs");
+        var json = this.getJson(API_BASE + "catalog/" + countryCode + "/artists/" + id + "/view/top-songs");
         if (json == null || json.get("data").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
@@ -196,7 +197,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     }
 
     public AudioItem getSong(String id, String countryCode) throws IOException {
-        var json = this.getJson("https://api.music.apple.com/v1/catalog/" + countryCode + "/songs/" + id);
+        var json = this.getJson(API_BASE + "catalog/" + countryCode + "/songs/" + id);
         if (json == null) {
             return AudioReference.NO_TRACK;
         }
