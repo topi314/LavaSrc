@@ -9,6 +9,7 @@ plugins:
       spotify: true # Enable Spotify source
       applemusic: true # Enable Apple Music source
       deezer: true
+      yandexmusic: true
     spotify:
       clientId: "..."
       clientSecret: "..."
@@ -17,6 +18,8 @@ plugins:
       countryCode: "US"
     deezer:
       masterDecryptionKey: "..."
+    yandexmusic:
+      accessToken: "..."
 
 server: # REST and WS server
   port: 2333

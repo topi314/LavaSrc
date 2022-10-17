@@ -6,12 +6,13 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 * [Spotify*](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results
 * [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
+* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
 ## Summary
 
-* [Lavaplayer Usage](#lavalink-usage)
+* [Lavaplayer Usage](#lavaplayer-usage)
 * [Lavalink Usage](#lavalink-usage)
 * [Supported URLs and Queries](#supported-urls-and-queries)
 
@@ -78,7 +79,18 @@ playerManager.registerSourceManager(new AppleMusicSourceManager(null, "us", play
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new DeezerSourceManager with the master decryption key and register it
-playerManager.registerSourceManager(new DeezerSourceManager("...", playerManager));
+playerManager.registerSourceManager(new DeezerSourceManager("...");
+```
+
+#### Yandex Music
+
+See [docs](https://github.com/TopiSenpai/LavaSrc/blob/master/main/src/main/java/com/github/topisenpai/lavasrc/yandexmusic/README.md) about source.
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new YandexMusicSourceManager with the accessToken and register it
+playerManager.registerSourceManager(new YandexMusicSourceManager("...");
 ```
 
 ---
@@ -119,6 +131,7 @@ plugins:
       spotify: true # Enable Spotify source
       applemusic: true # Enable Apple Music source
       deezer: true # Enable Deezer source
+      yandexmusic: true # Enable Yandex Music source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
@@ -127,6 +140,8 @@ plugins:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
     deezer:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
+    yandexmusic:
+      accessToken: "your accessToken" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc/blob/master/main/src/main/java/com/github/topisenpai/lavasrc/yandexmusic/README.md
 ```
 
 ---
@@ -157,5 +172,12 @@ plugins:
 * https://www.deezer.com/album/175537082
 * https://www.deezer.com/playlist/8164349742
 * https://www.deezer.com/artist/159126
+
+### Yandex Music
+* `ymsearch:animals architects`
+* https://music.yandex.ru/album/13886032/track/71663565
+* https://music.yandex.ru/album/13886032
+* https://music.yandex.ru/users/yamusic-bestsongs/playlists/701626
+* https://music.yandex.ru/artist/701626
 
 ---
