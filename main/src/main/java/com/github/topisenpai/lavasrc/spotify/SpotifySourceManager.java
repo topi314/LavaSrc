@@ -148,7 +148,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             return AudioReference.NO_TRACK;
         }
 
-        return new BasicAudioPlaylist("Search results for: " + query, parseTrackItems(json.get("tracks")), null, true);
+        return new BasicAudioPlaylist("Search results for: " + query, this.parseTrackItems(json.get("tracks")), null, true);
     }
 
     public AudioItem getRecommendations(String query) throws IOException {
@@ -157,7 +157,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             return AudioReference.NO_TRACK;
         }
 
-        return new BasicAudioPlaylist("Spotify Recommendations:", parseTracks(json), null, false);
+        return new BasicAudioPlaylist("Spotify Recommendations:", this.parseTracks(json), null, false);
     }
 
     public AudioItem getAlbum(String id) throws IOException {
@@ -200,7 +200,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
             for (var value : page.get("items").values()) {
                 var track = value.get("track");
-                if (track.isNull()) {
+                if (track.isNull() || track.get("is_local").asBoolean(false)) {
                     continue;
                 }
                 tracks.add(this.parseTrack(track));
@@ -244,6 +244,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     private List<AudioTrack> parseTrackItems(JsonBrowser json) {
         var tracks = new ArrayList<AudioTrack>();
         for (var value : json.get("items").values()) {
+            if (value.get("is_local").asBoolean(false)) {
+                continue;
+            }
             tracks.add(this.parseTrack(value));
         }
         return tracks;
