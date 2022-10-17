@@ -6,7 +6,7 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 * [Spotify*](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results
 * [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
-* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results
+* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results(Big thx to [AgutinVBoy](https://github.com/agutinvboy) for helping me)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
@@ -84,12 +84,40 @@ playerManager.registerSourceManager(new DeezerSourceManager("...");
 
 #### Yandex Music
 
-See [docs](https://github.com/TopiSenpai/LavaSrc/blob/master/main/src/main/java/com/github/topisenpai/lavasrc/yandexmusic/README.md) about source.
+<details>
+<summary>How to get access token</summary>
+
+## How to get access token
+1. (Optional) Open DevTools in your browser and on the Network tab enable trotlining.
+2. Go to https://oauth.yandex.ru/authorize?response_type=token&client_id=23cabbbdc6cd418abb4b39c32c41195d
+3. Authorize and grant access
+4. The browser will redirect to the address like `https://music.yandex.ru/#access_token=AQAAAAAYc***&token_type=bearer&expires_in=31535645`.
+   Very quickly there will be a redirect to another page, so you need to have time to copy the link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
+5. Your accessToken, what is after `access_token`.
+
+Token expires in 1 year. You can get a new one by repeating the steps above.
+
+## Important information
+Yandex Music is very location-dependent. You should either have a premium subscription or be located in one of the following countries:
+- Azerbaijan
+- Armenia
+- Belarus
+- Georgia
+- Kazakhstan
+- Kyrgyzstan
+- Moldova
+- Russia
+- Tajikistan
+- Turkmenistan
+- Uzbekistan
+
+Else you will only have access to podcasts.
+</details>
 
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new YandexMusicSourceManager with the accessToken and register it
+// create a new YandexMusicSourceManager with the access token and register it
 playerManager.registerSourceManager(new YandexMusicSourceManager("...");
 ```
 
@@ -118,6 +146,8 @@ For an `application.yml` example see [here](https://github.com/TopiSenpai/LavaSr
 
 To get your Spotify clientId & clientSecret go [here](https://developer.spotify.com/dashboard/applications) & then copy them into your `application.yml` like the following.
 
+To get your Yandex Music access token go [here](#yandex-music)
+
 (YES `plugins` IS AT ROOT IN THE YAML)
 ```yaml
 plugins:
@@ -141,7 +171,7 @@ plugins:
     deezer:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
     yandexmusic:
-      accessToken: "your accessToken" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc/blob/master/main/src/main/java/com/github/topisenpai/lavasrc/yandexmusic/README.md
+      accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
 ```
 
 ---
