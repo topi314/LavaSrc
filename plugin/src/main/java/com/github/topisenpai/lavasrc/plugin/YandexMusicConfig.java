@@ -7,13 +7,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class YandexMusicConfig {
 
-    private String token;
+    private String accessToken;
 
-    public String getToken() {
-        return this.token;
+    public String getAccessToken() {
+        return this.accessToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 }

@@ -49,7 +49,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
         }
         if (this.sourcesConfig.isYandexMusic()) {
             log.info("Loading Yandex-Music-SourceManager...");
-            manager.registerSourceManager(new YandexMusicSourceManager(this.yandexMusicConfig.getToken(), manager));
+            manager.registerSourceManager(new YandexMusicSourceManager(this.yandexMusicConfig.getAccessToken()));
         }
         return manager;
     }
