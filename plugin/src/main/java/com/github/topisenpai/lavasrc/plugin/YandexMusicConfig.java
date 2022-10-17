@@ -13,7 +13,7 @@ public class YandexMusicConfig {
         return this.accessToken;
     }
 
-    public void setToken(String accessToken) {
+    public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
     }
 }
