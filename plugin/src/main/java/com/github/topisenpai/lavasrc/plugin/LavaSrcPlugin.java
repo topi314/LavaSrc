@@ -3,6 +3,7 @@ package com.github.topisenpai.lavasrc.plugin;
 import com.github.topisenpai.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topisenpai.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topisenpai.lavasrc.spotify.SpotifySourceManager;
+import com.github.topisenpai.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.slf4j.Logger;
@@ -18,16 +19,18 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
     private final SourcesConfig sourcesConfig;
     private final SpotifyConfig spotifyConfig;
     private final AppleMusicConfig appleMusicConfig;
+    private final YandexMusicConfig yandexMusicConfig;
 
     private final DeezerConfig deezerConfig;
 
-    public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig) {
+    public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
         log.info("Loading LavaSrc-Plugin...");
         this.pluginConfig = pluginConfig;
         this.sourcesConfig = sourcesConfig;
         this.spotifyConfig = spotifyConfig;
         this.appleMusicConfig = appleMusicConfig;
         this.deezerConfig = deezerConfig;
+        this.yandexMusicConfig = yandexMusicConfig;
     }
 
     @Override
@@ -43,6 +46,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
         if (this.sourcesConfig.isDeezer()) {
             log.info("Loading Deezer-SourceManager...");
             manager.registerSourceManager(new DeezerAudioSourceManager(this.deezerConfig.getMasterDecryptionKey()));
+        }
+        if (this.sourcesConfig.isYandexMusic()) {
+            log.info("Loading Yandex-Music-SourceManager...");
+            manager.registerSourceManager(new YandexMusicSourceManager(this.yandexMusicConfig.getToken(), manager));
         }
         return manager;
     }
