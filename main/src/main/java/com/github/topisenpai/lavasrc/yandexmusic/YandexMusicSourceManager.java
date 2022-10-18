@@ -167,7 +167,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
         var request = new HttpGet(uri);
         request.setHeader("Accept", "application/json");
         request.setHeader("Authorization", "OAuth " + this.accessToken);
-        return HttpClientTools.fetchResponseLines(this.httpInterfaceManager.getInterface(), request, "utf-8")[0];
+        return HttpClientTools.fetchResponseLines(this.httpInterfaceManager.getInterface(), request, "downloadinfo-xml-page")[0];
     }
 
     private List<AudioTrack> parseTracks(JsonBrowser json) {
