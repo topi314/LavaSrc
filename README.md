@@ -125,6 +125,8 @@ playerManager.registerSourceManager(new YandexMusicSourceManager("...");
 
 ## Lavalink Usage
 
+This plugin requires Lavalink `v3.6.0` or greater
+
 To install this plugin either download the latest release and place it into your `plugins` folder or add the following into your `application.yml`
 
 Lavalink supports plugins only in v3.5 and above
