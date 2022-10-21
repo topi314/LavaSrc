@@ -9,9 +9,9 @@ var moduleName = "lavasrc-plugin"
 mainClassName = "org.springframework.boot.loader.JarLauncher"
 
 dependencies {
-    compileOnly("dev.arbjerg.lavalink:plugin-api:0.9.0")
+    compileOnly("dev.arbjerg.lavalink:plugin-api:3.6.1")
     implementation project(':main')
-    runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:77a3bd8")
+    runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:3.6.0")
 }
 
 shadowJar {
