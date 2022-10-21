@@ -46,7 +46,7 @@ public class YandexMusicAudioTrack extends DelegatedAudioTrack {
 
     private String getDownloadURL(String id) throws IOException, NoSuchAlgorithmException {
         var json = this.sourceManager.getJson(YandexMusicSourceManager.PUBLIC_API_BASE + "/tracks/" + id + "/download-info");
-        if (json.isNull()|| json.get("result").values().isEmpty()) {
+        if (json.isNull() || json.get("result").values().isEmpty()) {
             throw new IllegalStateException("No download URL found for track " + id);
         }
 

@@ -129,7 +129,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
     private AudioItem getArtist(String id) throws IOException {
         var json = this.getJson(PUBLIC_API_BASE + "/artists/" + id + "/tracks?page-size=10");
-        if (json.isNull()|| json.get("result").values().isEmpty()) {
+        if (json.isNull() || json.get("result").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         var artistName = this.getJson(PUBLIC_API_BASE + "/artists/" + id).get("result").get("artist").get("name").text();
@@ -142,7 +142,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
     private AudioItem getPlaylist(String userString, String id) throws IOException {
         var json = this.getJson(PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id);
-        if (json.isNull()|| json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
+        if (json.isNull() || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
         var tracks = new ArrayList<AudioTrack>();
@@ -206,10 +206,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
     @Override
     public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-        return new YandexMusicAudioTrack(trackInfo,
-                DataFormatTools.readNullableText(input),
-                this
-        );
+        return new YandexMusicAudioTrack(trackInfo, DataFormatTools.readNullableText(input), this);
     }
 
     @Override

@@ -218,7 +218,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     }
 
     public AudioItem getArtist(String id) throws IOException {
-        var json = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market="+this.countryCode);
+        var json = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode);
         if (json == null || json.get("tracks").values().isEmpty()) {
             return AudioReference.NO_TRACK;
         }
