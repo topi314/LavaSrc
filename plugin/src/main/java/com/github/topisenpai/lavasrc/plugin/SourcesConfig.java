@@ -10,7 +10,7 @@ public class SourcesConfig {
 
     private boolean spotify = true;
     private boolean appleMusic = true;
-
+    private boolean yandexMusic = true;
     private boolean deezer = true;
 
     public boolean isSpotify() {
@@ -37,4 +37,11 @@ public class SourcesConfig {
         this.deezer = deezer;
     }
 
+    public boolean isYandexMusic() {
+        return this.yandexMusic;
+    }
+
+    public void setYandexMusic(boolean yandexMusic) {
+        this.yandexMusic = yandexMusic;
+    }
 }
