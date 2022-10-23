@@ -24,7 +24,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
     private final DeezerConfig deezerConfig;
 
     public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
-        log.info("Loading LavaSrc-Plugin...");
+        log.info("Loading LavaSrc plugin...");
         this.pluginConfig = pluginConfig;
         this.sourcesConfig = sourcesConfig;
         this.spotifyConfig = spotifyConfig;
@@ -36,19 +36,19 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
     @Override
     public AudioPlayerManager configure(AudioPlayerManager manager) {
         if (this.sourcesConfig.isSpotify()) {
-            log.info("Loading Spotify-SourceManager...");
+            log.info("Registering Spotify audio source manager...");
             manager.registerSourceManager(new SpotifySourceManager(this.pluginConfig.getProviders(), this.spotifyConfig.getClientId(), this.spotifyConfig.getClientSecret(), this.spotifyConfig.getCountryCode(), manager));
         }
         if (this.sourcesConfig.isAppleMusic()) {
-            log.info("Loading Apple-Music-SourceManager...");
+            log.info("Registering Apple Music audio source manager...");
             manager.registerSourceManager(new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getCountryCode(), manager));
         }
         if (this.sourcesConfig.isDeezer()) {
-            log.info("Loading Deezer-SourceManager...");
+            log.info("Registering Deezer audio source manager...");
             manager.registerSourceManager(new DeezerAudioSourceManager(this.deezerConfig.getMasterDecryptionKey()));
         }
         if (this.sourcesConfig.isYandexMusic()) {
-            log.info("Loading Yandex-Music-SourceManager...");
+            log.info("Registering Yandex Music audio source manager...");
             manager.registerSourceManager(new YandexMusicSourceManager(this.yandexMusicConfig.getAccessToken()));
         }
         return manager;

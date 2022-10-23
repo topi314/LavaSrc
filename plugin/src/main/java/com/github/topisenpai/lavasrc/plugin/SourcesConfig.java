@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SourcesConfig {
 
-    private boolean spotify = true;
-    private boolean appleMusic = true;
-    private boolean yandexMusic = true;
-    private boolean deezer = true;
+    private boolean spotify = false;
+    private boolean appleMusic = false;
+    private boolean deezer = false;
+    private boolean yandexMusic = false;
 
     public boolean isSpotify() {
         return this.spotify;
