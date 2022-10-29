@@ -1,6 +1,7 @@
 package com.github.topisenpai.lavasrc.yandexmusic;
 
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
@@ -42,6 +43,11 @@ public class YandexMusicAudioTrack extends DelegatedAudioTrack {
     @Override
     protected AudioTrack makeShallowClone() {
         return new YandexMusicAudioTrack(this.trackInfo, this.artworkURL, this.sourceManager);
+    }
+
+    @Override
+    public AudioSourceManager getSourceManager() {
+        return this.sourceManager;
     }
 
     private String getDownloadURL(String id) throws IOException, NoSuchAlgorithmException {
