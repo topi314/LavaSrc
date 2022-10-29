@@ -104,25 +104,25 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 
             @Override
             public void trackLoaded(AudioTrack track) {
-                System.out.println("Track loaded: " + track.getIdentifier());
+                log.debug("Track loaded: " + track.getIdentifier());
                 cf.complete(track);
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                System.out.println("Playlist loaded: " + playlist.getName());
+                log.debug("Playlist loaded: " + playlist.getName());
                 cf.complete(playlist);
             }
 
             @Override
             public void noMatches() {
-                System.out.println("No matches found for: " + query);
+                log.debug("No matches found for: " + query);
                 cf.complete(AudioReference.NO_TRACK);
             }
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                System.out.println("Failed to load: " + query);
+                log.debug("Failed to load: " + query);
                 cf.completeExceptionally(exception);
             }
         });
