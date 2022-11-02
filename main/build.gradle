@@ -8,6 +8,7 @@ var moduleName = "lavasrc"
 dependencies {
     compileOnly "com.github.walkyst:lavaplayer-fork:1.3.98.4"
     implementation "org.jsoup:jsoup:1.14.3"
+    implementation "commons-io:commons-io:2.6"
 }
 
 publishing {

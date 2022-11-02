@@ -10,8 +10,8 @@ mainClassName = "org.springframework.boot.loader.JarLauncher"
 
 dependencies {
     compileOnly("dev.arbjerg.lavalink:plugin-api:3.6.1")
-    implementation project(':main')
     runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:3.6.0")
+    implementation project(":main")
 }
 
 shadowJar {

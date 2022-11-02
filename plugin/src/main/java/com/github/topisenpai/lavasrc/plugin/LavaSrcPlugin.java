@@ -41,7 +41,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
         }
         if (this.sourcesConfig.isAppleMusic()) {
             log.info("Registering Apple Music audio source manager...");
-            manager.registerSourceManager(new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getCountryCode(), manager));
+            manager.registerSourceManager(new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getMediaAPIToken(), this.appleMusicConfig.getCountryCode(), manager));
         }
         if (this.sourcesConfig.isDeezer()) {
             log.info("Registering Deezer audio source manager...");

@@ -12,6 +12,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -21,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 public class AppleMusicSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
 
     public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
+    public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile("const kd=\"(?<token>[a-zA-Z0-9_.]+)\"");
     public static final String SEARCH_PREFIX = "amsearch:";
     public static final int MAX_PAGE_ITEMS = 300;
     public static final String API_BASE = "https://api.music.apple.com/v1/";
@@ -42,10 +43,17 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
     private final String countryCode;
     private String token;
+    private String origin;
     private Instant tokenExpire;
 
-    public AppleMusicSourceManager(String[] providers, String countryCode, AudioPlayerManager audioPlayerManager) {
+    public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager) {
         super(providers, audioPlayerManager);
+        this.token = mediaAPIToken;
+        try {
+            this.parseTokenData();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Cannot parse token for expire date and origin", e);
+        }
         if (countryCode == null || countryCode.isEmpty()) {
             this.countryCode = "us";
         } else {
@@ -104,19 +112,40 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
         return null;
     }
 
-    public void requestToken() throws IOException {
-        var request = new HttpGet("https://music.apple.com");
-        try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
-            var document = Jsoup.parse(response.getEntity().getContent(), null, "");
-            var element = document.selectFirst("meta[name=desktop-music-app/config/environment]");
-            if (element == null) {
-                throw new IOException("Could not find token");
-            }
-            this.token = JsonBrowser.parse(URLDecoder.decode(element.attr("content"), StandardCharsets.UTF_8)).get("MEDIA_API").get("token").text();
-            this.tokenExpire = Instant.ofEpochSecond(JsonBrowser.parse(new String(Base64.getDecoder().decode(this.token.split("\\.")[1]))).get("exp").asLong(0));
+    public void parseTokenData() throws IOException {
+        if (this.token == null || this.token.isEmpty()) {
+            return;
         }
+        var json = JsonBrowser.parse(new String(Base64.getDecoder().decode(this.token.split("\\.")[1])));
+        this.tokenExpire = Instant.ofEpochSecond(json.get("exp").asLong(0));
+        this.origin = json.get("root_https_origin").index(0).text();
     }
 
+    public void requestToken() throws IOException {
+        var request = new HttpGet("https://music.apple.com");
+        String tokenScriptURL;
+        try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
+            var document = Jsoup.parse(response.getEntity().getContent(), null, "");
+            var element = document.selectFirst("script[type=module][src~=/assets/index.*.js]");
+            if (element == null) {
+                throw new IllegalStateException("Cannot find token script element");
+            }
+            tokenScriptURL = element.attr("src");
+        }
+        if (tokenScriptURL.isEmpty()) {
+            throw new IllegalStateException("Cannot find token script url");
+        }
+        request = new HttpGet("https://music.apple.com" + tokenScriptURL);
+        try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
+            var tokenScript = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+            var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
+            if (!tokenMatcher.find()) {
+                throw new IllegalStateException("Cannot find token in script");
+            }
+            this.token = tokenMatcher.group("token");
+        }
+        this.parseTokenData();
+    }
 
     public String getToken() throws IOException {
         if (this.token == null || this.tokenExpire == null || this.tokenExpire.isBefore(Instant.now())) {
@@ -128,7 +157,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     public JsonBrowser getJson(String uri) throws IOException {
         var request = new HttpGet(uri);
         request.addHeader("Authorization", "Bearer " + this.getToken());
-        request.addHeader("Origin", "https://music.apple.com");
+        if (this.origin != null && !this.origin.isEmpty()) {
+            request.addHeader("Origin", this.origin);
+        }
         return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
     }
 
