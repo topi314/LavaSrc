@@ -158,7 +158,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
         var request = new HttpGet(uri);
         request.addHeader("Authorization", "Bearer " + this.getToken());
         if (this.origin != null && !this.origin.isEmpty()) {
-            request.addHeader("Origin", this.origin);
+            request.addHeader("Origin", "https://" + this.origin);
         }
         return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
     }
