@@ -182,7 +182,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
     }
 
     private AudioTrack parseTrack(JsonBrowser json) {
-        if (json.get("available").text().equals("false") || json.get("albums").values().isEmpty()) {
+        if (!json.get("available").asBoolean(false) || json.get("albums").values().isEmpty()) {
             return null;
         }
         var id = json.get("id").text();
