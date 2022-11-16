@@ -173,14 +173,21 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
     private List<AudioTrack> parseTracks(JsonBrowser json) {
         var tracks = new ArrayList<AudioTrack>();
         for (var track : json.values()) {
-            tracks.add(this.parseTrack(track));
+            var parsedTrack = this.parseTrack(track);
+            if (parsedTrack != null) {
+                tracks.add(this.parseTrack(track));
+            }
         }
         return tracks;
     }
 
     private AudioTrack parseTrack(JsonBrowser json) {
+        if (json.get("available").text().equals("false") || json.get("albums").values().isEmpty()) {
+            return null;
+        }
         var id = json.get("id").text();
         var artist = json.get("major").get("name").text().equals("PODCASTS") ? json.get("albums").values().get(0).get("title").text() : json.get("artists").values().get(0).get("name").text();
+        var coverUri = json.get("albums").values().get(0).get("coverUri").text();
         return new YandexMusicAudioTrack(new AudioTrackInfo(
                 json.get("title").text(),
                 artist,
@@ -188,7 +195,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
                 id,
                 false,
                 "https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id),
-                "https://" + json.get("albums").values().get(0).get("coverUri").text().replace("%%", "400x400"),
+                coverUri != null ? "https://" + coverUri.replace("%%", "400x400") : null,
                 this
         );
     }
