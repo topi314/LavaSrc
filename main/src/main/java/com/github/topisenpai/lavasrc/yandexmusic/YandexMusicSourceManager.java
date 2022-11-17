@@ -175,7 +175,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
         for (var track : json.values()) {
             var parsedTrack = this.parseTrack(track);
             if (parsedTrack != null) {
-                tracks.add(this.parseTrack(track));
+                tracks.add(parsedTrack);
             }
         }
         return tracks;
