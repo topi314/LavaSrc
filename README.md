@@ -182,7 +182,7 @@ plugins:
 ## Supported URLs and Queries
 
 ### Spotify
-* `spsearch:animals architects`
+* `spsearch:animals architects` (check out [Spotify Search Docs](https://developer.spotify.com/documentation/web-api/reference/#/operations/search) for advanced search queries like isrc & co)
 * `sprec:seed_artists=3ZztVuWxHzNpl0THurTFCv,4MzJMcHQBl9SIYSjwWn8QW&seed_genres=metalcore&seed_tracks=5ofoB8PFmocBXFBEWVb6Vz,6I5zXzSDByTEmYZ7ePVQeB`
   (check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/browse/get-recommendations/) for the full query parameter list)
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
