@@ -7,11 +7,7 @@ import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -123,28 +119,29 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
     public void requestToken() throws IOException {
         var request = new HttpGet("https://music.apple.com");
-        String tokenScriptURL;
         try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
             var document = Jsoup.parse(response.getEntity().getContent(), null, "");
-            var element = document.selectFirst("script[type=module][src~=/assets/index.*.js]");
-            if (element == null) {
+            var elements = document.select("script[type=module][src~=/assets/index.*.js]");
+            if (elements.isEmpty()) {
                 throw new IllegalStateException("Cannot find token script element");
             }
-            tokenScriptURL = element.attr("src");
-        }
-        if (tokenScriptURL.isEmpty()) {
-            throw new IllegalStateException("Cannot find token script url");
-        }
-        request = new HttpGet("https://music.apple.com" + tokenScriptURL);
-        try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
-            var tokenScript = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-            var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
-            if (!tokenMatcher.find()) {
-                throw new IllegalStateException("Cannot find token in script");
+
+            for (var element : elements) {
+                var tokenScriptURL = element.attr("src");
+                request = new HttpGet("https://music.apple.com" + tokenScriptURL);
+                try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
+                    var tokenScript = IOUtils.toString(indexResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+                    var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
+                    if (tokenMatcher.find()) {
+                        this.token = tokenMatcher.group("token");
+                        this.parseTokenData();
+                        return;
+                    }
+                }
+
             }
-            this.token = tokenMatcher.group("token");
         }
-        this.parseTokenData();
+        throw new IllegalStateException("Cannot find token script url");
     }
 
     public String getToken() throws IOException {
