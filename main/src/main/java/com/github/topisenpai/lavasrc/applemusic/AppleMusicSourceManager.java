@@ -140,8 +140,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
                 }
 
             }
-            throw new IllegalStateException("Cannot find token script url");
         }
+        throw new IllegalStateException("Cannot find token script url");
     }
 
     public String getToken() throws IOException {
