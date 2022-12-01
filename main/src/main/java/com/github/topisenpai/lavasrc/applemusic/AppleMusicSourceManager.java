@@ -7,17 +7,12 @@ import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,34 +119,29 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
     public void requestToken() throws IOException {
         var request = new HttpGet("https://music.apple.com");
-        String tokenScriptURL = null;
         try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
             var document = Jsoup.parse(response.getEntity().getContent(), null, "");
             var elements = document.select("script[type=module][src~=/assets/index.*.js]");
-            if (elements.size() == 0) {
+            if (elements.isEmpty()) {
                 throw new IllegalStateException("Cannot find token script element");
             }
-            List<Element> elementList = new ArrayList<>(elements);
+            var elementList = new ArrayList<>(elements);
 
-            boolean foundToken = false;
-
-            for (Element element : elementList) {
-                tokenScriptURL = element.attr("src");
-                if (!tokenScriptURL.isEmpty()) {
-                    request = new HttpGet("https://music.apple.com" + tokenScriptURL);
-                    try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
-                        var tokenScript = IOUtils.toString(indexResponse.getEntity().getContent(), StandardCharsets.UTF_8);
-                        var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
-                        if (tokenMatcher.find()) {
-                            foundToken = true;
-                        }
+            for (var element : elementList) {
+                String tokenScriptURL = element.attr("src");
+                request = new HttpGet("https://music.apple.com" + tokenScriptURL);
+                try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
+                    var tokenScript = IOUtils.toString(indexResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+                    var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
+                    if (tokenMatcher.find()) {
                         this.token = tokenMatcher.group("token");
+                        this.parseTokenData();
+                        return;
                     }
-                    this.parseTokenData();
                 }
 
             }
-            if(!foundToken) throw new IllegalStateException("Cannot find token script url");
+            throw new IllegalStateException("Cannot find token script url");
         }
     }
 
