@@ -127,7 +127,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
             }
 
             for (var element : elements) {
-                String tokenScriptURL = element.attr("src");
+                var tokenScriptURL = element.attr("src");
                 request = new HttpGet("https://music.apple.com" + tokenScriptURL);
                 try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
                     var tokenScript = IOUtils.toString(indexResponse.getEntity().getContent(), StandardCharsets.UTF_8);
