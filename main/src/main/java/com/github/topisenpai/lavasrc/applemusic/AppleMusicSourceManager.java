@@ -17,6 +17,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,17 +124,23 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
     public void requestToken() throws IOException {
         var request = new HttpGet("https://music.apple.com");
-        String tokenScriptURL;
+        String tokenScriptURL = null;
         try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
             var document = Jsoup.parse(response.getEntity().getContent(), null, "");
-            var element = document.selectFirst("script[type=module][src~=/assets/index.*.js]");
-            if (element == null) {
+            var elements = document.select("script[type=module][src~=/assets/index.*.js]");
+            if (elements.size() == 0) {
                 throw new IllegalStateException("Cannot find token script element");
             }
-            tokenScriptURL = element.attr("src");
-        }
-        if (tokenScriptURL.isEmpty()) {
-            throw new IllegalStateException("Cannot find token script url");
+            List<Element> elementList = new ArrayList<>(elements);
+
+            boolean containsScriptUrl = false;
+            for (Element element : elementList) {
+                tokenScriptURL = element.attr("src");
+                if (!tokenScriptURL.isEmpty()) {
+                    containsScriptUrl = true;
+                }
+            }
+            if(!containsScriptUrl) throw new IllegalStateException("Cannot find token script url");
         }
         request = new HttpGet("https://music.apple.com" + tokenScriptURL);
         try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
