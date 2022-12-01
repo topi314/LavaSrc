@@ -125,9 +125,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
             if (elements.isEmpty()) {
                 throw new IllegalStateException("Cannot find token script element");
             }
-            var elementList = new ArrayList<>(elements);
 
-            for (var element : elementList) {
+            for (var element : elements) {
                 String tokenScriptURL = element.attr("src");
                 request = new HttpGet("https://music.apple.com" + tokenScriptURL);
                 try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
