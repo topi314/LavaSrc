@@ -133,25 +133,26 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
             }
             List<Element> elementList = new ArrayList<>(elements);
 
-            boolean containsScriptUrl = false;
+            boolean foundToken = false;
+
             for (Element element : elementList) {
                 tokenScriptURL = element.attr("src");
                 if (!tokenScriptURL.isEmpty()) {
-                    containsScriptUrl = true;
+                    request = new HttpGet("https://music.apple.com" + tokenScriptURL);
+                    try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
+                        var tokenScript = IOUtils.toString(indexResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+                        var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
+                        if (tokenMatcher.find()) {
+                            foundToken = true;
+                        }
+                        this.token = tokenMatcher.group("token");
+                    }
+                    this.parseTokenData();
                 }
+
             }
-            if(!containsScriptUrl) throw new IllegalStateException("Cannot find token script url");
+            if(!foundToken) throw new IllegalStateException("Cannot find token script url");
         }
-        request = new HttpGet("https://music.apple.com" + tokenScriptURL);
-        try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
-            var tokenScript = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-            var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
-            if (!tokenMatcher.find()) {
-                throw new IllegalStateException("Cannot find token in script");
-            }
-            this.token = tokenMatcher.group("token");
-        }
-        this.parseTokenData();
     }
 
     public String getToken() throws IOException {
