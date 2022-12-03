@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 public class AppleMusicSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
 
     public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
-    public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile("const \\w{2}=\"(?<token>ey[\\w.-]+)\"");
+    public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile("const \\w{2}=\"(?<token>(ey[\\w-]+)\\.([\\w-]+)\\.([\\w-]+))\"");
     public static final String SEARCH_PREFIX = "amsearch:";
     public static final int MAX_PAGE_ITEMS = 300;
     public static final String API_BASE = "https://api.music.apple.com/v1/";
