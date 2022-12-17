@@ -131,6 +131,8 @@ To install this plugin either download the latest release and place it into your
 
 Lavalink supports plugins only in v3.5 and above
 
+> **Note**
+> For a full `application.yml` example see [here](https://github.com/TopiSenpai/LavaSrc/blob/master/application.yml.example)
 
 Replace x.y.z with the latest version number
 ```yaml
@@ -143,8 +145,6 @@ lavalink:
 ### Configuration
 
 For all supported urls and queries see [here](#supported-urls-and-queries)
-
-For an `application.yml` example see [here](https://github.com/TopiSenpai/LavaSrc/blob/master/application.yml.example)
 
 To get your Spotify clientId & clientSecret go [here](https://developer.spotify.com/dashboard/applications) & then copy them into your `application.yml` like the following.
 
