@@ -20,23 +20,11 @@ import java.security.NoSuchAlgorithmException;
 
 public class DeezerAudioTrack extends DelegatedAudioTrack {
 
-	private final String isrc;
-	private final String artworkURL;
 	private final DeezerAudioSourceManager sourceManager;
 
-	public DeezerAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, DeezerAudioSourceManager sourceManager) {
+	public DeezerAudioTrack(AudioTrackInfo trackInfo, DeezerAudioSourceManager sourceManager) {
 		super(trackInfo);
-		this.isrc = isrc;
-		this.artworkURL = artworkURL;
 		this.sourceManager = sourceManager;
-	}
-
-	public String getISRC() {
-		return this.isrc;
-	}
-
-	public String getArtworkURL() {
-		return this.artworkURL;
 	}
 
 	private URI getTrackMediaURI() throws IOException, URISyntaxException {
@@ -95,7 +83,7 @@ public class DeezerAudioTrack extends DelegatedAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new DeezerAudioTrack(this.trackInfo, this.isrc, this.artworkURL, this.sourceManager);
+		return new DeezerAudioTrack(this.trackInfo, this.sourceManager);
 	}
 
 	@Override

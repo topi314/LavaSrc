@@ -6,13 +6,13 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 public class SpotifyAudioTrack extends MirroringAudioTrack {
 
-	public SpotifyAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, SpotifySourceManager sourceManager) {
-		super(trackInfo, isrc, artworkURL, sourceManager);
+	public SpotifyAudioTrack(AudioTrackInfo trackInfo, SpotifySourceManager sourceManager) {
+		super(trackInfo, sourceManager);
 	}
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new SpotifyAudioTrack(this.trackInfo, this.isrc, this.artworkURL, (SpotifySourceManager) this.sourceManager);
+		return new SpotifyAudioTrack(this.trackInfo, (SpotifySourceManager) this.sourceManager);
 	}
 
 }

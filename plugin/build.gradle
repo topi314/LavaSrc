@@ -9,8 +9,8 @@ var moduleName = "lavasrc-plugin"
 mainClassName = "org.springframework.boot.loader.JarLauncher"
 
 dependencies {
-    compileOnly("com.github.TopiSenpai.Lavalink:plugin-api:f66611f")
-    runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:3.6.0")
+    compileOnly("com.github.TopiSenpai.Lavalink:plugin-api:2b7c6c7")
+    runtimeOnly("com.github.TopiSenpai.Lavalink:Lavalink-Server:2b7c6c7")
     implementation project(":main")
 }
 

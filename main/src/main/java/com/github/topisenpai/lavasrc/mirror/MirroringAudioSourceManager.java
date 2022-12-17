@@ -33,16 +33,4 @@ public abstract class MirroringAudioSourceManager implements AudioSourceManager 
 		return this.audioPlayerManager;
 	}
 
-	@Override
-	public boolean isTrackEncodable(AudioTrack track) {
-		return true;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-		var isrcAudioTrack = ((MirroringAudioTrack) track);
-		DataFormatTools.writeNullableText(output, isrcAudioTrack.getISRC());
-		DataFormatTools.writeNullableText(output, isrcAudioTrack.getArtworkURL());
-	}
-
 }

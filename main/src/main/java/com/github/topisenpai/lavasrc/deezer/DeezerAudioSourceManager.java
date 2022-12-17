@@ -2,7 +2,6 @@ package com.github.topisenpai.lavasrc.deezer;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -130,15 +129,17 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		var id = json.get("id").text();
-		return new DeezerAudioTrack(new AudioTrackInfo(
-				json.get("title").text(),
-				json.get("artist").get("name").text(),
-				json.get("duration").as(Long.class) * 1000,
-				id,
-				false,
-				"https://deezer.com/track/" + id),
-				json.get("isrc").text(),
-				json.get("album").get("cover_xl").text(),
+		return new DeezerAudioTrack(
+				new AudioTrackInfo(
+						json.get("title").text(),
+						json.get("artist").get("name").text(),
+						json.get("duration").as(Long.class) * 1000,
+						id,
+						false,
+						"https://deezer.com/track/" + id,
+						json.get("album").get("cover_xl").text(),
+						json.get("isrc").text()
+				),
 				this
 		);
 	}
@@ -209,18 +210,12 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	@Override
 	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-		var deezerAudioTrack = ((DeezerAudioTrack) track);
-		DataFormatTools.writeNullableText(output, deezerAudioTrack.getISRC());
-		DataFormatTools.writeNullableText(output, deezerAudioTrack.getArtworkURL());
+
 	}
 
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-		return new DeezerAudioTrack(trackInfo,
-				DataFormatTools.readNullableText(input),
-				DataFormatTools.readNullableText(input),
-				this
-		);
+		return new DeezerAudioTrack(trackInfo, this);
 	}
 
 	@Override

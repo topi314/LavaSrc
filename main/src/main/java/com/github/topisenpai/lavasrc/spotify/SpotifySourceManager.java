@@ -2,7 +2,6 @@ package com.github.topisenpai.lavasrc.spotify;
 
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -22,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -75,12 +75,18 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-		return new SpotifyAudioTrack(trackInfo,
-				DataFormatTools.readNullableText(input),
-				DataFormatTools.readNullableText(input),
-				this
-		);
+	public boolean isTrackEncodable(AudioTrack track) {
+		return true;
+	}
+
+	@Override
+	public void encodeTrack(AudioTrack track, DataOutput output) {
+
+	}
+
+	@Override
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
+		return new SpotifyAudioTrack(trackInfo, this);
 	}
 
 	@Override
@@ -267,10 +273,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 						json.get("duration_ms").asLong(0),
 						json.get("id").text(),
 						false,
-						json.get("external_urls").get("spotify").text()
+						json.get("external_urls").get("spotify").text(),
+						json.get("album").get("images").index(0).get("url").text(),
+						json.get("external_ids").get("isrc").text()
 				),
-				json.get("external_ids").get("isrc").text(),
-				json.get("album").get("images").index(0).get("url").text(),
 				this
 		);
 	}
