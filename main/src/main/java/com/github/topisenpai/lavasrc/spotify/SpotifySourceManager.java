@@ -202,16 +202,13 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     }
 
     public AudioItem getArtist(String identifier) throws IOException {
-        JsonBrowser json = this.getJson(API_BASE + "artists/" + identifier + "/top-tracks?market=" + countryCode);
-        return json == null || json.get("tracks").values().isEmpty() ? AudioReference.NO_TRACK : new BasicAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json), null, false);
+        JsonBrowser json = getJson(API_BASE + "artists/" + identifier + "/top-tracks?market=" + countryCode);
+        return json == null || json.get("tracks").values().isEmpty() ? AudioReference.NO_TRACK : new BasicAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", parseTracks(json), null, false);
     }
 
     public AudioItem getTrack(String id) throws IOException {
-        var json = this.getJson(API_BASE + "tracks/" + id);
-        if (json == null) {
-            return AudioReference.NO_TRACK;
-        }
-        return parseTrack(json);
+        JsonBrowser json = getJson(API_BASE + "tracks/" + id);
+        return json == null ? AudioReference.NO_TRACK : parseTrack(json);
     }
 
     private List<AudioTrack> parseTracks(JsonBrowser json) {
