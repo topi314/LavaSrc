@@ -14,6 +14,6 @@ subprojects {
 
     version "3.1.7"
 
-    sourceCompatibility = 11
+    sourceCompatibility = 18
     compileJava.options.encoding = "UTF-8"
 }
