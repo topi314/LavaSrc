@@ -3,32 +3,30 @@ package com.github.topisenpai.lavasrc.deezer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
+import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigurable {
 
@@ -39,8 +37,6 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
     public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
     public static final String PRIVATE_API_BASE = "https://www.deezer.com/ajax/gw-light.php";
     public static final String MEDIA_BASE = "https://media.deezer.com/v1";
-
-    private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
 
     private final String masterDecryptionKey;
 
@@ -63,73 +59,60 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
     public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
         try {
             if (reference.identifier.startsWith(SEARCH_PREFIX)) {
-                return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()));
+                return getFirstSearchResultAsTrack(reference.identifier.substring(SEARCH_PREFIX.length()));
             }
 
             if (reference.identifier.startsWith(ISRC_PREFIX)) {
-                return this.getTrackByISRC(reference.identifier.substring(ISRC_PREFIX.length()));
+                return getTrackByISRC(reference.identifier.substring(ISRC_PREFIX.length()));
             }
 
             // If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
             if (reference.identifier.startsWith(SHARE_URL)) {
-                var request = new HttpGet(reference.identifier);
+                HttpGet request = new HttpGet(reference.identifier);
                 request.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build());
-                try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
+                try (CloseableHttpResponse response = this.httpInterfaceManager.getInterface().execute(request)) {
                     if (response.getStatusLine().getStatusCode() == 302) {
-                        var location = response.getFirstHeader("Location").getValue();
+                        String location = response.getFirstHeader("Location").getValue();
                         if (location.startsWith("https://www.deezer.com/")) {
-                            return this.loadItem(manager, new AudioReference(location, reference.title));
+                            return loadItem(manager, new AudioReference(location, reference.title));
                         }
                     }
-                    return null;
+                    return AudioReference.NO_TRACK;
                 }
             }
 
-            var matcher = URL_PATTERN.matcher(reference.identifier);
-            if (!matcher.find()) {
-                return null;
-            }
+            Matcher matcher = URL_PATTERN.matcher(reference.identifier);
+            if (!matcher.find()) return null;
 
-            var id = matcher.group("identifier");
-            switch (matcher.group("type")) {
-                case "album":
-                    return this.getAlbum(id);
-
-                case "track":
-                    return this.getTrack(id);
-
-                case "playlist":
-                    return this.getPlaylist(id);
-
-                case "artist":
-                    return this.getArtist(id);
-            }
+            String identifier = matcher.group("identifier");
+            return switch (matcher.group("type")) {
+                case "track" -> getTrack(identifier);
+                case "playlist" -> getPlaylist(identifier);
+                case "album" -> getAlbum(identifier);
+                case "artist" -> getArtist(identifier);
+                default -> throw new IllegalArgumentException();
+            };
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 
     public JsonBrowser getJson(String uri) throws IOException {
-        var request = new HttpGet(uri);
+        HttpGet request = new HttpGet(uri);
         request.setHeader("Accept", "application/json");
-        return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+        return HttpClientTools.fetchResponseAsJson(httpInterfaceManager.getInterface(), request);
     }
 
     private List<AudioTrack> parseTracks(JsonBrowser json) {
-        var tracks = new ArrayList<AudioTrack>();
-        for (var track : json.get("data").values()) {
-            if (!track.get("type").text().equals("track")) {
-                continue;
-            }
-            tracks.add(this.parseTrack(track));
-        }
-        return tracks;
+        return json.get("data").values().stream()
+                .filter(track -> track.get("type").text().equals("track"))
+                .map(this::parseTrack)
+                .collect(Collectors.toList());
     }
 
     private AudioTrack parseTrack(JsonBrowser json) {
-        var id = json.get("id").text();
+        String id = json.get("id").text();
         return new DeezerAudioTrack(new AudioTrackInfo(
                 json.get("title").text(),
                 json.get("artist").get("name").text(),
@@ -143,54 +126,44 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
         );
     }
 
-    private AudioItem getTrackByISRC(String isrc) throws IOException {
-        var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
-        if (json == null || json.get("id").isNull()) {
-            return AudioReference.NO_TRACK;
-        }
-        return this.parseTrack(json);
+    public AudioItem getTrackByISRC(String isrc) throws IOException {
+        JsonBrowser json = getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
+        return json == null || json.get("id").isNull() ? AudioReference.NO_TRACK : parseTrack(json);
     }
 
-    private AudioItem getSearch(String query) throws IOException {
-        var json = this.getJson(PUBLIC_API_BASE + "/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
-        if (json == null || json.get("data").values().isEmpty()) {
-            return AudioReference.NO_TRACK;
-        }
-
-        var tracks = this.parseTracks(json);
-        return new BasicAudioPlaylist("Deezer Search: " + query, tracks, null, true);
+    public AudioItem getFirstSearchResultAsTrack(String query) throws IOException {
+        List<AudioTrack> searchResults = getSearchResults(query);
+        return searchResults.isEmpty() ? AudioReference.NO_TRACK : searchResults.get(0);
     }
 
-    private AudioItem getAlbum(String id) throws IOException {
-        var json = this.getJson(PUBLIC_API_BASE + "/album/" + id);
-        if (json == null || json.get("tracks").get("data").values().isEmpty()) {
-            return AudioReference.NO_TRACK;
-        }
-        return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
+    public AudioItem getAllSearchResultsAsPlaylist(String query) throws IOException {
+        List<AudioTrack> searchResults = getSearchResults(query);
+        return searchResults.isEmpty() ? AudioReference.NO_TRACK : new BasicAudioPlaylist("Deezer Search Results For: " + query, searchResults, null, true);
     }
 
-    private AudioItem getTrack(String id) throws IOException {
-        var json = this.getJson(PUBLIC_API_BASE + "/track/" + id);
-        if (json == null) {
-            return AudioReference.NO_TRACK;
-        }
-        return this.parseTrack(json);
+    private List<AudioTrack> getSearchResults(String query) throws IOException {
+        JsonBrowser json = getJson(PUBLIC_API_BASE + "/search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
+        return json == null || json.get("data").values().isEmpty() ? Collections.emptyList() : parseTracks(json);
     }
 
-    private AudioItem getPlaylist(String id) throws IOException {
-        var json = this.getJson(PUBLIC_API_BASE + "/playlist/" + id);
-        if (json == null || json.get("tracks").get("data").values().isEmpty()) {
-            return AudioReference.NO_TRACK;
-        }
-        return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
+    public AudioItem getAlbum(String identifier) throws IOException {
+        JsonBrowser json = getJson(PUBLIC_API_BASE + "/album/" + identifier);
+        return json == null || json.get("tracks").get("data").values().isEmpty() ? AudioReference.NO_TRACK : new BasicAudioPlaylist(json.get("title").text(), parseTracks(json.get("tracks")), null, false);
     }
 
-    private AudioItem getArtist(String id) throws IOException {
-        var json = this.getJson(PUBLIC_API_BASE + "/artist/" + id + "/top?limit=50");
-        if (json == null || json.get("data").values().isEmpty()) {
-            return AudioReference.NO_TRACK;
-        }
-        return new BasicAudioPlaylist(json.get("data").index(0).get("artist").get("name").text() + "'s Top Tracks", this.parseTracks(json), null, false);
+    public AudioItem getTrack(String identifier) throws IOException {
+        JsonBrowser json = this.getJson(PUBLIC_API_BASE + "/track/" + identifier);
+        return json == null ? AudioReference.NO_TRACK : parseTrack(json);
+    }
+
+    public AudioItem getPlaylist(String identifier) throws IOException {
+        JsonBrowser json = getJson(PUBLIC_API_BASE + "/playlist/" + identifier);
+        return json == null || json.get("tracks").get("data").values().isEmpty() ? AudioReference.NO_TRACK : new BasicAudioPlaylist(json.get("title").text(), parseTracks(json.get("tracks")), null, false);
+    }
+
+    public AudioItem getArtist(String identifier) throws IOException {
+        JsonBrowser json = this.getJson(PUBLIC_API_BASE + "/artist/" + identifier + "/top?limit=50");
+        return json == null || json.get("data").values().isEmpty() ? AudioReference.NO_TRACK : new BasicAudioPlaylist(json.get("data").index(0).get("artist").get("name").text() + "'s Top Tracks", parseTracks(json), null, false);
     }
 
     @Override
@@ -200,7 +173,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
     @Override
     public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-        var deezerAudioTrack = ((DeezerAudioTrack) track);
+        DeezerAudioTrack deezerAudioTrack = (DeezerAudioTrack) track;
         DataFormatTools.writeNullableText(output, deezerAudioTrack.getISRC());
         DataFormatTools.writeNullableText(output, deezerAudioTrack.getArtworkURL());
     }
@@ -216,29 +189,25 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
     @Override
     public void shutdown() {
-        try {
-            this.httpInterfaceManager.close();
-        } catch (IOException e) {
-            log.error("Failed to close HTTP interface manager", e);
-        }
+        ExceptionTools.closeWithWarnings(httpInterfaceManager);
     }
 
     @Override
     public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-        this.httpInterfaceManager.configureRequests(configurator);
+        httpInterfaceManager.configureRequests(configurator);
     }
 
     @Override
     public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-        this.httpInterfaceManager.configureBuilder(configurator);
+        httpInterfaceManager.configureBuilder(configurator);
     }
 
     public String getMasterDecryptionKey() {
-        return this.masterDecryptionKey;
+        return masterDecryptionKey;
     }
 
     public HttpInterface getHttpInterface() {
-        return this.httpInterfaceManager.getInterface();
+        return httpInterfaceManager.getInterface();
     }
 
 }
