@@ -12,7 +12,7 @@ public class AppleMusicAudioTrack extends MirroringAudioTrack {
 
     @Override
     protected AudioTrack makeShallowClone() {
-        return new AppleMusicAudioTrack(this.trackInfo, this.isrc, this.artworkURL, (AppleMusicSourceManager) this.sourceManager);
+        return new AppleMusicAudioTrack(trackInfo, isrc, artworkURL, (AppleMusicSourceManager) sourceManager);
     }
 
 }
