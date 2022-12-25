@@ -186,15 +186,12 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
         int offset = 0;
         JsonBrowser page = getJson(API_BASE + "playlists/" + identifier + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=0");
 
-        //TODO This can be cleaned up functionally.
         while(page.get("next").text() != null) {
             offset += ALBUM_MAX_PAGE_ITEMS;
-            page.get("items").values().forEach(value -> {
-                JsonBrowser track = value.get("track");
-                if (track.isNull() || track.get("is_local").asBoolean(false)) return;
-                tracks.add(parseTrack(track));
-            });
-
+            page.get("items").values().stream()
+                    .map(value -> value.get("track"))
+                    .filter(track -> !track.isNull() && !track.get("is_local").asBoolean(false))
+                    .forEach(track -> tracks.add(parseTrack(track)));
             page = getJson(API_BASE + "playlists/" + identifier + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset);
         }
 
