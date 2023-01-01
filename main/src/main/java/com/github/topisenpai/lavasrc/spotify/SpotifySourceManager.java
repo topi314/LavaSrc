@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
 
@@ -173,11 +174,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
             page = this.getJson(API_BASE + "albums/" + id + "/tracks?limit=" + ALBUM_MAX_PAGE_ITEMS + "&offset=" + offset);
             offset += ALBUM_MAX_PAGE_ITEMS;
 
-            for (var track : page.get("items").values()) {
-                track.put("album", json);
-            }
+            var tracksPage = this.getJson(API_BASE + "tracks/?ids=" + page.get("items").values().stream().map(track -> track.get("id").text()).collect(Collectors.joining(",")));
 
-            tracks.addAll(this.parseTrackItems(page));
+            tracks.addAll(this.parseTracks(tracksPage));
         }
         while (page.get("next").text() != null);
 
