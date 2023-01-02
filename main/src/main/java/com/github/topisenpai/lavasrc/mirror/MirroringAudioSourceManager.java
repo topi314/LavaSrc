@@ -74,7 +74,7 @@ public abstract class MirroringAudioSourceManager implements AudioSourceManager 
         return this.audioPlayerManager;
     }
 
-    public MirroringAudioTrackLookup getDelegatedAudioLookup() {
+    public MirroringAudioTrackLookup getMirroringAudioTrackLookup() {
         return this.mirroringAudioTrackLookup;
     }
 

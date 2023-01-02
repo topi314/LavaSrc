@@ -1,7 +1,5 @@
 package com.github.topisenpai.lavasrc.mirror;
 
-import com.github.topisenpai.lavasrc.applemusic.AppleMusicSourceManager;
-import com.github.topisenpai.lavasrc.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -17,9 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
-
-import static com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager.ISRC_PATTERN;
-import static com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager.QUERY_PATTERN;
 
 public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 
@@ -54,7 +49,7 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 
     @Override
     public void process(LocalAudioTrackExecutor executor) throws Exception {
-        AudioItem track = this.sourceManager.getDelegatedAudioLookup().apply(this);
+        AudioItem track = this.sourceManager.getMirroringAudioTrackLookup().apply(this);
 
         if (track instanceof AudioPlaylist) {
             track = ((AudioPlaylist) track).getTracks().get(0);
