@@ -13,7 +13,7 @@ public abstract class MirroringAudioSourceManager implements AudioSourceManager 
     public static final String ISRC_PATTERN = "%ISRC%";
     public static final String QUERY_PATTERN = "%QUERY%";
     protected final AudioPlayerManager audioPlayerManager;
-    protected final DelegatedAudioLookup delegatedAudioLookup;
+    protected final MirroringAudioTrackLookup mirroringAudioTrackLookup;
     protected String[] providers = {
             "ytsearch:\"" + ISRC_PATTERN + "\"",
             "ytsearch:" + QUERY_PATTERN
@@ -23,12 +23,12 @@ public abstract class MirroringAudioSourceManager implements AudioSourceManager 
         this(providers, audioPlayerManager, null);
     }
 
-    protected MirroringAudioSourceManager(String[] providers, AudioPlayerManager audioPlayerManager, DelegatedAudioLookup delegatedAudioLookup) {
+    protected MirroringAudioSourceManager(String[] providers, AudioPlayerManager audioPlayerManager, MirroringAudioTrackLookup mirroringAudioTrackLookup) {
         if (providers != null && providers.length > 0) {
             this.providers = providers;
         }
         this.audioPlayerManager = audioPlayerManager;
-        this.delegatedAudioLookup = delegatedAudioLookup;
+        this.mirroringAudioTrackLookup = mirroringAudioTrackLookup;
     }
 
     public String[] getProviders() {
@@ -39,8 +39,8 @@ public abstract class MirroringAudioSourceManager implements AudioSourceManager 
         return this.audioPlayerManager;
     }
 
-    public DelegatedAudioLookup getDelegatedAudioLookup() {
-        return this.delegatedAudioLookup;
+    public MirroringAudioTrackLookup getDelegatedAudioLookup() {
+        return this.mirroringAudioTrackLookup;
     }
 
     @Override
