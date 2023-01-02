@@ -84,7 +84,7 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
                 }
             }
         } else {
-            track = this.sourceManager.getDelegatedAudioLookup().apply(this.sourceManager, this);
+            track = this.sourceManager.getDelegatedAudioLookup().apply(this);
         }
 
         if (track instanceof AudioPlaylist) {
@@ -99,6 +99,10 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 
     @Override
     public AudioSourceManager getSourceManager() {
+        return this.sourceManager;
+    }
+
+    public MirroringAudioSourceManager getMirroringSourceManager() {
         return this.sourceManager;
     }
 
