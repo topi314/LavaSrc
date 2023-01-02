@@ -44,7 +44,7 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
         return this.artworkURL;
     }
 
-    private String getTrackTitle() {
+    public String getTrackTitle() {
         var query = this.trackInfo.title;
         if (!this.trackInfo.author.equals("unknown")) {
             query += " " + this.trackInfo.author;
@@ -54,38 +54,7 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 
     @Override
     public void process(LocalAudioTrackExecutor executor) throws Exception {
-        AudioItem track = null;
-
-        if (this.sourceManager.getDelegatedAudioLookup() == null) {
-            for (var provider : this.sourceManager.getProviders()) {
-                if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
-                    log.warn("Can not use spotify search as search provider!");
-                    continue;
-                }
-
-                if (provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)) {
-                    log.warn("Can not use apple music search as search provider!");
-                    continue;
-                }
-
-                if (provider.contains(ISRC_PATTERN)) {
-                    if (this.isrc != null) {
-                        provider = provider.replace(ISRC_PATTERN, this.isrc);
-                    } else {
-                        log.debug("Ignoring identifier \"" + provider + "\" because this track does not have an ISRC!");
-                        continue;
-                    }
-                }
-
-                provider = provider.replace(QUERY_PATTERN, getTrackTitle());
-                track = loadItem(provider, sourceManager);
-                if (track != AudioReference.NO_TRACK) {
-                    break;
-                }
-            }
-        } else {
-            track = this.sourceManager.getDelegatedAudioLookup().apply(this);
-        }
+        AudioItem track = this.sourceManager.getDelegatedAudioLookup().apply(this);
 
         if (track instanceof AudioPlaylist) {
             track = ((AudioPlaylist) track).getTracks().get(0);

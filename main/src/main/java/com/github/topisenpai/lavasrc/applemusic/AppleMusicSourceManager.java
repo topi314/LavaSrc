@@ -44,11 +44,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     private Instant tokenExpire;
 
     public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager) {
-        this(providers, mediaAPIToken, countryCode, audioPlayerManager, null);
+        this(mediaAPIToken, countryCode, audioPlayerManager, defaultMirroringAudioTrackLookup(providers));
     }
 
-    public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackLookup mirroringAudioTrackLookup) {
-        super(providers, audioPlayerManager, mirroringAudioTrackLookup);
+    public AppleMusicSourceManager(String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackLookup mirroringAudioTrackLookup) {
+        super(audioPlayerManager, mirroringAudioTrackLookup);
         this.token = mediaAPIToken;
         try {
             this.parseTokenData();
