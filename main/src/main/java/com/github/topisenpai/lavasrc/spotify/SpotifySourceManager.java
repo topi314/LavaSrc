@@ -1,5 +1,6 @@
 package com.github.topisenpai.lavasrc.spotify;
 
+import com.github.topisenpai.lavasrc.mirror.DelegatedAudioLookup;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
@@ -52,7 +53,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     private Instant tokenExpire;
 
     public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
-        super(providers, audioPlayerManager);
+        this(providers, clientId, clientSecret, countryCode, audioPlayerManager, null);
+    }
+
+    public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager, DelegatedAudioLookup delegatedAudioLookup) {
+        super(providers, audioPlayerManager, delegatedAudioLookup);
 
         if (clientId == null || clientId.isEmpty()) {
             throw new IllegalArgumentException("Spotify client id must be set");

@@ -56,31 +56,35 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
     public void process(LocalAudioTrackExecutor executor) throws Exception {
         AudioItem track = null;
 
-        for (var provider : this.sourceManager.getProviders()) {
-            if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
-                log.warn("Can not use spotify search as search provider!");
-                continue;
-            }
-
-            if (provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)) {
-                log.warn("Can not use apple music search as search provider!");
-                continue;
-            }
-
-            if (provider.contains(ISRC_PATTERN)) {
-                if (this.isrc != null) {
-                    provider = provider.replace(ISRC_PATTERN, this.isrc);
-                } else {
-                    log.debug("Ignoring identifier \"" + provider + "\" because this track does not have an ISRC!");
+        if (this.sourceManager.getDelegatedAudioLookup() == null) {
+            for (var provider : this.sourceManager.getProviders()) {
+                if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
+                    log.warn("Can not use spotify search as search provider!");
                     continue;
                 }
-            }
 
-            provider = provider.replace(QUERY_PATTERN, getTrackTitle());
-            track = loadItem(provider);
-            if (track != AudioReference.NO_TRACK) {
-                break;
+                if (provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)) {
+                    log.warn("Can not use apple music search as search provider!");
+                    continue;
+                }
+
+                if (provider.contains(ISRC_PATTERN)) {
+                    if (this.isrc != null) {
+                        provider = provider.replace(ISRC_PATTERN, this.isrc);
+                    } else {
+                        log.debug("Ignoring identifier \"" + provider + "\" because this track does not have an ISRC!");
+                        continue;
+                    }
+                }
+
+                provider = provider.replace(QUERY_PATTERN, getTrackTitle());
+                track = loadItem(provider, sourceManager);
+                if (track != AudioReference.NO_TRACK) {
+                    break;
+                }
             }
+        } else {
+            track = this.sourceManager.getDelegatedAudioLookup().apply(this.sourceManager, this);
         }
 
         if (track instanceof AudioPlaylist) {
@@ -98,9 +102,9 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
         return this.sourceManager;
     }
 
-    private AudioItem loadItem(String query) {
+    public static AudioItem loadItem(String query, MirroringAudioSourceManager sourceManager) {
         var cf = new CompletableFuture<AudioItem>();
-        this.sourceManager.getAudioPlayerManager().loadItem(query, new AudioLoadResultHandler() {
+        sourceManager.getAudioPlayerManager().loadItem(query, new AudioLoadResultHandler() {
 
             @Override
             public void trackLoaded(AudioTrack track) {
