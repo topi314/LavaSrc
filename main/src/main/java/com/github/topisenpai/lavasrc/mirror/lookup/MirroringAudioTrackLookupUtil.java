@@ -1,5 +1,7 @@
-package com.github.topisenpai.lavasrc.mirror;
+package com.github.topisenpai.lavasrc.mirror.lookup;
 
+import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
+import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrack;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;

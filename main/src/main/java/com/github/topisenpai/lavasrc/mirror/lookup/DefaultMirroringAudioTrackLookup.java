@@ -1,6 +1,7 @@
-package com.github.topisenpai.lavasrc.mirror;
+package com.github.topisenpai.lavasrc.mirror.lookup;
 
 import com.github.topisenpai.lavasrc.applemusic.AppleMusicSourceManager;
+import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrack;
 import com.github.topisenpai.lavasrc.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
@@ -41,8 +42,8 @@ public class DefaultMirroringAudioTrackLookup implements MirroringAudioTrackLook
             }
 
             if (provider.contains(ISRC_PATTERN)) {
-                if (mirroringAudioTrack.isrc != null) {
-                    provider = provider.replace(ISRC_PATTERN, mirroringAudioTrack.isrc);
+                if (mirroringAudioTrack.getISRC() != null) {
+                    provider = provider.replace(ISRC_PATTERN, mirroringAudioTrack.getISRC());
                 } else {
                     log.debug("Ignoring identifier \"" + provider + "\" because this track does not have an ISRC!");
                     continue;

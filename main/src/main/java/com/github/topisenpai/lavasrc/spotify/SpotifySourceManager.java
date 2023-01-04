@@ -1,7 +1,7 @@
 package com.github.topisenpai.lavasrc.spotify;
 
-import com.github.topisenpai.lavasrc.mirror.DefaultMirroringAudioTrackLookup;
-import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrackLookup;
+import com.github.topisenpai.lavasrc.mirror.lookup.DefaultMirroringAudioTrackLookup;
+import com.github.topisenpai.lavasrc.mirror.lookup.MirroringAudioTrackLookup;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
