@@ -45,7 +45,7 @@ public class DefaultMirroringAudioTrackLookup implements MirroringAudioTrackLook
                 if (mirroringAudioTrack.getISRC() != null) {
                     provider = provider.replace(ISRC_PATTERN, mirroringAudioTrack.getISRC());
                 } else {
-                    log.debug("Ignoring identifier \"" + provider + "\" because this track does not have an ISRC!");
+                    log.debug("Ignoring identifier \"{}\" because this track does not have an ISRC!", provider);
                     continue;
                 }
             }
