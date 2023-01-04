@@ -1,5 +1,6 @@
 package com.github.topisenpai.lavasrc.applemusic;
 
+import com.github.topisenpai.lavasrc.mirror.DefaultMirroringAudioTrackLookup;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrackLookup;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -44,7 +45,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
     private Instant tokenExpire;
 
     public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager) {
-        this(mediaAPIToken, countryCode, audioPlayerManager, defaultMirroringAudioTrackLookup(providers));
+        this(mediaAPIToken, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackLookup(providers));
     }
 
     public AppleMusicSourceManager(String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackLookup mirroringAudioTrackLookup) {

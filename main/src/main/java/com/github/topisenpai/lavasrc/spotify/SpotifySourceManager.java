@@ -1,5 +1,6 @@
 package com.github.topisenpai.lavasrc.spotify;
 
+import com.github.topisenpai.lavasrc.mirror.DefaultMirroringAudioTrackLookup;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrackLookup;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -53,7 +54,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
     private Instant tokenExpire;
 
     public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
-        this(clientId, clientSecret, countryCode, audioPlayerManager, defaultMirroringAudioTrackLookup(providers));
+        this(clientId, clientSecret, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackLookup(providers));
     }
 
     public SpotifySourceManager(String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackLookup mirroringAudioTrackLookup) {
