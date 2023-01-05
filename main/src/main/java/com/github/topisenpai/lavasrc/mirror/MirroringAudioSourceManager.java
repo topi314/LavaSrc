@@ -1,6 +1,5 @@
 package com.github.topisenpai.lavasrc.mirror;
 
-import com.github.topisenpai.lavasrc.mirror.lookup.MirroringAudioTrackLookup;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
@@ -11,34 +10,35 @@ import java.io.IOException;
 
 public abstract class MirroringAudioSourceManager implements AudioSourceManager {
 
-    public static final String ISRC_PATTERN = "%ISRC%";
-    public static final String QUERY_PATTERN = "%QUERY%";
-    protected final AudioPlayerManager audioPlayerManager;
-    protected final MirroringAudioTrackLookup mirroringAudioTrackLookup;
+	public static final String ISRC_PATTERN = "%ISRC%";
+	public static final String QUERY_PATTERN = "%QUERY%";
 
-    protected MirroringAudioSourceManager(AudioPlayerManager audioPlayerManager, MirroringAudioTrackLookup mirroringAudioTrackLookup) {
-        this.audioPlayerManager = audioPlayerManager;
-        this.mirroringAudioTrackLookup = mirroringAudioTrackLookup;
-    }
+	protected final AudioPlayerManager audioPlayerManager;
+	protected final MirroringAudioTrackResolver resolver;
 
-    public AudioPlayerManager getAudioPlayerManager() {
-        return this.audioPlayerManager;
-    }
+	protected MirroringAudioSourceManager(AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver resolver) {
+		this.audioPlayerManager = audioPlayerManager;
+		this.resolver = resolver;
+	}
 
-    public MirroringAudioTrackLookup getMirroringAudioTrackLookup() {
-        return this.mirroringAudioTrackLookup;
-    }
+	public AudioPlayerManager getAudioPlayerManager() {
+		return this.audioPlayerManager;
+	}
 
-    @Override
-    public boolean isTrackEncodable(AudioTrack track) {
-        return true;
-    }
+	public MirroringAudioTrackResolver getResolver() {
+		return this.resolver;
+	}
 
-    @Override
-    public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-        var isrcAudioTrack = ((MirroringAudioTrack) track);
-        DataFormatTools.writeNullableText(output, isrcAudioTrack.getISRC());
-        DataFormatTools.writeNullableText(output, isrcAudioTrack.getArtworkURL());
-    }
+	@Override
+	public boolean isTrackEncodable(AudioTrack track) {
+		return true;
+	}
+
+	@Override
+	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
+		var isrcAudioTrack = ((MirroringAudioTrack) track);
+		DataFormatTools.writeNullableText(output, isrcAudioTrack.getISRC());
+		DataFormatTools.writeNullableText(output, isrcAudioTrack.getArtworkURL());
+	}
 
 }

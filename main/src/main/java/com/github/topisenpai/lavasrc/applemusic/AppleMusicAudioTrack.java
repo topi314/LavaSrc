@@ -6,13 +6,13 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 public class AppleMusicAudioTrack extends MirroringAudioTrack {
 
-    public AppleMusicAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, AppleMusicSourceManager sourceManager) {
-        super(trackInfo, isrc, artworkURL, sourceManager);
-    }
+	public AppleMusicAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, AppleMusicSourceManager sourceManager) {
+		super(trackInfo, isrc, artworkURL, sourceManager);
+	}
 
-    @Override
-    protected AudioTrack makeShallowClone() {
-        return new AppleMusicAudioTrack(this.trackInfo, this.isrc, this.artworkURL, (AppleMusicSourceManager) this.sourceManager);
-    }
+	@Override
+	protected AudioTrack makeShallowClone() {
+		return new AppleMusicAudioTrack(this.trackInfo, this.isrc, this.artworkURL, (AppleMusicSourceManager) this.sourceManager);
+	}
 
 }
