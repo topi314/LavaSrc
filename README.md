@@ -70,7 +70,7 @@ playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, cli
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new AppleMusicSourceManager with the standard providers, token, countrycode and AudioPlayerManager and register it
+// create a new AppleMusicSourceManager with the standard providers, token(pass null for automatic extraction), countrycode and AudioPlayerManager and register it
 playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager));
 ```
 
