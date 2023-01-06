@@ -10,17 +10,17 @@ import static com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager.Q
 @Component
 public class LavaSrcConfig {
 
-    private String[] providers = {
-            "ytsearch:\"" + ISRC_PATTERN + "\"",
-            "ytsearch:" + QUERY_PATTERN
-    };
+	private String[] providers = {
+			"ytsearch:\"" + ISRC_PATTERN + "\"",
+			"ytsearch:" + QUERY_PATTERN
+	};
 
-    public String[] getProviders() {
-        return this.providers;
-    }
+	public String[] getProviders() {
+		return this.providers;
+	}
 
-    public void setProviders(String[] providers) {
-        this.providers = providers;
-    }
+	public void setProviders(String[] providers) {
+		this.providers = providers;
+	}
 
 }

@@ -10,39 +10,35 @@ import java.io.IOException;
 
 public abstract class MirroringAudioSourceManager implements AudioSourceManager {
 
-    public static final String ISRC_PATTERN = "%ISRC%";
-    public static final String QUERY_PATTERN = "%QUERY%";
-    protected final AudioPlayerManager audioPlayerManager;
-    protected String[] providers = {
-            "ytsearch:\"" + ISRC_PATTERN + "\"",
-            "ytsearch:" + QUERY_PATTERN
-    };
+	public static final String ISRC_PATTERN = "%ISRC%";
+	public static final String QUERY_PATTERN = "%QUERY%";
 
-    protected MirroringAudioSourceManager(String[] providers, AudioPlayerManager audioPlayerManager) {
-        if (providers != null && providers.length > 0) {
-            this.providers = providers;
-        }
-        this.audioPlayerManager = audioPlayerManager;
-    }
+	protected final AudioPlayerManager audioPlayerManager;
+	protected final MirroringAudioTrackResolver resolver;
 
-    public String[] getProviders() {
-        return this.providers;
-    }
+	protected MirroringAudioSourceManager(AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver resolver) {
+		this.audioPlayerManager = audioPlayerManager;
+		this.resolver = resolver;
+	}
 
-    public AudioPlayerManager getAudioPlayerManager() {
-        return this.audioPlayerManager;
-    }
+	public AudioPlayerManager getAudioPlayerManager() {
+		return this.audioPlayerManager;
+	}
 
-    @Override
-    public boolean isTrackEncodable(AudioTrack track) {
-        return true;
-    }
+	public MirroringAudioTrackResolver getResolver() {
+		return this.resolver;
+	}
 
-    @Override
-    public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-        var isrcAudioTrack = ((MirroringAudioTrack) track);
-        DataFormatTools.writeNullableText(output, isrcAudioTrack.getISRC());
-        DataFormatTools.writeNullableText(output, isrcAudioTrack.getArtworkURL());
-    }
+	@Override
+	public boolean isTrackEncodable(AudioTrack track) {
+		return true;
+	}
+
+	@Override
+	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
+		var isrcAudioTrack = ((MirroringAudioTrack) track);
+		DataFormatTools.writeNullableText(output, isrcAudioTrack.getISRC());
+		DataFormatTools.writeNullableText(output, isrcAudioTrack.getArtworkURL());
+	}
 
 }

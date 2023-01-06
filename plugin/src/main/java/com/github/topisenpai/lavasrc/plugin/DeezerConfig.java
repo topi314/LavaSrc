@@ -7,14 +7,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeezerConfig {
 
-    private String masterDecryptionKey;
+	private String masterDecryptionKey;
 
-    public String getMasterDecryptionKey() {
-        return this.masterDecryptionKey;
-    }
+	public String getMasterDecryptionKey() {
+		return this.masterDecryptionKey;
+	}
 
-    public void setMasterDecryptionKey(String masterDecryptionKey) {
-        this.masterDecryptionKey = masterDecryptionKey;
-    }
+	public void setMasterDecryptionKey(String masterDecryptionKey) {
+		this.masterDecryptionKey = masterDecryptionKey;
+	}
 
 }

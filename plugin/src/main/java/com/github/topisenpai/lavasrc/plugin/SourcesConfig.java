@@ -8,40 +8,40 @@ import org.springframework.stereotype.Component;
 @Component
 public class SourcesConfig {
 
-    private boolean spotify = false;
-    private boolean appleMusic = false;
-    private boolean deezer = false;
-    private boolean yandexMusic = false;
+	private boolean spotify = false;
+	private boolean appleMusic = false;
+	private boolean deezer = false;
+	private boolean yandexMusic = false;
 
-    public boolean isSpotify() {
-        return this.spotify;
-    }
+	public boolean isSpotify() {
+		return this.spotify;
+	}
 
-    public void setSpotify(boolean spotify) {
-        this.spotify = spotify;
-    }
+	public void setSpotify(boolean spotify) {
+		this.spotify = spotify;
+	}
 
-    public boolean isAppleMusic() {
-        return this.appleMusic;
-    }
+	public boolean isAppleMusic() {
+		return this.appleMusic;
+	}
 
-    public void setAppleMusic(boolean appleMusic) {
-        this.appleMusic = appleMusic;
-    }
+	public void setAppleMusic(boolean appleMusic) {
+		this.appleMusic = appleMusic;
+	}
 
-    public boolean isDeezer() {
-        return this.deezer;
-    }
+	public boolean isDeezer() {
+		return this.deezer;
+	}
 
-    public void setDeezer(boolean deezer) {
-        this.deezer = deezer;
-    }
+	public void setDeezer(boolean deezer) {
+		this.deezer = deezer;
+	}
 
-    public boolean isYandexMusic() {
-        return this.yandexMusic;
-    }
+	public boolean isYandexMusic() {
+		return this.yandexMusic;
+	}
 
-    public void setYandexMusic(boolean yandexMusic) {
-        this.yandexMusic = yandexMusic;
-    }
+	public void setYandexMusic(boolean yandexMusic) {
+		this.yandexMusic = yandexMusic;
+	}
 }
