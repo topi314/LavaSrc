@@ -1,6 +1,8 @@
 package com.github.topisenpai.lavasrc.applemusic;
 
+import com.github.topisenpai.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
+import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
@@ -47,7 +49,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private Instant tokenExpire;
 
 	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager) {
-		super(providers, audioPlayerManager);
+		this(mediaAPIToken, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
+	}
+
+	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+		super(audioPlayerManager, mirroringAudioTrackResolver);
 		this.token = mediaAPIToken;
 		try {
 			this.parseTokenData();
@@ -73,7 +79,6 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	@Override
 	public void encodeTrack(AudioTrack track, DataOutput output) {
-
 	}
 
 	@Override

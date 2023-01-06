@@ -1,6 +1,8 @@
 package com.github.topisenpai.lavasrc.spotify;
 
+import com.github.topisenpai.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
+import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
@@ -52,7 +54,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private Instant tokenExpire;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
-		super(providers, audioPlayerManager);
+		this(clientId, clientSecret, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
+	}
+
+	public SpotifySourceManager(String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+		super(audioPlayerManager, mirroringAudioTrackResolver);
 
 		if (clientId == null || clientId.isEmpty()) {
 			throw new IllegalArgumentException("Spotify client id must be set");
@@ -76,18 +82,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	@Override
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
+		return new SpotifyAudioTrack(trackInfo, this);
+	}
+
+	@Override
 	public boolean isTrackEncodable(AudioTrack track) {
 		return true;
 	}
 
 	@Override
 	public void encodeTrack(AudioTrack track, DataOutput output) {
-
-	}
-
-	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
-		return new SpotifyAudioTrack(trackInfo, this);
 	}
 
 	@Override
@@ -180,10 +185,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			page = this.getJson(API_BASE + "albums/" + id + "/tracks?limit=" + ALBUM_MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += ALBUM_MAX_PAGE_ITEMS;
 
-			for (var track : page.get("items").values()) {
-				track.put("album", json);
-			}
-
 			var tracksPage = this.getJson(API_BASE + "tracks/?ids=" + page.get("items").values().stream().map(track -> track.get("id").text()).collect(Collectors.joining(",")));
 
 			tracks.addAll(this.parseTracks(tracksPage));
@@ -194,9 +195,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		var artworkUrl = json.get("images").index(0).get("url").text();
-		var author = json.get("author").get("name").text();
-		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, "album", id, artworkUrl, author);
+		return new BasicAudioPlaylist(json.get("name").text(), tracks, null, false);
 
 	}
 
@@ -228,9 +227,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		var artworkUrl = json.get("images").index(0).get("url").text();
-		var author = json.get("owner").get("string").text();
-		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, "playlist", id, artworkUrl, author);
+		return new BasicAudioPlaylist(json.get("name").text(), tracks, null, false);
 
 	}
 
@@ -239,10 +236,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		if (json == null || json.get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-
-		var artworkUrl = json.get("tracks").index(0).get("album").get("images").index(0).get("url").text();
-		var author = json.get("tracks").index(0).get("artists").index(0).get("name").text();
-		return new SpotifyAudioPlaylist(author + "'s Top Tracks", this.parseTracks(json), "artist", id, artworkUrl, author);
+		return new BasicAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json), null, false);
 	}
 
 	public AudioItem getTrack(String id) throws IOException {

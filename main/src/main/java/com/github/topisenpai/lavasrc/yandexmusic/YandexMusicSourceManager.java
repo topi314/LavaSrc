@@ -2,7 +2,6 @@ package com.github.topisenpai.lavasrc.yandexmusic;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -134,10 +133,12 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		if (json.isNull() || json.get("result").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
+
 		var tracks = this.parseTracks(json.get("result").get("tracks"));
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
+
 		var artistJson = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
 		var coverUri = json.get("result").get("coverUri").text();
 		var author = artistJson.get("result").get("artist").get("name").text();
@@ -193,15 +194,18 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		}
 		var id = json.get("id").text();
 		var artist = json.get("major").get("name").text().equals("PODCASTS") ? json.get("albums").values().get(0).get("title").text() : json.get("artists").values().get(0).get("name").text();
-		var coverUri = json.get("coverUri").text();
-		return new YandexMusicAudioTrack(new AudioTrackInfo(
-				json.get("title").text(),
-				artist,
-				json.get("durationMs").as(Long.class),
-				id,
-				false,
-				"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id),
-				this.formatCoverUri(coverUri),
+		var coverUri = json.get("albums").values().get(0).get("coverUri").text();
+		return new YandexMusicAudioTrack(
+				new AudioTrackInfo(
+						json.get("title").text(),
+						artist,
+						json.get("durationMs").as(Long.class),
+						id,
+						false,
+						"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id,
+						this.formatCoverUri(coverUri),
+						null
+				),
 				this
 		);
 	}
@@ -216,14 +220,12 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-		var yandexMusicAudioTrack = ((YandexMusicAudioTrack) track);
-		DataFormatTools.writeNullableText(output, yandexMusicAudioTrack.getArtworkURL());
+	public void encodeTrack(AudioTrack track, DataOutput output) {
 	}
 
 	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-		return new YandexMusicAudioTrack(trackInfo, DataFormatTools.readNullableText(input), this);
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
+		return new YandexMusicAudioTrack(trackInfo, this);
 	}
 
 	@Override
