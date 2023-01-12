@@ -37,11 +37,25 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 	public AudioPlayerManager configure(AudioPlayerManager manager) {
 		if (this.sourcesConfig.isSpotify()) {
 			log.info("Registering Spotify audio source manager...");
-			manager.registerSourceManager(new SpotifySourceManager(this.pluginConfig.getProviders(), this.spotifyConfig.getClientId(), this.spotifyConfig.getClientSecret(), this.spotifyConfig.getCountryCode(), manager));
+			var spotifySourceManager = new SpotifySourceManager(this.pluginConfig.getProviders(), this.spotifyConfig.getClientId(), this.spotifyConfig.getClientSecret(), this.spotifyConfig.getCountryCode(), manager);
+			if (this.spotifyConfig.getPlaylistLoadLimit() > 0) {
+				spotifySourceManager.setPlaylistPageLimit(this.spotifyConfig.getPlaylistLoadLimit());
+			}
+			if (this.spotifyConfig.getAlbumLoadLimit() > 0) {
+				spotifySourceManager.setAlbumPageLimit(this.spotifyConfig.getAlbumLoadLimit());
+			}
+			manager.registerSourceManager(spotifySourceManager);
 		}
 		if (this.sourcesConfig.isAppleMusic()) {
 			log.info("Registering Apple Music audio source manager...");
-			manager.registerSourceManager(new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getMediaAPIToken(), this.appleMusicConfig.getCountryCode(), manager));
+			var appleMusicSourceManager = new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getMediaAPIToken(), this.appleMusicConfig.getCountryCode(), manager);
+			if (this.appleMusicConfig.getPlaylistLoadLimit() > 0) {
+				appleMusicSourceManager.setPlaylistPageLimit(this.appleMusicConfig.getPlaylistLoadLimit());
+			}
+			if (this.appleMusicConfig.getAlbumLoadLimit() > 0) {
+				appleMusicSourceManager.setAlbumPageLimit(this.appleMusicConfig.getAlbumLoadLimit());
+			}
+			manager.registerSourceManager(appleMusicSourceManager);
 		}
 		if (this.sourcesConfig.isDeezer()) {
 			log.info("Registering Deezer audio source manager...");
