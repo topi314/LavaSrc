@@ -9,6 +9,8 @@ public class AppleMusicConfig {
 
 	private String countryCode = "us";
 	private String mediaAPIToken;
+	private int playlistLoadLimit;
+	private int albumLoadLimit;
 
 	public String getCountryCode() {
 		return this.countryCode;
@@ -26,4 +28,19 @@ public class AppleMusicConfig {
 		this.mediaAPIToken = mediaAPIToken;
 	}
 
+	public int getPlaylistLoadLimit() {
+		return this.playlistLoadLimit;
+	}
+
+	public void setPlaylistLoadLimit(int playlistLoadLimit) {
+		this.playlistLoadLimit = playlistLoadLimit;
+	}
+
+	public int getAlbumLoadLimit() {
+		return this.albumLoadLimit;
+	}
+
+	public void setAlbumLoadLimit(int albumLoadLimit) {
+		this.albumLoadLimit = albumLoadLimit;
+	}
 }

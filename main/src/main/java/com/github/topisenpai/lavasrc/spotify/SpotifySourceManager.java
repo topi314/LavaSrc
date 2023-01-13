@@ -50,6 +50,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private final String clientId;
 	private final String clientSecret;
 	private final String countryCode;
+	private int playlistPageLimit = 6;
+	private int albumPageLimit = 6;
 	private String token;
 	private Instant tokenExpire;
 
@@ -74,6 +76,14 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			countryCode = "US";
 		}
 		this.countryCode = countryCode;
+	}
+
+	public void setPlaylistPageLimit(int playlistPageLimit) {
+		this.playlistPageLimit = playlistPageLimit;
+	}
+
+	public void setAlbumPageLimit(int albumPageLimit) {
+		this.albumPageLimit = albumPageLimit;
 	}
 
 	@Override
@@ -181,6 +191,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		var tracks = new ArrayList<AudioTrack>();
 		JsonBrowser page;
 		var offset = 0;
+		var pages = 0;
 		do {
 			page = this.getJson(API_BASE + "albums/" + id + "/tracks?limit=" + ALBUM_MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += ALBUM_MAX_PAGE_ITEMS;
@@ -189,7 +200,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			tracks.addAll(this.parseTracks(tracksPage));
 		}
-		while (page.get("next").text() != null);
+		while (page.get("next").text() != null && ++pages < this.albumPageLimit);
 
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
@@ -208,6 +219,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		var tracks = new ArrayList<AudioTrack>();
 		JsonBrowser page;
 		var offset = 0;
+		var pages = 0;
 		do {
 			page = this.getJson(API_BASE + "playlists/" + id + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += PLAYLIST_MAX_PAGE_ITEMS;
@@ -221,7 +233,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			}
 
 		}
-		while (page.get("next").text() != null);
+		while (page.get("next").text() != null && ++pages < this.playlistPageLimit);
 
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;

@@ -155,10 +155,11 @@ To get your Yandex Music access token go [here](#yandex-music)
 plugins:
   lavasrc:
     providers: # Custom providers for track loading. This is the default
+      # - "dzisrc:%ISRC%" # Deezer ISRC provider
+      # - "scsearch:%QUERY%" # Deezer search provider
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
-    # - "dzisrc:%ISRC%" # Deezer ISRC provider
-    # - "scsearch:%QUERY%" you can add multiple other fallback sources here
+      #  you can add multiple other fallback sources here
     sources:
       spotify: true # Enable Spotify source
       applemusic: true # Enable Apple Music source
@@ -168,9 +169,13 @@ plugins:
       clientId: "your client id"
       clientSecret: "your client secret"
       countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+      playlistLoadLimit: 6 # The number of pages at 100 tracks each
+      albumLoadLimit: 6 # The number of pages at 50 tracks each
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-      mediaAPIToken: "..." # Can be used to bypass the auto token fetching which is likely to break again in the future
+      # mediaAPIToken: "..." # Can be used to bypass the auto token fetching which is likely to break again in the future
+      playlistLoadLimit: 6 # The number of pages at 300 tracks each
+      albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
     yandexmusic:

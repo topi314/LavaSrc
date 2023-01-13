@@ -44,6 +44,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private static final Logger log = LoggerFactory.getLogger(AppleMusicSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	private final String countryCode;
+	private int playlistPageLimit;
+	private int albumPageLimit;
 	private String token;
 	private String origin;
 	private Instant tokenExpire;
@@ -65,6 +67,14 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		} else {
 			this.countryCode = countryCode;
 		}
+	}
+
+	public void setPlaylistPageLimit(int playlistPageLimit) {
+		this.playlistPageLimit = playlistPageLimit;
+	}
+
+	public void setAlbumPageLimit(int albumPageLimit) {
+		this.albumPageLimit = albumPageLimit;
 	}
 
 	@Override
@@ -192,13 +202,14 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var tracks = new ArrayList<AudioTrack>();
 		JsonBrowser page;
 		var offset = 0;
+		var pages = 0;
 		do {
 			page = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += MAX_PAGE_ITEMS;
 
 			tracks.addAll(parseTracks(page));
 		}
-		while (page.get("next").text() != null);
+		while (page.get("next").text() != null && ++pages < albumPageLimit);
 
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
@@ -218,13 +229,14 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var tracks = new ArrayList<AudioTrack>();
 		JsonBrowser page;
 		var offset = 0;
+		var pages = 0;
 		do {
 			page = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += MAX_PAGE_ITEMS;
 
 			tracks.addAll(parseTracks(page));
 		}
-		while (page.get("next").text() != null);
+		while (page.get("next").text() != null && ++pages < playlistPageLimit);
 
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
