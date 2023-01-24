@@ -25,13 +25,17 @@ jobs:
       - name: Build
         run: ./gradlew build
 
-      - name: Upload Artifacts
+      - name: Upload main Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: LavaSrc
-          path: |
-            main/build/libs/main-*.jar
-            plugin/build/libs/plugin-*.jar
+          name: LavaSrc.jar
+          path: plugin/build/libs/plugin-*.jar
+
+      - name: Upload plugin Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: LavaSrc-Plugin.jar
+          path: plugin/build/libs/plugin-*.jar
 
       - name: Publish
         run: ./gradlew publish
@@ -46,12 +50,14 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
-          name: LavaSrc
+          name: |
+            LavaSrc.jar
+            LavaSrc-Plugin.jar
 
       - name: Upload Artifacts to GitHub Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: |
-            main-*.jar
-            plugin-*.jar
+            LavaSrc.jar
+            LavaSrc-Plugin.jar
           allowUpdates: true
