@@ -23,7 +23,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build and Publish
-        run: ./gradlew publish
+        run: ./gradlew build publish
 
       - name: Upload main Artifact
         uses: actions/upload-artifact@v3
