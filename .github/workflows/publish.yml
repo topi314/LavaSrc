@@ -1,0 +1,54 @@
+name: Publish
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GITEA_USERNAME: ${{ secrets.GITEA_USERNAME }}
+      GITEA_PASSWORD: ${{ secrets.GITEA_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: 13
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: LavaSrc
+          path: |
+            main/build/libs/main-*.jar
+            plugin/build/libs/plugin-*.jar
+
+      - name: Publish
+        run: ./gradlew publish
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: LavaSrc
+
+      - name: Upload Artifacts to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Lavalink.jar

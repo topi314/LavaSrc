@@ -11,12 +11,27 @@ dependencies {
     implementation "commons-io:commons-io:2.6"
 }
 
+var isGiteaDefined = findProperty("GITEA_USERNAME") != null && findProperty("GITEA_PASSWORD") != null
+
 publishing {
     publications {
         maven(MavenPublication) {
             pom {
                 from components.java
                 artifactId moduleName
+            }
+        }
+    }
+    if (isGiteaDefined) {
+        System.out.println("Publishing to Gitea")
+        repositories {
+            maven {
+                name = "Gitea"
+                url = "https://git.topi.wtf/api/packages/topi/maven"
+                credentials {
+                    username = findProperty("GITEA_USERNAME")
+                    password = findProperty("GITEA_PASSWORD")
+                }
             }
         }
     }

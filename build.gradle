@@ -1,5 +1,5 @@
 allprojects {
-    group = "com.github.TopiSenpai.LavaSrc"
+    group = "wtf.topi.LavaSrc"
 
     repositories {
         mavenCentral()
@@ -12,7 +12,7 @@ allprojects {
 subprojects {
     apply plugin: "java"
 
-    version "3.1.7"
+    version "3.2.0"
 
     sourceCompatibility = 11
     compileJava.options.encoding = "UTF-8"
