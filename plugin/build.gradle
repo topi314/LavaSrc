@@ -10,7 +10,7 @@ mainClassName = "org.springframework.boot.loader.JarLauncher"
 
 dependencies {
     compileOnly("dev.arbjerg.lavalink:plugin-api:3.6.1")
-    runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:3.6.0")
+    // runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:3.6.0")
     implementation project(":main")
 }
 
