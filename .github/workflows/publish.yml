@@ -29,13 +29,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: LavaSrc.jar
-          path: main/build/libs/main-*.jar
+          path: main/build/libs/lavasrc-*.jar
 
       - name: Upload plugin Artifact
         uses: actions/upload-artifact@v3
         with:
           name: LavaSrc-Plugin.jar
-          path: plugin/build/libs/plugin-*.jar
+          path: plugin/build/libs/lavasrc-plugin-*.jar
 
   release:
     needs: build
@@ -58,6 +58,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: |
-            LavaSrc.jar
-            LavaSrc-Plugin.jar
+            lavasrc-*.jar
+            lavasrc-plugin-*.jar
           allowUpdates: true

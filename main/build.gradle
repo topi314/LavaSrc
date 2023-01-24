@@ -3,7 +3,7 @@ plugins {
     id "maven-publish"
 }
 
-var moduleName = "lavasrc"
+archivesBaseName = "lavasrc"
 
 dependencies {
     compileOnly "com.github.walkyst:lavaplayer-fork:1.3.98.4"
@@ -18,7 +18,7 @@ publishing {
         maven(MavenPublication) {
             pom {
                 from components.java
-                artifactId moduleName
+                artifactId archivesBaseName
             }
         }
     }

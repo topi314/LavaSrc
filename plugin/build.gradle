@@ -4,7 +4,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.1"
 }
 
-var moduleName = "lavasrc-plugin"
+archivesBaseName = "lavasrc-plugin"
 
 mainClassName = "org.springframework.boot.loader.JarLauncher"
 
@@ -28,7 +28,7 @@ publishing {
         maven(MavenPublication) {
             pom {
                 from components.java
-                artifactId moduleName
+                artifactId archivesBaseName
             }
         }
     }
