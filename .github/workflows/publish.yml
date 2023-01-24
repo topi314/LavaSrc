@@ -22,8 +22,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Build
-        run: ./gradlew build
+      - name: Build and Publish
+        run: ./gradlew publish
 
       - name: Upload main Artifact
         uses: actions/upload-artifact@v3
@@ -37,9 +37,6 @@ jobs:
           name: LavaSrc-Plugin.jar
           path: plugin/build/libs/plugin-*.jar
 
-      - name: Publish
-        run: ./gradlew publish
-
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -47,12 +44,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Download Artifacts
+      - name: Download main Artifact
         uses: actions/download-artifact@v3
         with:
-          name: |
-            LavaSrc.jar
-            LavaSrc-Plugin.jar
+          name: LavaSrc.jar
+
+      - name: Download plugin Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: LavaSrc-Plugin.jar
 
       - name: Upload Artifacts to GitHub Release
         uses: ncipollo/release-action@v1
