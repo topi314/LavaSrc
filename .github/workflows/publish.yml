@@ -57,7 +57,5 @@ jobs:
       - name: Upload Artifacts to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: |
-            lavasrc-*.jar
-            lavasrc-plugin-*.jar
+          artifacts: lavasrc-*.jar
           allowUpdates: true
