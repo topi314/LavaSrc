@@ -32,8 +32,8 @@ server: # REST and WS server
   address: 0.0.0.0
 lavalink:
   plugins:
-    - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
-      repository: "https://jitpack.io"
+    - dependency: "wtf.topi.LavaSrc:lavasrc-plugin:x.y.z"
+      repository: "https://git.topi.wtf/api/packages/topi/maven"
   server:
     password: "youshallnotpass"
     sources:

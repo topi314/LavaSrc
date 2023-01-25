@@ -25,7 +25,7 @@ Replace x.y.z with the latest version number
 repositories {
   maven {
     name = "topi.wtf"
-    url "https://git.topi.wtf"
+    url "https://git.topi.wtf/api/packages/topi/maven"
   }
 }
 
@@ -39,7 +39,7 @@ dependencies {
 <repositories>
   <repository>
     <id>topi.wtf</id>
-    <url>https://git.topi.wtf</url>
+    <url>https://git.topi.wtf/api/packages/topi/maven</url>
   </repository>
 </repositories>
 
@@ -140,7 +140,7 @@ Replace x.y.z with the latest version number
 lavalink:
   plugins:
     - dependency: "wtf.topi.LavaSrc:lavasrc-plugin:x.y.z"
-      repository: "https://git.topi.wtf"
+      repository: "https://git.topi.wtf/api/packages/topi/maven"
 ```
 
 ### Configuration
