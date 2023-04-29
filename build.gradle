@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 allprojects {
     group = "wtf.topi.LavaSrc"
 
@@ -9,13 +11,41 @@ allprojects {
     }
 }
 
+var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
+
+def getGitVersion() {
+    def versionStr = new ByteArrayOutputStream()
+    exec {
+        commandLine "git", "describe", "--tags"
+        standardOutput = versionStr
+    }
+    return versionStr.toString().trim()
+}
+
 subprojects {
     apply plugin: "java"
+    apply plugin: "maven-publish"
 
-    version "3.2.2"
+    version getGitVersion()
 
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
 
     compileJava.options.encoding = "UTF-8"
+
+    if (isMavenDefined) {
+        publishing {
+            System.out.println("Publishing to Maven Repo")
+            repositories {
+                maven {
+                    name = "Reposilite"
+                    url = "https://maven.topi.wtf"
+                    credentials {
+                        username = findProperty("MAVEN_USERNAME")
+                        password = findProperty("MAVEN_PASSWORD")
+                    }
+                }
+            }
+        }
+    }
 }

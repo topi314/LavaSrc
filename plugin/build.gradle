@@ -1,6 +1,7 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id "application"
-    id "maven-publish"
     id "com.github.johnrengelman.shadow" version "7.1.1"
 }
 
@@ -14,6 +15,12 @@ dependencies {
     implementation project(":main")
 }
 
+processResources {
+    filter(ReplaceTokens, tokens: [
+            VERSION: project.version,
+    ])
+}
+
 shadowJar {
     def implementation = project.configurations.implementation
     implementation.canBeResolved(true)
@@ -21,27 +28,12 @@ shadowJar {
     archiveClassifier.set("")
 }
 
-var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
-
 publishing {
     publications {
         maven(MavenPublication) {
             pom {
                 from components.java
                 artifactId archivesBaseName
-            }
-        }
-    }
-    if (isMavenDefined) {
-        System.out.println("Publishing to Maven Repo")
-        repositories {
-            maven {
-                name = "Reposilite"
-                url = "https://maven.topi.wtf"
-                credentials {
-                    username = findProperty("MAVEN_USERNAME")
-                    password = findProperty("MAVEN_PASSWORD")
-                }
             }
         }
     }
