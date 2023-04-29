@@ -1,5 +1,5 @@
 name: Publish
-on: [push, tag]
+on: [push, tags]
 jobs:
   build:
     runs-on: ubuntu-latest
