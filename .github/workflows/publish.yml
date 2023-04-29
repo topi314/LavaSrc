@@ -1,8 +1,5 @@
 name: Publish
-on:
-  push:
-  release:
-    types: [published]
+on: [push, tag]
 jobs:
   build:
     runs-on: ubuntu-latest
