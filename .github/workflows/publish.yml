@@ -6,8 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      GITEA_USERNAME: ${{ secrets.GITEA_USERNAME }}
-      GITEA_PASSWORD: ${{ secrets.GITEA_PASSWORD }}
+      MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+      MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3

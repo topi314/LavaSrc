@@ -11,7 +11,7 @@ dependencies {
     implementation "commons-io:commons-io:2.6"
 }
 
-var isGiteaDefined = findProperty("GITEA_USERNAME") != null && findProperty("GITEA_PASSWORD") != null
+var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
 
 publishing {
     publications {
@@ -22,15 +22,15 @@ publishing {
             }
         }
     }
-    if (isGiteaDefined) {
-        System.out.println("Publishing to Gitea")
+    if (isMavenDefined) {
+        System.out.println("Publishing to Maven Repo")
         repositories {
             maven {
-                name = "Gitea"
-                url = "https://git.topi.wtf/api/packages/topi/maven"
+                name = "Reposilite"
+                url = "https://maven.topi.wtf"
                 credentials {
-                    username = findProperty("GITEA_USERNAME")
-                    password = findProperty("GITEA_PASSWORD")
+                    username = findProperty("MAVEN_USERNAME")
+                    password = findProperty("MAVEN_PASSWORD")
                 }
             }
         }
