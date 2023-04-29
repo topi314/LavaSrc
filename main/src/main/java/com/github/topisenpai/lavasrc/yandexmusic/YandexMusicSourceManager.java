@@ -31,8 +31,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
-	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.ru/(?<type1>artist|album)/(?<identifier>[0-9]+)/?((?<type2>track/)(?<identifier2>[0-9]+)/?)?");
-	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.ru/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
+	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album)/(?<identifier>[0-9]+)/?((?<type2>track/)(?<identifier2>[0-9]+)/?)?");
+	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
 	public static final String PUBLIC_API_BASE = "https://api.music.yandex.net";
 
