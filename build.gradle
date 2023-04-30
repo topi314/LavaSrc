@@ -39,7 +39,6 @@ subprojects {
     apply plugin: "maven-publish"
 
     version getGitVersion()
-
     println "Version: " + version
 
     sourceCompatibility = JavaVersion.VERSION_11
