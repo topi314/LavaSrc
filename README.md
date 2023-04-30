@@ -20,11 +20,18 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 
 Replace x.y.z with the latest version number
 
+Snapshot builds are available in https://maven.topi.wtf/snapshots with the short commit hash as the version
+
 ### Using in Gradle:
+
+<details>
+<summary>Gradle</summary>
+
+### 
 ```gradle
 repositories {
   maven {
-    url "https://jitpack.io"
+    url "https://maven.topi.wtf/releases"
   }
 }
 
@@ -32,8 +39,13 @@ dependencies {
   implementation "com.github.TopiSenpai.LavaSrc:lavasrc:x.y.z"
 }
 ```
+</details>
 
 ### Using in Maven:
+
+<details>
+<summary>Maven</summary>
+
 ```xml
 <repositories>
   <repository>
@@ -50,6 +62,7 @@ dependencies {
   </dependency>
 </dependencies>
 ```
+</details>
 
 ### Usage
 
@@ -139,8 +152,10 @@ Replace x.y.z with the latest version number
 lavalink:
   plugins:
     - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
-      repository: "https://jitpack.io"
+      repository: "https://maven.topi.wtf/releases"
 ```
+
+Snapshot builds are available in https://maven.topi.wtf/snapshots with the short commit hash as the version
 
 ### Configuration
 

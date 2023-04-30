@@ -33,7 +33,7 @@ server: # REST and WS server
 lavalink:
   plugins:
     - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
-      repository: "https://jitpack.io"
+      repository: "https://maven.topi.wtf/releases"
   server:
     password: "youshallnotpass"
     sources:
