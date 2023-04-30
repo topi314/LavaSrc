@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly "com.github.walkyst:lavaplayer-fork:e833a69"
+    compileOnly "com.github.walkyst:lavaplayer-fork:ef075855da"
     implementation "org.jsoup:jsoup:1.14.3"
     implementation "commons-io:commons-io:2.6"
     compileOnly "org.slf4j:slf4j-api:1.7.25"
