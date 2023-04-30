@@ -1,33 +1,36 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id "application"
-    id "maven-publish"
     id "com.github.johnrengelman.shadow" version "7.1.1"
 }
-
-var moduleName = "lavasrc-plugin"
 
 mainClassName = "org.springframework.boot.loader.JarLauncher"
 
 dependencies {
     compileOnly("dev.arbjerg.lavalink:plugin-api:3.6.1")
-    runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:3.6.0")
+    // runtimeOnly("com.github.freyacodes.lavalink:Lavalink-Server:3.6.0")
     implementation project(":main")
 }
 
-shadowJar {
-    def implementation = project.configurations.implementation
-    implementation.canBeResolved(true)
-    configurations = [implementation]
-    archiveClassifier.set("")
+processResources {
+    filter(ReplaceTokens, tokens: [
+            VERSION: project.version,
+    ])
 }
 
+shadowJar {
+    archiveClassifier.set("")
+    dependsOn(distTar, distZip)
+}
 
 publishing {
     publications {
         maven(MavenPublication) {
             pom {
+                artifactId "lavasrc-plugin"
+
                 from components.java
-                artifactId moduleName
             }
         }
     }
