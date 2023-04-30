@@ -26,6 +26,7 @@ shadowJar {
     implementation.canBeResolved(true)
     configurations = [implementation]
     archiveClassifier.set("")
+    dependsOn(distTar, distZip)
 }
 
 var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
