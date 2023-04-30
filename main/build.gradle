@@ -2,6 +2,8 @@ plugins {
     id "java-library"
 }
 
+archivesBaseName = "lavasrc"
+
 dependencies {
     compileOnly "com.github.walkyst:lavaplayer-fork:ef075855da"
     implementation "org.jsoup:jsoup:1.14.3"
@@ -13,7 +15,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             pom {
-                artifactId "lavasrc"
+                artifactId archivesBaseName
 
                 from components.java
             }

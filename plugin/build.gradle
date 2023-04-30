@@ -6,6 +6,7 @@ plugins {
 }
 
 mainClassName = "org.springframework.boot.loader.JarLauncher"
+archivesBaseName = "lavasrc-plugin"
 
 dependencies {
     compileOnly("com.github.freyacodes.Lavalink:plugin-api:43edfbc8b5")
@@ -28,7 +29,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             pom {
-                artifactId "lavasrc-plugin"
+                artifactId archivesBaseName
 
                 from components.java
             }
