@@ -156,7 +156,7 @@ plugins:
   lavasrc:
     providers: # Custom providers for track loading. This is the default
       # - "dzisrc:%ISRC%" # Deezer ISRC provider
-      # - "scsearch:%QUERY%" # Deezer search provider
+      # - "dzsearch:%QUERY%" # Deezer search provider
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
       #  you can add multiple other fallback sources here
@@ -187,9 +187,9 @@ plugins:
 ## Supported URLs and Queries
 
 ### Spotify
-* `spsearch:animals architects` (check out [Spotify Search Docs](https://developer.spotify.com/documentation/web-api/reference/#/operations/search) for advanced search queries like isrc & co)
+* `spsearch:animals architects` (check out [Spotify Search Docs](https://developer.spotify.com/documentation/web-api/reference/search) for advanced search queries like isrc & co)
 * `sprec:seed_artists=3ZztVuWxHzNpl0THurTFCv,4MzJMcHQBl9SIYSjwWn8QW&seed_genres=metalcore&seed_tracks=5ofoB8PFmocBXFBEWVb6Vz,6I5zXzSDByTEmYZ7ePVQeB`
-  (check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/browse/get-recommendations/) for the full query parameter list)
+  (check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/get-recommendations) for the full query parameter list)
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
 * https://open.spotify.com/playlist/7HAO9R9v203gkaPAgknOMp
