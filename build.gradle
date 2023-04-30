@@ -18,7 +18,7 @@ def getGitVersion() {
         commandLine "git", "describe", "--exact-match", "--tags"
     }
     if (result.exitValue == 0) {
-        return versionStr.toString().trim()
+        return [versionStr.toString().trim(), false]
     }
 
 
@@ -29,7 +29,7 @@ def getGitVersion() {
         commandLine "git", "rev-parse", "--short", "HEAD"
     }
 
-    return versionStr.toString().trim()
+    return [versionStr.toString().trim(), true]
 }
 
 var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
@@ -38,8 +38,9 @@ subprojects {
     apply plugin: "java"
     apply plugin: "maven-publish"
 
-    version getGitVersion()
-    println "Version: " + version
+    def (versionStr, isSnapshot) = getGitVersion()
+    version versionStr
+    println "Version: " + versionStr
 
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
@@ -50,9 +51,12 @@ subprojects {
         if (isMavenDefined) {
             System.out.println("Publishing to Maven Repo")
             repositories {
+                def snapshots = "https://maven.topi.wtf/snapshots"
+                def releases = "https://maven.topi.wtf/releases"
+
                 maven {
                     name = "Reposilite"
-                    url = "https://maven.topi.wtf/releases"
+                    url = isSnapshot ? snapshots : releases
                     credentials {
                         username = findProperty("MAVEN_USERNAME")
                         password = findProperty("MAVEN_PASSWORD")
