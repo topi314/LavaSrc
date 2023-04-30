@@ -11,8 +11,6 @@ allprojects {
     }
 }
 
-var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
-
 def getGitVersion() {
     def versionStr = new ByteArrayOutputStream()
     exec {
@@ -32,20 +30,4 @@ subprojects {
     targetCompatibility = JavaVersion.VERSION_11
 
     compileJava.options.encoding = "UTF-8"
-
-    if (isMavenDefined) {
-        publishing {
-            System.out.println("Publishing to Maven Repo")
-            repositories {
-                maven {
-                    name = "Reposilite"
-                    url = "https://maven.topi.wtf"
-                    credentials {
-                        username = findProperty("MAVEN_USERNAME")
-                        password = findProperty("MAVEN_PASSWORD")
-                    }
-                }
-            }
-        }
-    }
 }
