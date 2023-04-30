@@ -8,8 +8,8 @@ plugins {
 mainClassName = "org.springframework.boot.loader.JarLauncher"
 
 dependencies {
-    compileOnly("com.github.freyacodes.Lavalink:plugin-api:4cfdc68")
-    // runtimeOnly("com.github.freyacodes.Lavalink:Lavalink-Server:4cfdc68")
+    compileOnly("com.github.freyacodes.Lavalink:plugin-api:43edfbc8b5")
+    // runtimeOnly("com.github.freyacodes.Lavalink:Lavalink-Server:43edfbc8b5")
     implementation project(":main")
 }
 
