@@ -24,13 +24,12 @@ Replace x.y.z with the latest version number
 ```gradle
 repositories {
   maven {
-    name = "topi.wtf"
-    url "https://git.topi.wtf/api/packages/topi/maven"
+    url "https://maven.topi.wtf/releases"
   }
 }
 
 dependencies {
-  implementation "wtf.topi.LavaSrc:lavasrc:x.y.z"
+  implementation "com.github.TopiSenpai.LavaSrc:lavasrc:x.y.z"
 }
 ```
 
@@ -38,14 +37,14 @@ dependencies {
 ```xml
 <repositories>
   <repository>
-    <id>topi.wtf</id>
-    <url>https://git.topi.wtf/api/packages/topi/maven</url>
+    <id>jitpack</id>
+    <url>https://jitpack.io</url>
   </repository>
 </repositories>
 
 <dependencies>
   <dependency>
-    <groupId>wtf.topi.LavaSrc</groupId>
+    <groupId>com.github.TopiSenpai.LavaSrc</groupId>
     <artifactId>lavasrc</artifactId>
     <version>x.y.z</version>
   </dependency>
@@ -139,8 +138,8 @@ Replace x.y.z with the latest version number
 ```yaml
 lavalink:
   plugins:
-    - dependency: "wtf.topi.LavaSrc:lavasrc-plugin:x.y.z"
-      repository: "https://git.topi.wtf/api/packages/topi/maven"
+    - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
+      repository: "https://maven.topi.wtf/releases"
 ```
 
 ### Configuration
