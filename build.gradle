@@ -20,6 +20,8 @@ def getGitVersion() {
     return versionStr.toString().trim()
 }
 
+var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
+
 subprojects {
     apply plugin: "java"
     apply plugin: "maven-publish"
@@ -30,4 +32,28 @@ subprojects {
     targetCompatibility = JavaVersion.VERSION_11
 
     compileJava.options.encoding = "UTF-8"
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                pom {
+                    from components.java
+                    artifactId archivesBaseName
+                }
+            }
+        }
+        if (isMavenDefined) {
+            System.out.println("Publishing to Maven Repo")
+            repositories {
+                maven {
+                    name = "Reposilite"
+                    url = "https://maven.topi.wtf/releases"
+                    credentials {
+                        username = findProperty("MAVEN_USERNAME")
+                        password = findProperty("MAVEN_PASSWORD")
+                    }
+                }
+            }
+        }
+    }
 }

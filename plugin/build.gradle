@@ -28,31 +28,3 @@ shadowJar {
     archiveClassifier.set("")
     dependsOn(distTar, distZip)
 }
-
-var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            pom {
-                from components.java
-                artifactId archivesBaseName
-            }
-        }
-    }
-    if (isMavenDefined) {
-        publishing {
-            System.out.println("Publishing to Maven Repo")
-            repositories {
-                maven {
-                    name = "Reposilite"
-                    url = "https://maven.topi.wtf"
-                    credentials {
-                        username = findProperty("MAVEN_USERNAME")
-                        password = findProperty("MAVEN_PASSWORD")
-                    }
-                }
-            }
-        }
-    }
-}
