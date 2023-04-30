@@ -28,3 +28,15 @@ shadowJar {
     archiveClassifier.set("")
     dependsOn(distTar, distZip)
 }
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+            artifactId = archivesBaseName
+            version = version
+
+            from components.java
+        }
+    }
+}

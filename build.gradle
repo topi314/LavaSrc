@@ -48,15 +48,6 @@ subprojects {
     compileJava.options.encoding = "UTF-8"
 
     publishing {
-        publications {
-            maven(MavenPublication) {
-                groupId = group
-                artifactId = project.archivesBaseName
-                version = project.version
-
-                from components.java
-            }
-        }
         if (isMavenDefined) {
             System.out.println("Publishing to Maven Repo")
             repositories {

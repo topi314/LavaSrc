@@ -9,3 +9,15 @@ dependencies {
     implementation "org.jsoup:jsoup:1.14.3"
     implementation "commons-io:commons-io:2.6"
 }
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+            artifactId = archivesBaseName
+            version = version
+
+            from components.java
+        }
+    }
+}
