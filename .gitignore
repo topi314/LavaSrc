@@ -4,3 +4,4 @@ build
 !gradle/wrapper/gradle-wrapper.jar
 plugin/application.yml
 logs/
+gradle.properties

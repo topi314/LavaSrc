@@ -9,11 +9,60 @@ allprojects {
     }
 }
 
+def getGitVersion() {
+    def versionStr = new ByteArrayOutputStream()
+    def result = exec {
+        standardOutput versionStr
+        errorOutput versionStr
+        ignoreExitValue true
+        commandLine "git", "describe", "--exact-match", "--tags"
+    }
+    if (result.exitValue == 0) {
+        return [versionStr.toString().trim(), false]
+    }
+
+
+    versionStr = new ByteArrayOutputStream()
+    exec {
+        standardOutput versionStr
+        errorOutput versionStr
+        commandLine "git", "rev-parse", "--short", "HEAD"
+    }
+
+    return [versionStr.toString().trim(), true]
+}
+
+var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
+
 subprojects {
     apply plugin: "java"
+    apply plugin: "maven-publish"
 
-    version "3.2.0"
+    def (versionStr, isSnapshot) = getGitVersion()
+    version versionStr
+    println "Version: " + versionStr
 
-    sourceCompatibility = 11
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+
     compileJava.options.encoding = "UTF-8"
+
+    publishing {
+        if (isMavenDefined) {
+            System.out.println("Publishing to Maven Repo")
+            repositories {
+                def snapshots = "https://maven.topi.wtf/snapshots"
+                def releases = "https://maven.topi.wtf/releases"
+
+                maven {
+                    name = "Reposilite"
+                    url = isSnapshot ? snapshots : releases
+                    credentials {
+                        username = findProperty("MAVEN_USERNAME")
+                        password = findProperty("MAVEN_PASSWORD")
+                    }
+                }
+            }
+        }
+    }
 }

@@ -2,7 +2,7 @@ plugins:
   lavasrc:
     providers: # Custom providers for track loading. This is the default
       # - "dzisrc:%ISRC%" # Deezer ISRC provider
-      # - "scsearch:%QUERY%" # Deezer search provider
+      # - "dzsearch:%QUERY%" # Deezer search provider
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
       #  you can add multiple other fallback sources here
@@ -33,7 +33,7 @@ server: # REST and WS server
 lavalink:
   plugins:
     - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
-      repository: "https://jitpack.io"
+      repository: "https://maven.topi.wtf/releases"
   server:
     password: "youshallnotpass"
     sources:
