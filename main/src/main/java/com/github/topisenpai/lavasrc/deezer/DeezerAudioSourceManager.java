@@ -119,7 +119,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	private List<AudioTrack> parseTracks(JsonBrowser json) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var track : json.get("data").values()) {
-			if (!track.get("type").text().equals("track")) {
+			if (!track.get("type").text().equals("track") || !track.get("readable").as(Boolean.class)) {
 				continue;
 			}
 			tracks.add(this.parseTrack(track));
@@ -146,7 +146,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	private AudioItem getTrackByISRC(String isrc) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
-		if (json == null || json.get("id").isNull()) {
+		if (json == null || json.get("id").isNull() || !json.get("readable").as(Boolean.class)) {
 			return AudioReference.NO_TRACK;
 		}
 		return this.parseTrack(json);
@@ -175,7 +175,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	private AudioItem getTrack(String id) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/track/" + id);
-		if (json == null) {
+		if (json == null || !json.get("readable").as(Boolean.class)) {
 			return AudioReference.NO_TRACK;
 		}
 		return this.parseTrack(json);
