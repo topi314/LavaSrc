@@ -5,6 +5,7 @@ plugins {
 archivesBaseName = "lavasrc"
 
 dependencies {
+    implementation 'org.jetbrains:annotations:24.0.0'
     compileOnly "com.github.walkyst:lavaplayer-fork:ef075855da"
     implementation "org.jsoup:jsoup:1.14.3"
     implementation "commons-io:commons-io:2.6"

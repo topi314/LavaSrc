@@ -11,6 +11,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +22,16 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 	private static final Logger log = LoggerFactory.getLogger(MirroringAudioTrack.class);
 
 	protected final MirroringAudioSourceManager sourceManager;
+	private AudioTrack delegate;
 
 	public MirroringAudioTrack(AudioTrackInfo trackInfo, MirroringAudioSourceManager sourceManager) {
 		super(trackInfo);
 		this.sourceManager = sourceManager;
+	}
+
+	@Nullable
+	public AudioTrack getDelegate() {
+		return this.delegate;
 	}
 
 	@Override
@@ -35,6 +42,7 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 			track = ((AudioPlaylist) track).getTracks().get(0);
 		}
 		if (track instanceof InternalAudioTrack) {
+			this.delegate = (AudioTrack) track;
 			processDelegate((InternalAudioTrack) track, executor);
 			return;
 		}
