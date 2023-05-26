@@ -10,10 +10,10 @@ archivesBaseName = "lavasrc-plugin"
 
 dependencies {
     compileOnly("com.github.lavalink-devs.Lavalink:plugin-api:6f62e58")
-    runtimeOnly("com.github.lavalink-devs.Lavalink:Lavalink-Server:6f62e58") {
-        exclude group: 'org.slf4j'
-    }
-    runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
+//    runtimeOnly("com.github.lavalink-devs.Lavalink:Lavalink-Server:6f62e58") {
+//        exclude group: 'org.slf4j'
+//    }
+//    runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
     implementation project(":main")
 }
 
