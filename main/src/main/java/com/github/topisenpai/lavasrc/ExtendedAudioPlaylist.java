@@ -7,14 +7,14 @@ import java.util.List;
 
 public class ExtendedAudioPlaylist extends BasicAudioPlaylist {
 	private final String type;
-	private final String identifier;
+	private final String url;
 	private final String artworkURL;
 	private final String author;
 
-	public ExtendedAudioPlaylist(String name, List<AudioTrack> tracks, String type, String identifier, String artworkURL, String author) {
+	public ExtendedAudioPlaylist(String name, List<AudioTrack> tracks, String type, String url, String artworkURL, String author) {
 		super(name, tracks, null, false);
 		this.type = type;
-		this.identifier = identifier;
+		this.url = url;
 		this.artworkURL = artworkURL;
 		this.author = author;
 	}
@@ -23,8 +23,8 @@ public class ExtendedAudioPlaylist extends BasicAudioPlaylist {
 		return type;
 	}
 
-	public String getIdentifier() {
-		return this.identifier;
+	public String getUrl() {
+		return this.url;
 	}
 
 	public String getArtworkURL() {

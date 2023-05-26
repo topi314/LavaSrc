@@ -20,7 +20,7 @@ public class LavaSrcAudioPluginInfoModifier implements AudioPluginInfoModifier {
 
             return new JsonObject(Map.of(
             "type", JsonElementKt.JsonPrimitive(extendedPlaylist.getType()),
-            "identifier", JsonElementKt.JsonPrimitive(extendedPlaylist.getIdentifier()),
+            "url", JsonElementKt.JsonPrimitive(extendedPlaylist.getUrl()),
             "artworkUrl", JsonElementKt.JsonPrimitive(extendedPlaylist.getArtworkURL()),
             "author", JsonElementKt.JsonPrimitive(extendedPlaylist.getAuthor())
             ));

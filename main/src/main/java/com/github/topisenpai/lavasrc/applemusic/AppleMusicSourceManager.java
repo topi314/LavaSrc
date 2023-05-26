@@ -217,7 +217,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
 		var author = json.get("data").index(0).get("attributes").get("artistName").text();
-		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "album", id, artworkUrl, author);
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "album", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getPlaylist(String id, String countryCode) throws IOException {
@@ -244,7 +244,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
 		var author = json.get("data").index(0).get("attributes").get("curatorName").text();
-		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "playlist", id, artworkUrl, author);
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "playlist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getArtist(String id, String countryCode) throws IOException {
@@ -257,7 +257,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(jsonArtist.get("data").index(0).get("attributes").get("artwork"));
 		var author = jsonArtist.get("data").index(0).get("attributes").get("name").text();
-		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json), "artist", id, artworkUrl, author);
+		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json), "artist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getSong(String id, String countryCode) throws IOException {

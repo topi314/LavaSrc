@@ -170,7 +170,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 		var artworkUrl = json.get("cover_xl").text();
 		var author = json.get("contributors").values().get(0).get("name").text();
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), "album", id, artworkUrl, author);
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), "album", json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getTrack(String id) throws IOException {
@@ -189,7 +189,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 		var artworkUrl = json.get("picture_xl").text();
 		var author = json.get("creator").get("name").text();
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), "playlist", id, artworkUrl, author);
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), "playlist", json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getArtist(String id) throws IOException {
@@ -200,7 +200,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 		var artworkUrl = json.get("data").index(0).get("contributors").get("picture_xl").text();
 		var author = json.get("data").index(0).get("contributors").get("name").text();
-		return new DeezerAudioPlaylist(author + "'s Top Tracks", this.parseTracks(json), "artist", id, artworkUrl, author);
+		return new DeezerAudioPlaylist(author + "'s Top Tracks", this.parseTracks(json), "artist", json.get("link").text(), artworkUrl, author);
 	}
 
 	@Override
