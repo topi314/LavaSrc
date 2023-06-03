@@ -210,6 +210,8 @@ plugins:
 * https://open.spotify.com/playlist/7HAO9R9v203gkaPAgknOMp
 * https://open.spotify.com/artist/3ZztVuWxHzNpl0THurTFCv
 
+(including new regional links like https://open.spotify.com/intl-de/track/0eG08cBeKk0mzykKjw4hcQ)
+
 ### Apple Music
 * `amsearch:animals architects`
 * https://music.apple.com/cy/album/animals/1533388849?i=1533388859
