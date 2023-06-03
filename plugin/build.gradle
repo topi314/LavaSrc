@@ -16,7 +16,7 @@ dependencies {
 
 processResources {
     filter(ReplaceTokens, tokens: [
-            VERSION: project.version,
+        VERSION: project.version,
     ])
 }
 
@@ -30,8 +30,10 @@ publishing {
         maven(MavenPublication) {
             pom {
                 artifactId archivesBaseName
-
                 from components.java
+                artifacts {
+                    shadowJar
+                }
             }
         }
     }
