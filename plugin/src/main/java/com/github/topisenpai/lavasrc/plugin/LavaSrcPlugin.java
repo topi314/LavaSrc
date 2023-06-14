@@ -71,7 +71,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 		if (this.sourcesConfig.isFloweryTTS()) {
 			log.info("Registering Flowery TTS audio source manager...");
 			var floweryTTSSourceManager = new FloweryTTSSourceManager(this.floweryTTSConfig.getVoice());
-			if (this.floweryTTSConfig.getTranslate() == true || this.floweryTTSConfig.getTranslate() == false) {
+			if (this.floweryTTSConfig.getTranslate() == true) {
 				floweryTTSSourceManager.setTranslate(this.floweryTTSConfig.getTranslate());
 			}
 			if (this.floweryTTSConfig.getSilence() >= 0 && this.floweryTTSConfig.getSilence() <= 10000){
