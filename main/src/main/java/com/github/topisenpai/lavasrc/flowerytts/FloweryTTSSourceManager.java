@@ -6,18 +6,15 @@ import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-
 import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.lang.Float;
 import java.lang.Integer;
 import java.lang.Boolean;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -133,7 +129,7 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 
     private URI buildURI(String query){
         try {
-            // tts://text=text%20to%20speech%20lol?hello=world&hello2=world
+            // tts://text%20to%20speech%20lol?hello=world&hello2=world
 
             final URIBuilder parsed = new URIBuilder(query);
             final List<NameValuePair> queryParams = parsed.getQueryParams();
@@ -165,7 +161,6 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
                     .findFirst()
                     .orElse(Float.toString(this.speed))
             );
-            System.out.println(finalUri.build().toString());
             return finalUri.build();
         } catch (URISyntaxException e) {
             e.printStackTrace();
