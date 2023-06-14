@@ -4,6 +4,7 @@ import com.github.topisenpai.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topisenpai.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topisenpai.lavasrc.spotify.SpotifySourceManager;
 import com.github.topisenpai.lavasrc.yandexmusic.YandexMusicSourceManager;
+import com.github.topisenpai.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.slf4j.Logger;
@@ -20,10 +21,11 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 	private final SpotifyConfig spotifyConfig;
 	private final AppleMusicConfig appleMusicConfig;
 	private final YandexMusicConfig yandexMusicConfig;
+	private final FloweryTTSConfig floweryTTSConfig;
 
 	private final DeezerConfig deezerConfig;
 
-	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig ) {
 		log.info("Loading LavaSrc plugin...");
 		this.pluginConfig = pluginConfig;
 		this.sourcesConfig = sourcesConfig;
@@ -31,6 +33,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 		this.appleMusicConfig = appleMusicConfig;
 		this.deezerConfig = deezerConfig;
 		this.yandexMusicConfig = yandexMusicConfig;
+		this.floweryTTSConfig = floweryTTSConfig;
 	}
 
 	@Override
@@ -64,6 +67,20 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 		if (this.sourcesConfig.isYandexMusic()) {
 			log.info("Registering Yandex Music audio source manager...");
 			manager.registerSourceManager(new YandexMusicSourceManager(this.yandexMusicConfig.getAccessToken()));
+		}
+		if (this.sourcesConfig.isFloweryTTS()) {
+			log.info("Registering Flowery TTS audio source manager...");
+			var floweryTTSSourceManager = new FloweryTTSSourceManager(this.floweryTTSConfig.getVoice());
+			if (this.floweryTTSConfig.getTranslate() == true || this.floweryTTSConfig.getTranslate() == false) {
+				floweryTTSSourceManager.setTranslate(this.floweryTTSConfig.getTranslate());
+			}
+			if (this.floweryTTSConfig.getSilence() >= 0 && this.floweryTTSConfig.getSilence() <= 10000){
+				floweryTTSSourceManager.setSilence(this.floweryTTSConfig.getSilence());
+			}
+			if (this.floweryTTSConfig.getSpeed() >= 0.5 && this.floweryTTSConfig.getSpeed() <= 10){
+				floweryTTSSourceManager.setSpeed(this.floweryTTSConfig.getSpeed());
+			}
+			manager.registerSourceManager(floweryTTSSourceManager);
 		}
 		return manager;
 	}
