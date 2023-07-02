@@ -15,6 +15,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ import java.lang.Float;
 import java.lang.Integer;
 import java.lang.Boolean;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -64,6 +66,15 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
         this.speed = speed;
     }
 
+    public List<NameValuePair> getDefaultConfig() {
+        final List<NameValuePair> config = new ArrayList<NameValuePair>(4);
+        config.add(new BasicNameValuePair("voice", this.voice));
+        config.add(new BasicNameValuePair("translate", Boolean.toString(this.translate)));
+        config.add(new BasicNameValuePair("silence", Integer.toString(this.silence)));
+        config.add(new BasicNameValuePair("speed", Float.toString(this.speed)));
+        return config;
+    }
+
     @Override
     public String getSourceName(){
         return "flowerytts";
@@ -73,18 +84,37 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
     public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference){
 
         if (reference.identifier.startsWith(TTS_PREFIX)) {
-            final String query = reference.identifier.substring(TTS_PREFIX.length());
-            final URI uri = this.buildURI(query);
+            try {
+                final URIBuilder parsed = new URIBuilder(reference.identifier);
+                final List<NameValuePair> queryParams = parsed.getQueryParams();
+                final URI queryUri = parsed.build();
+                final URIBuilder requestUri = new URIBuilder(API_BASE);
 
-            return new FloweryTTSAudioTrack(
+                if (queryUri.getAuthority() == null)
+                    return null;
+
+                requestUri.addParameter("text", queryUri.getAuthority());
+                for (NameValuePair pair : this.getDefaultConfig()){
+                    requestUri.addParameter(pair.getName(), queryParams.stream()
+                        .filter((p) -> pair.getName().equals(p.getName()))
+                        .map(NameValuePair::getValue)
+                        .findFirst()
+                        .orElse(pair.getValue())
+                    );
+                }
+
+                return new FloweryTTSAudioTrack(
                     new AudioTrackInfo(
-                            "text-to-speech",
-                            "FloweryTTS",
-                            Units.CONTENT_LENGTH_UNKNOWN,
-                            "no-id",
-                            false,
-                            uri.toString()),
+                        queryUri.getAuthority(),
+                        "FloweryTTS",
+                        Units.CONTENT_LENGTH_UNKNOWN,
+                        requestUri.toString(),
+                        false,
+                        requestUri.toString()),
                     this);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
@@ -127,44 +157,4 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
         return this.httpInterfaceManager.getInterface();
     }
 
-    private URI buildURI(String query){
-        try {
-            // tts://text%20to%20speech%20lol?hello=world&hello2=world
-
-            final URIBuilder parsed = new URIBuilder(query);
-            final List<NameValuePair> queryParams = parsed.getQueryParams();
-
-            var text = (queryParams.isEmpty()) ?  query : query.substring(0, query.indexOf('?'));
-            final URIBuilder finalUri = new URIBuilder(API_BASE + "?text=" + text);
-
-            finalUri.addParameter("voice", queryParams.stream()
-                    .filter((p) -> "voice".equals(p.getName()))
-                    .map(NameValuePair::getValue)
-                    .findFirst()
-                    .orElse(this.voice)
-            );
-            finalUri.addParameter("translate", queryParams.stream()
-                    .filter((p) -> "translate".equals(p.getName()))
-                    .map(NameValuePair::getValue)
-                    .findFirst()
-                    .orElse(Boolean.toString(this.translate))
-            );
-            finalUri.addParameter("silence", queryParams.stream()
-                    .filter((p) -> "silence".equals(p.getName()))
-                    .map(NameValuePair::getValue)
-                    .findFirst()
-                    .orElse(Integer.toString(this.silence))
-            );
-            finalUri.addParameter("speed", queryParams.stream()
-                    .filter((p) -> "speed".equals(p.getName()))
-                    .map(NameValuePair::getValue)
-                    .findFirst()
-                    .orElse(Float.toString(this.speed))
-            );
-            return finalUri.build();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 }
