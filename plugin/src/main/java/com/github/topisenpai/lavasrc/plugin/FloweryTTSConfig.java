@@ -7,6 +7,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class FloweryTTSConfig {
 
+    private final int SILENCE_MIN = 0;
+    private final int SILENCE_MAX = 10000;
+    private final float SPEED_MIN = 0.5f;
+    private final float SPEED_MAX = 10;
+
     private String voice;
     private boolean translate;
     private int silence;
@@ -33,7 +38,7 @@ public class FloweryTTSConfig {
     }
 
     public void setSilence(int silence){
-        this.silence = silence;
+        this.silence = silence > SILENCE_MAX ? SILENCE_MAX : silence < SILENCE_MIN ? SILENCE_MIN : silence;
     }
 
     public float getSpeed(){
@@ -41,7 +46,6 @@ public class FloweryTTSConfig {
     }
 
     public void setSpeed(float speed){
-        this.speed = speed;
+        this.speed = speed > SPEED_MAX ? SPEED_MAX : speed < SPEED_MIN ? SPEED_MIN : speed;
     }
-
 }
