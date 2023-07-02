@@ -25,7 +25,7 @@ public class FloweryTTSAudioTrack extends DelegatedAudioTrack {
     @Override
     public void process(LocalAudioTrackExecutor executor) throws Exception {
         try (var httpInterface = this.sourceManager.getHttpInterface()) {
-            try (var stream = new PersistentHttpStream(httpInterface, new URI(this.trackInfo.uri), null)) {
+            try (var stream = new PersistentHttpStream(httpInterface, new URI(this.trackInfo.identifier), null)) {
                 processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
             }
         }

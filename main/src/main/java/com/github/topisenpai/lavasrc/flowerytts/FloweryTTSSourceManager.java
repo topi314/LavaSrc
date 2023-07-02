@@ -110,7 +110,7 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
                         Units.CONTENT_LENGTH_UNKNOWN,
                         requestUri.toString(),
                         false,
-                        requestUri.toString()),
+                        null),
                     this);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
