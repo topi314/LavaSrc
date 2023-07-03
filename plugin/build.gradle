@@ -8,12 +8,13 @@ plugins {
 mainClassName = "org.springframework.boot.loader.JarLauncher"
 archivesBaseName = "lavasrc-plugin"
 
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
 dependencies {
-    compileOnly("com.github.lavalink-devs.Lavalink:plugin-api:6f62e58")
-//    runtimeOnly("com.github.lavalink-devs.Lavalink:Lavalink-Server:6f62e58") {
-//        exclude group: 'org.slf4j'
-//    }
-//    runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
+    compileOnly("dev.arbjerg.lavalink:plugin-api:4.0.0-beta.1")
+//    runtimeOnly("dev.arbjerg.lavalink:Lavalink-Server:4.0.0-beta.1")
+//    runtimeOnly("dev.arbjerg.lavalink:plugin-api:4.0.0-beta.1")
     implementation project(":main")
 }
 
@@ -33,7 +34,6 @@ publishing {
         maven(MavenPublication) {
             pom {
                 artifactId archivesBaseName
-                from components.java
                 artifacts {
                     shadowJar
                 }

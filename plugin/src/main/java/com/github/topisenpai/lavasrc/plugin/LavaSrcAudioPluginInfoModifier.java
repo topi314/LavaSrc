@@ -15,9 +15,7 @@ public class LavaSrcAudioPluginInfoModifier implements AudioPluginInfoModifier {
 
     @Override
     public JsonObject modifyAudioPlaylistPluginInfo(@NotNull AudioPlaylist playlist) {
-        if (playlist instanceof ExtendedAudioPlaylist) {
-            var extendedPlaylist = (ExtendedAudioPlaylist) playlist;
-
+        if (playlist instanceof ExtendedAudioPlaylist extendedPlaylist) {
             return new JsonObject(Map.of(
             "type", JsonElementKt.JsonPrimitive(extendedPlaylist.getType()),
             "url", JsonElementKt.JsonPrimitive(extendedPlaylist.getUrl()),
