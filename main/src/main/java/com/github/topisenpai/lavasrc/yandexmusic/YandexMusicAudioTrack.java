@@ -17,17 +17,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class YandexMusicAudioTrack extends DelegatedAudioTrack {
-	private final String artworkURL;
+
 	private final YandexMusicSourceManager sourceManager;
 
-	public YandexMusicAudioTrack(AudioTrackInfo trackInfo, String artworkURL, YandexMusicSourceManager sourceManager) {
+	public YandexMusicAudioTrack(AudioTrackInfo trackInfo, YandexMusicSourceManager sourceManager) {
 		super(trackInfo);
-		this.artworkURL = artworkURL;
 		this.sourceManager = sourceManager;
-	}
-
-	public String getArtworkURL() {
-		return this.artworkURL;
 	}
 
 	@Override
@@ -42,7 +37,7 @@ public class YandexMusicAudioTrack extends DelegatedAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new YandexMusicAudioTrack(this.trackInfo, this.artworkURL, this.sourceManager);
+		return new YandexMusicAudioTrack(this.trackInfo, this.sourceManager);
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package com.github.topisenpai.lavasrc.deezer;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -130,15 +129,17 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		var id = json.get("id").text();
-		return new DeezerAudioTrack(new AudioTrackInfo(
-				json.get("title").text(),
-				json.get("artist").get("name").text(),
-				json.get("duration").as(Long.class) * 1000,
-				id,
-				false,
-				"https://deezer.com/track/" + id),
-				json.get("isrc").text(),
-				json.get("album").get("cover_xl").text(),
+		return new DeezerAudioTrack(
+				new AudioTrackInfo(
+						json.get("title").text(),
+						json.get("artist").get("name").text(),
+						json.get("duration").as(Long.class) * 1000,
+						id,
+						false,
+						"https://deezer.com/track/" + id,
+						json.get("album").get("cover_xl").text(),
+						json.get("isrc").text()
+				),
 				this
 		);
 	}
@@ -166,7 +167,10 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 		if (json == null || json.get("tracks").get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
+
+		var artworkUrl = json.get("cover_xl").text();
+		var author = json.get("contributors").values().get(0).get("name").text();
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), "album", json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getTrack(String id) throws IOException {
@@ -182,7 +186,10 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 		if (json == null || json.get("tracks").get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), null, false);
+
+		var artworkUrl = json.get("picture_xl").text();
+		var author = json.get("creator").get("name").text();
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks")), "playlist", json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getArtist(String id) throws IOException {
@@ -190,7 +197,10 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 		if (json == null || json.get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("data").index(0).get("artist").get("name").text() + "'s Top Tracks", this.parseTracks(json), null, false);
+
+		var artworkUrl = json.get("data").index(0).get("contributors").get("picture_xl").text();
+		var author = json.get("data").index(0).get("contributors").get("name").text();
+		return new DeezerAudioPlaylist(author + "'s Top Tracks", this.parseTracks(json), "artist", json.get("link").text(), artworkUrl, author);
 	}
 
 	@Override
@@ -199,19 +209,12 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-		var deezerAudioTrack = ((DeezerAudioTrack) track);
-		DataFormatTools.writeNullableText(output, deezerAudioTrack.getISRC());
-		DataFormatTools.writeNullableText(output, deezerAudioTrack.getArtworkURL());
+	public void encodeTrack(AudioTrack track, DataOutput output) {
 	}
 
 	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-		return new DeezerAudioTrack(trackInfo,
-				DataFormatTools.readNullableText(input),
-				DataFormatTools.readNullableText(input),
-				this
-		);
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
+		return new DeezerAudioTrack(trackInfo, this);
 	}
 
 	@Override

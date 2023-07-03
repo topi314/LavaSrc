@@ -40,8 +40,8 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 			}
 
 			if (provider.contains(ISRC_PATTERN)) {
-				if (mirroringAudioTrack.getISRC() != null) {
-					provider = provider.replace(ISRC_PATTERN, mirroringAudioTrack.getISRC());
+				if (mirroringAudioTrack.getInfo().isrc != null && !mirroringAudioTrack.getInfo().isrc.isEmpty()) {
+					provider = provider.replace(ISRC_PATTERN, mirroringAudioTrack.getInfo().isrc);
 				} else {
 					log.debug("Ignoring identifier \"{}\" because this track does not have an ISRC!", provider);
 					continue;

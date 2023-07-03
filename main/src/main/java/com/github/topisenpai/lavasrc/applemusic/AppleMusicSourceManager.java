@@ -4,7 +4,6 @@ import com.github.topisenpai.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -23,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -83,12 +83,17 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-		return new AppleMusicAudioTrack(trackInfo,
-				DataFormatTools.readNullableText(input),
-				DataFormatTools.readNullableText(input),
-				this
-		);
+	public boolean isTrackEncodable(AudioTrack track) {
+		return true;
+	}
+
+	@Override
+	public void encodeTrack(AudioTrack track, DataOutput output) {
+	}
+
+	@Override
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
+		return new AppleMusicAudioTrack(trackInfo, this);
 	}
 
 	@Override
@@ -210,7 +215,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			return AudioReference.NO_TRACK;
 		}
 
-		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
+		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
+		var author = json.get("data").index(0).get("attributes").get("artistName").text();
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "album", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getPlaylist(String id, String countryCode) throws IOException {
@@ -235,7 +242,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			return AudioReference.NO_TRACK;
 		}
 
-		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, null, false);
+		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
+		var author = json.get("data").index(0).get("attributes").get("curatorName").text();
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "playlist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getArtist(String id, String countryCode) throws IOException {
@@ -243,7 +252,12 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		if (json == null || json.get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("data").index(0).get("attributes").get("artistName").text() + "'s Top Tracks", parseTracks(json), null, false);
+
+		var jsonArtist = this.getJson(API_BASE + "catalog/" + countryCode + "/artists/" + id);
+
+		var artworkUrl = this.parseArtworkUrl(jsonArtist.get("data").index(0).get("attributes").get("artwork"));
+		var author = jsonArtist.get("data").index(0).get("attributes").get("name").text();
+		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json), "artist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getSong(String id, String countryCode) throws IOException {
@@ -264,7 +278,6 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		var attributes = json.get("attributes");
-		var artwork = attributes.get("artwork");
 		return new AppleMusicAudioTrack(
 				new AudioTrackInfo(
 						attributes.get("name").text(),
@@ -272,12 +285,16 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						attributes.get("durationInMillis").asLong(0),
 						json.get("id").text(),
 						false,
-						attributes.get("url").text()
+						attributes.get("url").text(),
+						this.parseArtworkUrl(attributes.get("artwork")),
+						attributes.get("isrc").text()
 				),
-				attributes.get("isrc").text(),
-				artwork.get("url").text().replace("{w}", artwork.get("width").text()).replace("{h}", artwork.get("height").text()),
 				this
 		);
+	}
+
+	private String parseArtworkUrl(JsonBrowser json) {
+		return json.get("url").text().replace("{w}", json.get("width").text()).replace("{h}", json.get("height").text());
 	}
 
 	@Override

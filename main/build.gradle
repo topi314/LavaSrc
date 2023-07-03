@@ -4,15 +4,19 @@ plugins {
 
 archivesBaseName = "lavasrc"
 
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
 java {
     withJavadocJar()
     withSourcesJar()
 }
 
 dependencies {
-    compileOnly "com.github.walkyst:lavaplayer-fork:1.3.98.4"
+    compileOnly "com.github.walkyst:lavaplayer-fork:17c75f5"
     implementation "org.jsoup:jsoup:1.14.3"
     implementation "commons-io:commons-io:2.6"
+    compileOnly "org.slf4j:slf4j-api:1.7.25"
 }
 
 publishing {

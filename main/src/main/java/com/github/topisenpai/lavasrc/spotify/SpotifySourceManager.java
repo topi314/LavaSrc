@@ -4,7 +4,6 @@ import com.github.topisenpai.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topisenpai.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -24,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -92,12 +92,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-		return new SpotifyAudioTrack(trackInfo,
-				DataFormatTools.readNullableText(input),
-				DataFormatTools.readNullableText(input),
-				this
-		);
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
+		return new SpotifyAudioTrack(trackInfo, this);
+	}
+
+	@Override
+	public boolean isTrackEncodable(AudioTrack track) {
+		return true;
+	}
+
+	@Override
+	public void encodeTrack(AudioTrack track, DataOutput output) {
 	}
 
 	@Override
@@ -174,7 +179,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		return new BasicAudioPlaylist("Spotify Recommendations:", this.parseTracks(json), null, false);
+		return new SpotifyAudioPlaylist("Spotify Recommendations:", this.parseTracks(json), "recommendations", null, null, null);
 	}
 
 	public AudioItem getAlbum(String id) throws IOException {
@@ -201,7 +206,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		return new BasicAudioPlaylist(json.get("name").text(), tracks, null, false);
+		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, "album", json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("artists").index(0).get("name").text());
 
 	}
 
@@ -234,7 +239,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		return new BasicAudioPlaylist(json.get("name").text(), tracks, null, false);
+		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, "playlist", json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("owner").get("display_name").text());
 
 	}
 
@@ -243,7 +248,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		if (json == null || json.get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json), null, false);
+		return new SpotifyAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json), "artist", json.get("tracks").index(0).get("external_urls").get("spotify").text(), json.get("tracks").index(0).get("album").get("images").index(0).get("url").text(), json.get("tracks").index(0).get("artists").index(0).get("name").text());
 	}
 
 	public AudioItem getTrack(String id) throws IOException {
@@ -281,10 +286,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 						json.get("duration_ms").asLong(0),
 						json.get("id").text(),
 						false,
-						json.get("external_urls").get("spotify").text()
+						json.get("external_urls").get("spotify").text(),
+						json.get("album").get("images").index(0).get("url").text(),
+						json.get("external_ids").get("isrc").text()
 				),
-				json.get("external_ids").get("isrc").text(),
-				json.get("album").get("images").index(0).get("url").text(),
 				this
 		);
 	}

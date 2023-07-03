@@ -20,23 +20,11 @@ public abstract class MirroringAudioTrack extends DelegatedAudioTrack {
 
 	private static final Logger log = LoggerFactory.getLogger(MirroringAudioTrack.class);
 
-	protected final String isrc;
-	protected final String artworkURL;
 	protected final MirroringAudioSourceManager sourceManager;
 
-	public MirroringAudioTrack(AudioTrackInfo trackInfo, String isrc, String artworkURL, MirroringAudioSourceManager sourceManager) {
+	public MirroringAudioTrack(AudioTrackInfo trackInfo, MirroringAudioSourceManager sourceManager) {
 		super(trackInfo);
-		this.isrc = isrc;
-		this.artworkURL = artworkURL;
 		this.sourceManager = sourceManager;
-	}
-
-	public String getISRC() {
-		return this.isrc;
-	}
-
-	public String getArtworkURL() {
-		return this.artworkURL;
 	}
 
 	@Override

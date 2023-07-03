@@ -3,8 +3,8 @@ allprojects {
 
     repositories {
         mavenCentral()
+//        maven { url "https://maven.arbjerg.dev/releases" }
         maven { url "https://jitpack.io" }
-        maven { url "https://m2.dv8tion.net/releases" }
         jcenter()
     }
 }
@@ -41,9 +41,6 @@ subprojects {
     def (versionStr, isSnapshot) = getGitVersion()
     version versionStr
     println "Version: " + versionStr
-
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
 
     compileJava.options.encoding = "UTF-8"
 

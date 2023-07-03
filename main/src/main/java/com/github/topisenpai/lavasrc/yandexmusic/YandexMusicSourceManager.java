@@ -2,7 +2,6 @@ package com.github.topisenpai.lavasrc.yandexmusic;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -116,7 +115,9 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(json.get("result").get("title").text(), tracks, null, false);
+		var coverUri = json.get("result").get("coverUri").text();
+		var author = json.get("result").get("artists").values().get(0).get("name").text();
+		return new YandexMusicAudioPlaylist(json.get("result").get("title").text(), tracks, "album", json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
 	private AudioItem getTrack(String id) throws IOException {
@@ -132,12 +133,16 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		if (json.isNull() || json.get("result").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		var artistName = this.getJson(PUBLIC_API_BASE + "/artists/" + id).get("result").get("artist").get("name").text();
+
 		var tracks = this.parseTracks(json.get("result").get("tracks"));
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist(artistName + "'s Top Tracks", tracks, null, false);
+
+		var artistJson = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
+		var coverUri = json.get("result").get("coverUri").text();
+		var author = artistJson.get("result").get("artist").get("name").text();
+		return new YandexMusicAudioPlaylist(author + "'s Top Tracks", tracks, "artist", json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
 	private AudioItem getPlaylist(String userString, String id) throws IOException {
@@ -152,8 +157,10 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		var playlist_title = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
-		return new BasicAudioPlaylist(playlist_title, tracks, null, false);
+		var playlistTitle = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
+		var coverUri = json.get("result").get("cover").get("uri").text();
+		var author = json.get("result").get("owner").get("name").text();
+		return new YandexMusicAudioPlaylist(playlistTitle, tracks, "playlist", json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
@@ -188,16 +195,23 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		var id = json.get("id").text();
 		var artist = json.get("major").get("name").text().equals("PODCASTS") ? json.get("albums").values().get(0).get("title").text() : json.get("artists").values().get(0).get("name").text();
 		var coverUri = json.get("albums").values().get(0).get("coverUri").text();
-		return new YandexMusicAudioTrack(new AudioTrackInfo(
-				json.get("title").text(),
-				artist,
-				json.get("durationMs").as(Long.class),
-				id,
-				false,
-				"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id),
-				coverUri != null ? "https://" + coverUri.replace("%%", "400x400") : null,
+		return new YandexMusicAudioTrack(
+				new AudioTrackInfo(
+						json.get("title").text(),
+						artist,
+						json.get("durationMs").as(Long.class),
+						id,
+						false,
+						"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id,
+						this.formatCoverUri(coverUri),
+						null
+				),
 				this
 		);
+	}
+
+	private String formatCoverUri(String coverUri) {
+		return coverUri != null ? "https://" + coverUri.replace("%%", "400x400") : null;
 	}
 
 	@Override
@@ -206,14 +220,12 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
-		var yandexMusicAudioTrack = ((YandexMusicAudioTrack) track);
-		DataFormatTools.writeNullableText(output, yandexMusicAudioTrack.getArtworkURL());
+	public void encodeTrack(AudioTrack track, DataOutput output) {
 	}
 
 	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-		return new YandexMusicAudioTrack(trackInfo, DataFormatTools.readNullableText(input), this);
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
+		return new YandexMusicAudioTrack(trackInfo, this);
 	}
 
 	@Override
