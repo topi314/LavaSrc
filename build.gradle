@@ -1,9 +1,10 @@
 allprojects {
-    group = "com.github.TopiSenpai.LavaSrc"
+    group = "com.github.topi314.lavasrc"
 
     repositories {
+        mavenLocal()
         mavenCentral()
-//        maven { url "https://maven.arbjerg.dev/releases" }
+        maven { url "https://maven.arbjerg.dev/releases" }
         maven { url "https://jitpack.io" }
         jcenter()
     }

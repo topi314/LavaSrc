@@ -1,32 +1,19 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
-    id "application"
-    id "com.github.johnrengelman.shadow" version "7.1.1"
+    id "dev.arbjerg.lavalink.gradle-plugin" version "1.0.2"
 }
 
-mainClassName = "org.springframework.boot.loader.JarLauncher"
 archivesBaseName = "lavasrc-plugin"
+lavalinkPlugin{
+    name = "lavasrc-plugin"
+    apiVersion = "4.0.0-beta.1"
+    serverVersion = "1c0795bf156fe6559c9c0aed0412bcd8f323a3e0-SNAPSHOT"
+}
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 dependencies {
-    compileOnly("dev.arbjerg.lavalink:plugin-api:4.0.0-beta.1")
-//    runtimeOnly("dev.arbjerg.lavalink:Lavalink-Server:4.0.0-beta.1")
-//    runtimeOnly("dev.arbjerg.lavalink:plugin-api:4.0.0-beta.1")
     implementation project(":main")
-}
-
-processResources {
-    filter(ReplaceTokens, tokens: [
-        VERSION: project.version,
-    ])
-}
-
-shadowJar {
-    archiveClassifier.set("")
-    dependsOn(distTar, distZip)
 }
 
 publishing {
@@ -34,9 +21,6 @@ publishing {
         maven(MavenPublication) {
             pom {
                 artifactId archivesBaseName
-                artifacts {
-                    shadowJar
-                }
             }
         }
     }

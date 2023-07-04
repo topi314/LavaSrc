@@ -1,7 +1,3 @@
-plugins {
-    id "java-library"
-}
-
 archivesBaseName = "lavasrc"
 
 sourceCompatibility = JavaVersion.VERSION_11

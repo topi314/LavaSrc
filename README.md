@@ -36,7 +36,7 @@ repositories {
 }
 
 dependencies {
-  implementation "com.github.TopiSenpai.LavaSrc:lavasrc:x.y.z"
+  implementation "com.github.topi314.lavasrc:lavasrc:x.y.z"
 }
 ```
 </details>
@@ -56,7 +56,7 @@ dependencies {
 
 <dependencies>
   <dependency>
-    <groupId>com.github.TopiSenpai.LavaSrc</groupId>
+    <groupId>com.github.topi314.lavasrc</groupId>
     <artifactId>lavasrc</artifactId>
     <version>x.y.z</version>
   </dependency>
@@ -151,7 +151,7 @@ Replace x.y.z with the latest version number
 ```yaml
 lavalink:
   plugins:
-    - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:x.y.z"
       repository: "https://maven.topi.wtf/releases"
 ```
 

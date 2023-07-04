@@ -1,2 +1,9 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url "https://maven.arbjerg.dev/releases" }
+    }
+}
+
 include(":main")
 include(":plugin")
