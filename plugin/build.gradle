@@ -19,9 +19,8 @@ dependencies {
 publishing {
     publications {
         maven(MavenPublication) {
-            pom {
-                artifactId archivesBaseName
-            }
+            from components.java
+            artifactId archivesBaseName
         }
     }
 }
