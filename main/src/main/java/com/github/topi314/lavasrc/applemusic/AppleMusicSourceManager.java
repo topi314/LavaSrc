@@ -1,18 +1,14 @@
 package com.github.topi314.lavasrc.applemusic;
 
-import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
+import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -190,7 +186,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		if (json == null || json.get("results").get("songs").get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist("Apple Music Search: " + query, parseTracks(json.get("results").get("songs")), null, true);
+		return new BasicAudioPlaylist("Apple Music Search: " + query, this.parseTracks(json.get("results").get("songs")), null, true);
 	}
 
 	public AudioItem getAlbum(String id, String countryCode) throws IOException {
@@ -207,7 +203,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			page = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += MAX_PAGE_ITEMS;
 
-			tracks.addAll(parseTracks(page));
+			tracks.addAll(this.parseTracks(page));
 		}
 		while (page.get("next").text() != null && ++pages < albumPageLimit);
 
@@ -279,17 +275,17 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private AudioTrack parseTrack(JsonBrowser json) {
 		var attributes = json.get("attributes");
 		return new AppleMusicAudioTrack(
-				new AudioTrackInfo(
-						attributes.get("name").text(),
-						attributes.get("artistName").text(),
-						attributes.get("durationInMillis").asLong(0),
-						json.get("id").text(),
-						false,
-						attributes.get("url").text(),
-						this.parseArtworkUrl(attributes.get("artwork")),
-						attributes.get("isrc").text()
-				),
-				this
+			new AudioTrackInfo(
+				attributes.get("name").text(),
+				attributes.get("artistName").text(),
+				attributes.get("durationInMillis").asLong(0),
+				json.get("id").text(),
+				false,
+				attributes.get("url").text(),
+				this.parseArtworkUrl(attributes.get("artwork")),
+				attributes.get("isrc").text()
+			),
+			this
 		);
 	}
 

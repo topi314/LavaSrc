@@ -1,18 +1,14 @@
 package com.github.topi314.lavasrc.spotify;
 
-import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
+import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -256,7 +252,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
-		return parseTrack(json);
+		return this.parseTrack(json);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json) {
@@ -280,17 +276,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		return new SpotifyAudioTrack(
-				new AudioTrackInfo(
-						json.get("name").text(),
-						json.get("artists").index(0).get("name").text(),
-						json.get("duration_ms").asLong(0),
-						json.get("id").text(),
-						false,
-						json.get("external_urls").get("spotify").text(),
-						json.get("album").get("images").index(0).get("url").text(),
-						json.get("external_ids").get("isrc").text()
-				),
-				this
+			new AudioTrackInfo(
+				json.get("name").text(),
+				json.get("artists").index(0).get("name").text(),
+				json.get("duration_ms").asLong(0),
+				json.get("id").text(),
+				false,
+				json.get("external_urls").get("spotify").text(),
+				json.get("album").get("images").index(0).get("url").text(),
+				json.get("external_ids").get("isrc").text()
+			),
+			this
 		);
 	}
 

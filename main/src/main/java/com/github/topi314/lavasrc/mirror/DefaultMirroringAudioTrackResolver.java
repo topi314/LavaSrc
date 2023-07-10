@@ -12,8 +12,8 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 	private static final Logger log = LoggerFactory.getLogger(DefaultMirroringAudioTrackResolver.class);
 
 	private String[] providers = {
-			"ytsearch:\"" + MirroringAudioSourceManager.ISRC_PATTERN + "\"",
-			"ytsearch:" + MirroringAudioSourceManager.QUERY_PATTERN
+		"ytsearch:\"" + MirroringAudioSourceManager.ISRC_PATTERN + "\"",
+		"ytsearch:" + MirroringAudioSourceManager.QUERY_PATTERN
 	};
 
 	public DefaultMirroringAudioTrackResolver(String[] providers) {
