@@ -174,10 +174,10 @@ plugins:
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
       #  you can add multiple other fallback sources here
     sources:
-      spotify: true # Enable Spotify source
-      applemusic: true # Enable Apple Music source
-      deezer: true # Enable Deezer source
-      yandexmusic: true # Enable Yandex Music source
+      spotify: false # Enable Spotify source
+      applemusic: false # Enable Apple Music source
+      deezer: false # Enable Deezer source
+      yandexmusic: false # Enable Yandex Music source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
@@ -186,7 +186,7 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 50 tracks each
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-      # mediaAPIToken: "..." # Can be used to bypass the auto token fetching which is likely to break again in the future
+      mediaAPIToken: "..." # apple music api token
       playlistLoadLimit: 6 # The number of pages at 300 tracks each
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
