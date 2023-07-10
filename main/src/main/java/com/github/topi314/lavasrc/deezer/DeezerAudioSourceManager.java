@@ -130,7 +130,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		if (!json.get("readable").as(Boolean.class)) {
-			throw new FriendlyException("This track is not readable", FriendlyException.Severity.COMMON, null);
+			throw new FriendlyException("This track is not readable. Available countries: " + json.get("available_countries").text(), FriendlyException.Severity.COMMON, null);
 		}
 		var id = json.get("id").text();
 		return new DeezerAudioTrack(
