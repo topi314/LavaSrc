@@ -1,12 +1,12 @@
 package com.github.topi314.lavasrc.deezer;
 
+import com.github.topi314.lavasrc.ExtendedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.methods.HttpPost;
@@ -20,12 +20,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.stream.Collectors;
 
-public class DeezerAudioTrack extends DelegatedAudioTrack {
+public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 	private final DeezerAudioSourceManager sourceManager;
 
-	public DeezerAudioTrack(AudioTrackInfo trackInfo, DeezerAudioSourceManager sourceManager) {
-		super(trackInfo);
+	public DeezerAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, DeezerAudioSourceManager sourceManager) {
+		super(trackInfo, albumName, artistArtworkUrl, previewUrl);
 		this.sourceManager = sourceManager;
 	}
 
@@ -81,7 +81,7 @@ public class DeezerAudioTrack extends DelegatedAudioTrack {
 	@Override
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
 		try (var httpInterface = this.sourceManager.getHttpInterface()) {
-			try (var stream = new DeezerPersistentHttpStream(httpInterface, this.getTrackMediaURI(), this.trackInfo.length, this.getTrackDecryptionKey())) {
+			try (var stream = new DeezerPersistentHttpStream(httpInterface, this.previewUrl == null ? this.getTrackMediaURI() : new URI(this.previewUrl), this.trackInfo.length, this.getTrackDecryptionKey())) {
 				processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
 			}
 		}
@@ -89,7 +89,7 @@ public class DeezerAudioTrack extends DelegatedAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new DeezerAudioTrack(this.trackInfo, this.sourceManager);
+		return new DeezerAudioTrack(this.trackInfo, this.albumName, this.artistArtworkUrl, this.previewUrl, this.sourceManager);
 	}
 
 	@Override

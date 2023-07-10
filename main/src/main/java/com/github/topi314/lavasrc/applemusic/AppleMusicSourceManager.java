@@ -23,22 +23,20 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public class AppleMusicSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
+public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile("const \\w{2}=\"(?<token>(ey[\\w-]+)\\.([\\w-]+)\\.([\\w-]+))\"");
 	public static final String SEARCH_PREFIX = "amsearch:";
+	public static final String PREVIEW_PREFIX = "amprev:";
 	public static final int MAX_PAGE_ITEMS = 300;
 	public static final String API_BASE = "https://api.music.apple.com/v1/";
-	private static final Logger log = LoggerFactory.getLogger(AppleMusicSourceManager.class);
-	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	private final String countryCode;
 	private int playlistPageLimit;
 	private int albumPageLimit;
@@ -94,12 +92,19 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	@Override
 	public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
+		var identifier = reference.identifier;
+		var preview = reference.identifier.startsWith(PREVIEW_PREFIX);
+
+		return loadItem(preview ? identifier.substring(PREVIEW_PREFIX.length()) : identifier, preview);
+	}
+
+	public AudioItem loadItem(String identifier, boolean preview) {
 		try {
-			if (reference.identifier.startsWith(SEARCH_PREFIX)) {
-				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()).trim());
+			if (identifier.startsWith(SEARCH_PREFIX)) {
+				return this.getSearch(identifier.substring(SEARCH_PREFIX.length()).trim(), preview);
 			}
 
-			var matcher = URL_PATTERN.matcher(reference.identifier);
+			var matcher = URL_PATTERN.matcher(identifier);
 			if (!matcher.find()) {
 				return null;
 			}
@@ -108,20 +113,20 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			var id = matcher.group("identifier");
 			switch (matcher.group("type")) {
 				case "song":
-					return this.getSong(id, countryCode);
+					return this.getSong(id, countryCode, preview);
 
 				case "album":
 					var id2 = matcher.group("identifier2");
 					if (id2 == null || id2.isEmpty()) {
-						return this.getAlbum(id, countryCode);
+						return this.getAlbum(id, countryCode, preview);
 					}
-					return this.getSong(id2, countryCode);
+					return this.getSong(id2, countryCode, preview);
 
 				case "playlist":
-					return this.getPlaylist(id, countryCode);
+					return this.getPlaylist(id, countryCode, preview);
 
 				case "artist":
-					return this.getArtist(id, countryCode);
+					return this.getArtist(id, countryCode, preview);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -181,21 +186,35 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
-	public AudioItem getSearch(String query) throws IOException {
-		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25);
+	public Map<String, String> getArtistCover(List<String> ids) throws IOException {
+		var json = getJson(API_BASE + "catalog/" + countryCode + "/artists?ids=" + String.join(",", ids));
+		var data = json.get("data");
+
+		var output = new HashMap<String, String>(ids.size());
+		for (var i = 0; i < ids.size(); i++) {
+			var artist = data.index(i);
+			var artwork = artist.get("attributes").get("artwork");
+			output.put(artist.get("id").text(), parseArtworkUrl(artwork));
+		}
+
+		return output;
+	}
+
+	public AudioItem getSearch(String query, boolean preview) throws IOException {
+		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25 + "&extend=artistUrl");
 		if (json == null || json.get("results").get("songs").get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new BasicAudioPlaylist("Apple Music Search: " + query, this.parseTracks(json.get("results").get("songs")), null, true);
+		return new BasicAudioPlaylist("Apple Music Search: " + query, this.parseTracks(json.get("results").get("songs"), preview), null, true);
 	}
 
-	public AudioItem getAlbum(String id, String countryCode) throws IOException {
-		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id);
+	public AudioItem getAlbum(String id, String countryCode, boolean preview) throws IOException {
+		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id + "&extend=artistUrl");
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
 
-		var tracks = new ArrayList<AudioTrack>();
+		var tracksRaw = JsonBrowser.newList();
 		JsonBrowser page;
 		var offset = 0;
 		var pages = 0;
@@ -203,10 +222,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			page = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += MAX_PAGE_ITEMS;
 
-			tracks.addAll(this.parseTracks(page));
+			page.values().forEach(tracksRaw::add);
 		}
 		while (page.get("next").text() != null && ++pages < albumPageLimit);
 
+		var tracks = parseTracks(tracksRaw, preview);
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -216,13 +236,13 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "album", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
-	public AudioItem getPlaylist(String id, String countryCode) throws IOException {
-		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id);
+	public AudioItem getPlaylist(String id, String countryCode, boolean preview) throws IOException {
+		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id + "&extend=artistUrl");
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
 
-		var tracks = new ArrayList<AudioTrack>();
+		var tracksRaw = JsonBrowser.newList();
 		JsonBrowser page;
 		var offset = 0;
 		var pages = 0;
@@ -230,10 +250,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			page = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += MAX_PAGE_ITEMS;
 
-			tracks.addAll(parseTracks(page));
+			page.values().forEach(tracksRaw::add);
 		}
 		while (page.get("next").text() != null && ++pages < playlistPageLimit);
 
+		var tracks = parseTracks(tracksRaw, preview);
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -243,7 +264,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "playlist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
-	public AudioItem getArtist(String id, String countryCode) throws IOException {
+	public AudioItem getArtist(String id, String countryCode, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/artists/" + id + "/view/top-songs");
 		if (json == null || json.get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
@@ -253,26 +274,33 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(jsonArtist.get("data").index(0).get("attributes").get("artwork"));
 		var author = jsonArtist.get("data").index(0).get("attributes").get("name").text();
-		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json), "artist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
+		var artistArtwork = Map.of(jsonArtist.get("id").text(), artworkUrl);
+		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json, preview, artistArtwork), "artist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
-	public AudioItem getSong(String id, String countryCode) throws IOException {
+	public AudioItem getSong(String id, String countryCode, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/songs/" + id);
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
-		return parseTrack(json.get("data").index(0));
+		var artistArtwork = getArtistCover(List.of(parseArtistId(json))).values().iterator().next();
+		return parseTrack(json.get("data").index(0), preview, artistArtwork);
 	}
 
-	private List<AudioTrack> parseTracks(JsonBrowser json) {
+	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview, Map<String, String> artistArtwork) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var value : json.get("data").values()) {
-			tracks.add(this.parseTrack(value));
+			tracks.add(this.parseTrack(value, preview, artistArtwork.get(parseArtistId(value))));
 		}
 		return tracks;
 	}
 
-	private AudioTrack parseTrack(JsonBrowser json) {
+	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) throws IOException {
+		var ids = json.get("data").values().stream().map(this::parseArtistId).collect(Collectors.toList());
+		return parseTracks(json, preview, getArtistCover(ids));
+	}
+
+	private AudioTrack parseTrack(JsonBrowser json, boolean preview, String artistArtwork) {
 		var attributes = json.get("attributes");
 		return new AppleMusicAudioTrack(
 			new AudioTrackInfo(
@@ -285,6 +313,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 				this.parseArtworkUrl(attributes.get("artwork")),
 				attributes.get("isrc").text()
 			),
+			attributes.get("albumName").text(),
+			artistArtwork,
+			preview ? attributes.get("previews").index(0).get("hlsUrl").text() : null,
 			this
 		);
 	}
@@ -293,23 +324,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		return json.get("url").text().replace("{w}", json.get("width").text()).replace("{h}", json.get("height").text());
 	}
 
-	@Override
-	public void shutdown() {
-		try {
-			this.httpInterfaceManager.close();
-		} catch (IOException e) {
-			log.error("Failed to close HTTP interface manager", e);
-		}
-	}
-
-	@Override
-	public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-		this.httpInterfaceManager.configureRequests(configurator);
-	}
-
-	@Override
-	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-		this.httpInterfaceManager.configureBuilder(configurator);
+	private String parseArtistId(JsonBrowser json) {
+		var url = json.get("data").index(0).get("attributes").get("artistUrl").text();
+		return url.substring(url.lastIndexOf('/'));
 	}
 
 }

@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +36,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "sprec:";
+	public static final String PREVIEW_PREFIX = "spprev:";
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 	public static final String API_BASE = "https://api.spotify.com/v1/";
@@ -88,31 +88,29 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
-		return new SpotifyAudioTrack(trackInfo, this);
-	}
-
-	@Override
-	public boolean isTrackEncodable(AudioTrack track) {
-		return true;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) {
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
+		var extendedAudioTrackInfo = super.decodeTrack(input);
+		return new SpotifyAudioTrack(trackInfo, extendedAudioTrackInfo.albumName, extendedAudioTrackInfo.artistArtworkUrl, extendedAudioTrackInfo.previewUrl, this);
 	}
 
 	@Override
 	public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
+		var identifier = reference.identifier;
+		var preview = reference.identifier.startsWith(PREVIEW_PREFIX);
+		return this.loadItem(preview ? identifier.substring(PREVIEW_PREFIX.length()) : identifier, preview);
+	}
+
+	public AudioItem loadItem(String identifier, boolean preview) {
 		try {
-			if (reference.identifier.startsWith(SEARCH_PREFIX)) {
-				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()).trim());
+			if (identifier.startsWith(SEARCH_PREFIX)) {
+				return this.getSearch(identifier.substring(SEARCH_PREFIX.length()).trim(), preview);
 			}
 
-			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
-				return this.getRecommendations(reference.identifier.substring(RECOMMENDATIONS_PREFIX.length()).trim());
+			if (identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
+				return this.getRecommendations(identifier.substring(RECOMMENDATIONS_PREFIX.length()).trim(), preview);
 			}
 
-			var matcher = URL_PATTERN.matcher(reference.identifier);
+			var matcher = URL_PATTERN.matcher(identifier);
 			if (!matcher.find()) {
 				return null;
 			}
@@ -120,16 +118,16 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			var id = matcher.group("identifier");
 			switch (matcher.group("type")) {
 				case "album":
-					return this.getAlbum(id);
+					return this.getAlbum(id, preview);
 
 				case "track":
-					return this.getTrack(id);
+					return this.getTrack(id, preview);
 
 				case "playlist":
-					return this.getPlaylist(id);
+					return this.getPlaylist(id, preview);
 
 				case "artist":
-					return this.getArtist(id);
+					return this.getArtist(id, preview);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -160,25 +158,25 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
-	public AudioItem getSearch(String query) throws IOException {
+	public AudioItem getSearch(String query, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track");
 		if (json == null || json.get("tracks").get("items").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 
-		return new BasicAudioPlaylist("Search results for: " + query, this.parseTrackItems(json.get("tracks")), null, true);
+		return new BasicAudioPlaylist("Search results for: " + query, this.parseTrackItems(json.get("tracks"), preview), null, true);
 	}
 
-	public AudioItem getRecommendations(String query) throws IOException {
+	public AudioItem getRecommendations(String query, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "recommendations?" + query);
 		if (json == null || json.get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 
-		return new SpotifyAudioPlaylist("Spotify Recommendations:", this.parseTracks(json), "recommendations", null, null, null);
+		return new SpotifyAudioPlaylist("Spotify Recommendations:", this.parseTracks(json, preview), "recommendations", null, null, null);
 	}
 
-	public AudioItem getAlbum(String id) throws IOException {
+	public AudioItem getAlbum(String id, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "albums/" + id);
 		if (json == null) {
 			return AudioReference.NO_TRACK;
@@ -194,7 +192,15 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			var tracksPage = this.getJson(API_BASE + "tracks/?ids=" + page.get("items").values().stream().map(track -> track.get("id").text()).collect(Collectors.joining(",")));
 
-			tracks.addAll(this.parseTracks(tracksPage));
+			for (var track : tracksPage.get("tracks").values()) {
+				var albumJson = JsonBrowser.newMap();
+				albumJson.put("name", json.get("name"));
+				track.put("album", albumJson);
+
+				var artistsJson = JsonBrowser.newList();
+				artistsJson.add(json.get("artists").index(0));
+			}
+			tracks.addAll(this.parseTracks(tracksPage, preview));
 		}
 		while (page.get("next").text() != null && ++pages < this.albumPageLimit);
 
@@ -206,7 +212,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	}
 
-	public AudioItem getPlaylist(String id) throws IOException {
+	public AudioItem getPlaylist(String id, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "playlists/" + id);
 		if (json == null) {
 			return AudioReference.NO_TRACK;
@@ -225,7 +231,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				if (track.isNull() || track.get("is_local").asBoolean(false)) {
 					continue;
 				}
-				tracks.add(this.parseTrack(track));
+				tracks.add(this.parseTrack(track, preview));
 			}
 
 		}
@@ -239,42 +245,42 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	}
 
-	public AudioItem getArtist(String id) throws IOException {
+	public AudioItem getArtist(String id, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode);
 		if (json == null || json.get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new SpotifyAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json), "artist", json.get("tracks").index(0).get("external_urls").get("spotify").text(), json.get("tracks").index(0).get("album").get("images").index(0).get("url").text(), json.get("tracks").index(0).get("artists").index(0).get("name").text());
+		return new SpotifyAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json, preview), "artist", json.get("tracks").index(0).get("external_urls").get("spotify").text(), json.get("tracks").index(0).get("album").get("images").index(0).get("url").text(), json.get("tracks").index(0).get("artists").index(0).get("name").text());
 	}
 
-	public AudioItem getTrack(String id) throws IOException {
+	public AudioItem getTrack(String id, boolean preview) throws IOException {
 		var json = this.getJson(API_BASE + "tracks/" + id);
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
-		return this.parseTrack(json);
+		return this.parseTrack(json, preview);
 	}
 
-	private List<AudioTrack> parseTracks(JsonBrowser json) {
+	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var value : json.get("tracks").values()) {
-			tracks.add(this.parseTrack(value));
+			tracks.add(this.parseTrack(value, preview));
 		}
 		return tracks;
 	}
 
-	private List<AudioTrack> parseTrackItems(JsonBrowser json) {
+	private List<AudioTrack> parseTrackItems(JsonBrowser json, boolean preview) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var value : json.get("items").values()) {
 			if (value.get("is_local").asBoolean(false)) {
 				continue;
 			}
-			tracks.add(this.parseTrack(value));
+			tracks.add(this.parseTrack(value, preview));
 		}
 		return tracks;
 	}
 
-	private AudioTrack parseTrack(JsonBrowser json) {
+	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
 				json.get("name").text(),
@@ -286,6 +292,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				json.get("album").get("images").index(0).get("url").text(),
 				json.get("external_ids").get("isrc").text()
 			),
+			json.get("album").get("name").text(),
+			json.get("artists").index(0).get("images").index(0).get("url").text(),
+			preview ? json.get("preview_url").text() : null,
 			this
 		);
 	}
