@@ -4,6 +4,7 @@ import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
+import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.slf4j.Logger;
@@ -22,8 +23,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 	private final YandexMusicConfig yandexMusicConfig;
 
 	private final DeezerConfig deezerConfig;
+	private final FloweryTTSConfig floweryTTSConfig;
 
-	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig) {
 		log.info("Loading LavaSrc plugin...");
 		this.pluginConfig = pluginConfig;
 		this.sourcesConfig = sourcesConfig;
@@ -31,6 +33,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 		this.appleMusicConfig = appleMusicConfig;
 		this.deezerConfig = deezerConfig;
 		this.yandexMusicConfig = yandexMusicConfig;
+		this.floweryTTSConfig = floweryTTSConfig;
 	}
 
 	@Override
@@ -64,6 +67,20 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 		if (this.sourcesConfig.isYandexMusic()) {
 			log.info("Registering Yandex Music audio source manager...");
 			manager.registerSourceManager(new YandexMusicSourceManager(this.yandexMusicConfig.getAccessToken()));
+		}
+		if (this.sourcesConfig.isFloweryTTS()) {
+			log.info("Registering Flowery TTS audio source manager...");
+			var floweryTTSSourceManager = new FloweryTTSSourceManager(this.floweryTTSConfig.getVoice());
+			if (this.floweryTTSConfig.getTranslate()){
+				floweryTTSSourceManager.setTranslate(this.floweryTTSConfig.getTranslate());
+			}
+			if (this.floweryTTSConfig.getSilence() > 0) {
+				floweryTTSSourceManager.setSilence(this.floweryTTSConfig.getSilence());
+			}
+			if (this.floweryTTSConfig.getSpeed() > 0){
+				floweryTTSSourceManager.setSpeed(this.floweryTTSConfig.getSpeed());
+			}
+			manager.registerSourceManager(floweryTTSSourceManager);
 		}
 		return manager;
 	}
