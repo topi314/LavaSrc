@@ -7,11 +7,7 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -196,17 +192,17 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		var artist = json.get("major").get("name").text().equals("PODCASTS") ? json.get("albums").values().get(0).get("title").text() : json.get("artists").values().get(0).get("name").text();
 		var coverUri = json.get("albums").values().get(0).get("coverUri").text();
 		return new YandexMusicAudioTrack(
-				new AudioTrackInfo(
-						json.get("title").text(),
-						artist,
-						json.get("durationMs").as(Long.class),
-						id,
-						false,
-						"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id,
-						this.formatCoverUri(coverUri),
-						null
-				),
-				this
+			new AudioTrackInfo(
+				json.get("title").text(),
+				artist,
+				json.get("durationMs").as(Long.class),
+				id,
+				false,
+				"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id,
+				this.formatCoverUri(coverUri),
+				null
+			),
+			this
 		);
 	}
 

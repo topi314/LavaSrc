@@ -2,16 +2,13 @@ package com.github.topi314.lavasrc.deezer;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -119,7 +116,11 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	private List<AudioTrack> parseTracks(JsonBrowser json) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var track : json.get("data").values()) {
-			if (!track.get("type").text().equals("track") || !track.get("readable").as(Boolean.class)) {
+			if (!track.get("type").text().equals("track")) {
+				continue;
+			}
+			if (!track.get("readable").as(Boolean.class)) {
+				log.warn("Skipping track {} by {} because it is not readable. Available countries: {}", track.get("title").text(), track.get("artist").get("name").text(), track.get("available_countries").text());
 				continue;
 			}
 			tracks.add(this.parseTrack(track));
@@ -128,25 +129,28 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json) {
+		if (!json.get("readable").as(Boolean.class)) {
+			throw new FriendlyException("This track is not readable. Available countries: " + json.get("available_countries").text(), FriendlyException.Severity.COMMON, null);
+		}
 		var id = json.get("id").text();
 		return new DeezerAudioTrack(
-				new AudioTrackInfo(
-						json.get("title").text(),
-						json.get("artist").get("name").text(),
-						json.get("duration").as(Long.class) * 1000,
-						id,
-						false,
-						"https://deezer.com/track/" + id,
-						json.get("album").get("cover_xl").text(),
-						json.get("isrc").text()
-				),
-				this
+			new AudioTrackInfo(
+				json.get("title").text(),
+				json.get("artist").get("name").text(),
+				json.get("duration").as(Long.class) * 1000,
+				id,
+				false,
+				"https://deezer.com/track/" + id,
+				json.get("album").get("cover_xl").text(),
+				json.get("isrc").text()
+			),
+			this
 		);
 	}
 
 	private AudioItem getTrackByISRC(String isrc) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
-		if (json == null || json.get("id").isNull() || !json.get("readable").as(Boolean.class)) {
+		if (json == null || json.get("id").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 		return this.parseTrack(json);
@@ -175,7 +179,7 @@ public class DeezerAudioSourceManager implements AudioSourceManager, HttpConfigu
 
 	private AudioItem getTrack(String id) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/track/" + id);
-		if (json == null || !json.get("readable").as(Boolean.class)) {
+		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
 		return this.parseTrack(json);

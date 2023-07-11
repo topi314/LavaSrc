@@ -11,8 +11,8 @@ import static com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager.QUER
 public class LavaSrcConfig {
 
 	private String[] providers = {
-			"ytsearch:\"" + ISRC_PATTERN + "\"",
-			"ytsearch:" + QUERY_PATTERN
+		"ytsearch:\"" + ISRC_PATTERN + "\"",
+		"ytsearch:" + QUERY_PATTERN
 	};
 
 	public String[] getProviders() {
