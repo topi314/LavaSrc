@@ -35,6 +35,7 @@ public class FloweryTTSAudioTrack extends DelegatedAudioTrack {
             final URIBuilder apiUri = new URIBuilder(API_BASE);
 
             apiUri.addParameter("text", this.trackInfo.title);
+            apiUri.addParameter("voice", this.sourceManager.getVoice());
             for (NameValuePair pair : this.sourceManager.getDefaultConfig()){
                 apiUri.addParameter(pair.getName(), queryParams.stream()
                         .filter((p) -> pair.getName().equals(p.getName()))
@@ -43,7 +44,6 @@ public class FloweryTTSAudioTrack extends DelegatedAudioTrack {
                         .orElse(pair.getValue())
                 );
             }
-
             try (var stream = new PersistentHttpStream(httpInterface, apiUri.build(), null)) {
                 processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
             }

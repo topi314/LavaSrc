@@ -72,6 +72,10 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
         return config;
     }
 
+    public String getVoice() {
+        return voice;
+    }
+
     @Override
     public String getSourceName(){
         return "flowerytts";
@@ -83,6 +87,10 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
         if (reference.identifier.startsWith(TTS_PREFIX)) {
             try {
                 URI queryUri = new URI(reference.identifier);
+
+                if (queryUri.getAuthority() == null)
+                    return null;
+
                 return new FloweryTTSAudioTrack(
                         new AudioTrackInfo(
                                 queryUri.getAuthority(),
