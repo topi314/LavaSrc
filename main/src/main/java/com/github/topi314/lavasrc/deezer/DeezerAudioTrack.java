@@ -3,8 +3,10 @@ package com.github.topi314.lavasrc.deezer;
 import com.github.topi314.lavasrc.ExtendedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
+import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
@@ -24,8 +26,12 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 	private final DeezerAudioSourceManager sourceManager;
 
-	public DeezerAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, DeezerAudioSourceManager sourceManager) {
-		super(trackInfo, albumName, artistArtworkUrl, previewUrl);
+	public DeezerAudioTrack(AudioTrackInfo trackInfo, DeezerAudioSourceManager sourceManager) {
+		this(trackInfo, null, null, null, false, sourceManager);
+	}
+
+	public DeezerAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, boolean isPreview, DeezerAudioSourceManager sourceManager) {
+		super(trackInfo, albumName, artistArtworkUrl, previewUrl, isPreview);
 		this.sourceManager = sourceManager;
 	}
 
@@ -81,15 +87,24 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 	@Override
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
 		try (var httpInterface = this.sourceManager.getHttpInterface()) {
-			try (var stream = new DeezerPersistentHttpStream(httpInterface, this.previewUrl == null ? this.getTrackMediaURI() : new URI(this.previewUrl), this.trackInfo.length, this.getTrackDecryptionKey())) {
-				processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
+			if (this.isPreview) {
+				if (this.previewUrl == null) {
+					throw new FriendlyException("No preview url found", FriendlyException.Severity.COMMON, new IllegalArgumentException());
+				}
+				try (var stream = new PersistentHttpStream(httpInterface, new URI(this.previewUrl), this.trackInfo.length)) {
+					processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
+				}
+			} else {
+				try (var stream = new DeezerPersistentHttpStream(httpInterface, this.getTrackMediaURI(), this.trackInfo.length, this.getTrackDecryptionKey())) {
+					processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
+				}
 			}
 		}
 	}
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new DeezerAudioTrack(this.trackInfo, this.albumName, this.artistArtworkUrl, this.previewUrl, this.sourceManager);
+		return new DeezerAudioTrack(this.trackInfo, this.albumName, this.artistArtworkUrl, this.previewUrl, this.isPreview, this.sourceManager);
 	}
 
 	@Override

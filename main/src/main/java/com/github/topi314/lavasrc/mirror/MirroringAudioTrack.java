@@ -1,8 +1,6 @@
 package com.github.topi314.lavasrc.mirror;
 
 import com.github.topi314.lavasrc.ExtendedAudioTrack;
-import com.github.topi314.lavasrc.deezer.DeezerPersistentHttpStream;
-import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -22,8 +20,8 @@ public abstract class MirroringAudioTrack extends ExtendedAudioTrack {
 
 	protected final MirroringAudioSourceManager sourceManager;
 
-	public MirroringAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, MirroringAudioSourceManager sourceManager) {
-		super(trackInfo, albumName, artistArtworkUrl, previewUrl);
+	public MirroringAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, boolean isPreview, MirroringAudioSourceManager sourceManager) {
+		super(trackInfo, albumName, artistArtworkUrl, previewUrl, isPreview);
 		this.sourceManager = sourceManager;
 	}
 
@@ -31,7 +29,10 @@ public abstract class MirroringAudioTrack extends ExtendedAudioTrack {
 
 	@Override
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
-		if (this.previewUrl != null) {
+		if (this.isPreview) {
+			if (this.previewUrl == null) {
+				throw new FriendlyException("No preview url found", FriendlyException.Severity.COMMON, new IllegalArgumentException());
+			}
 			try (var httpInterface = this.sourceManager.getHttpInterface()) {
 				try (var stream = new PersistentHttpStream(httpInterface, new URI(this.previewUrl), this.trackInfo.length)) {
 					processDelegate(createAudioTrack(this.trackInfo, stream), executor);

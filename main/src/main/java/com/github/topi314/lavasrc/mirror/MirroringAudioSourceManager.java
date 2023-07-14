@@ -1,7 +1,6 @@
 package com.github.topi314.lavasrc.mirror;
 
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
-import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -18,11 +17,9 @@ import java.util.function.Function;
 
 public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
 
-	private static final Logger log = LoggerFactory.getLogger(MirroringAudioSourceManager.class);
-
 	public static final String ISRC_PATTERN = "%ISRC%";
 	public static final String QUERY_PATTERN = "%QUERY%";
-
+	private static final Logger log = LoggerFactory.getLogger(MirroringAudioSourceManager.class);
 	protected final AudioPlayerManager audioPlayerManager;
 	protected final MirroringAudioTrackResolver resolver;
 

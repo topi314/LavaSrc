@@ -31,6 +31,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String SEARCH_PREFIX = "dzsearch:";
 	public static final String ISRC_PREFIX = "dzisrc:";
 	public static final String PREVIEW_PREFIX = "dzprev:";
+	public static final long PREVIEW_LENGTH = 30000;
 	public static final String SHARE_URL = "https://deezer.page.link/";
 	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
 	public static final String PRIVATE_API_BASE = "https://www.deezer.com/ajax/gw-light.php";
@@ -57,8 +58,13 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
-		return new DeezerAudioTrack(trackInfo, extendedAudioTrackInfo.albumName, extendedAudioTrackInfo.artistArtworkUrl, extendedAudioTrackInfo.previewUrl, this);
-
+		return new DeezerAudioTrack(trackInfo,
+			extendedAudioTrackInfo.albumName,
+			extendedAudioTrackInfo.artistArtworkUrl,
+			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.isPreview,
+			this
+		);
 	}
 
 	@Override
@@ -149,7 +155,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			new AudioTrackInfo(
 				json.get("title").text(),
 				json.get("artist").get("name").text(),
-				json.get("duration").as(Long.class) * 1000,
+				preview ? PREVIEW_LENGTH : json.get("duration").asLong(0) * 1000,
 				id,
 				false,
 				"https://deezer.com/track/" + id,
@@ -158,7 +164,8 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			),
 			json.get("album").get("title").text(),
 			json.get("artist").get("picture_xl").text(),
-			preview ? json.get("preview").text() : null,
+			json.get("preview").text(),
+			preview,
 			this
 		);
 	}

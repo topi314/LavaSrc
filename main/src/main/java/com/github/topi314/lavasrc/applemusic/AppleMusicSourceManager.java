@@ -6,26 +6,17 @@ import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.jsoup.Jsoup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -35,6 +26,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 	public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile("const \\w{2}=\"(?<token>(ey[\\w-]+)\\.([\\w-]+)\\.([\\w-]+))\"");
 	public static final String SEARCH_PREFIX = "amsearch:";
 	public static final String PREVIEW_PREFIX = "amprev:";
+	public static final long PREVIEW_LENGTH = 30000;
 	public static final int MAX_PAGE_ITEMS = 300;
 	public static final String API_BASE = "https://api.music.apple.com/v1/";
 	private final String countryCode;
@@ -77,17 +69,15 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 	}
 
 	@Override
-	public boolean isTrackEncodable(AudioTrack track) {
-		return true;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) {
-	}
-
-	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
-		return new AppleMusicAudioTrack(trackInfo, this);
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
+		var extendedAudioTrackInfo = super.decodeTrack(input);
+		return new AppleMusicAudioTrack(trackInfo,
+			extendedAudioTrackInfo.albumName,
+			extendedAudioTrackInfo.artistArtworkUrl,
+			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.isPreview,
+			this
+		);
 	}
 
 	@Override
@@ -306,7 +296,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 			new AudioTrackInfo(
 				attributes.get("name").text(),
 				attributes.get("artistName").text(),
-				attributes.get("durationInMillis").asLong(0),
+				preview ? PREVIEW_LENGTH : attributes.get("durationInMillis").asLong(0),
 				json.get("id").text(),
 				false,
 				attributes.get("url").text(),
@@ -315,7 +305,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 			),
 			attributes.get("albumName").text(),
 			artistArtwork,
-			preview ? attributes.get("previews").index(0).get("hlsUrl").text() : null,
+			attributes.get("previews").index(0).get("hlsUrl").text(),
+			preview,
 			this
 		);
 	}

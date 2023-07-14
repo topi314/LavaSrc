@@ -37,6 +37,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final String SEARCH_PREFIX = "spsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "sprec:";
 	public static final String PREVIEW_PREFIX = "spprev:";
+	public static final long PREVIEW_LENGTH = 30000;
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 	public static final String API_BASE = "https://api.spotify.com/v1/";
@@ -90,7 +91,13 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
-		return new SpotifyAudioTrack(trackInfo, extendedAudioTrackInfo.albumName, extendedAudioTrackInfo.artistArtworkUrl, extendedAudioTrackInfo.previewUrl, this);
+		return new SpotifyAudioTrack(trackInfo,
+			extendedAudioTrackInfo.albumName,
+			extendedAudioTrackInfo.artistArtworkUrl,
+			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.isPreview,
+			this
+		);
 	}
 
 	@Override
@@ -285,7 +292,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			new AudioTrackInfo(
 				json.get("name").text(),
 				json.get("artists").index(0).get("name").text(),
-				json.get("duration_ms").asLong(0),
+				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
 				json.get("id").text(),
 				false,
 				json.get("external_urls").get("spotify").text(),
@@ -294,7 +301,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			),
 			json.get("album").get("name").text(),
 			json.get("artists").index(0).get("images").index(0).get("url").text(),
-			preview ? json.get("preview_url").text() : null,
+			json.get("preview_url").text(),
+			preview,
 			this
 		);
 	}
