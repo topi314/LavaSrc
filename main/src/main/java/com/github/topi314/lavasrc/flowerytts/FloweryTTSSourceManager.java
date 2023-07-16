@@ -22,9 +22,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.lang.Float;
 import java.lang.Integer;
 import java.lang.Boolean;
@@ -37,6 +35,10 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 
     public static final String TTS_PREFIX = "tts://";
     private static final Logger log = LoggerFactory.getLogger(FloweryTTSSourceManager.class);
+    private static final int SILENCE_MIN = 0;
+    private static final int SILENCE_MAX = 10000;
+    private static final float SPEED_MIN = 0.5f;
+    private static final float SPEED_MAX = 10;
 
     private final String voice;
     private boolean translate = false;
@@ -57,23 +59,20 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
     }
 
     public void setSilence(int silence) {
-        this.silence = silence;
+        this.silence = Math.max(SILENCE_MIN, Math.min(SILENCE_MAX, silence));
     }
 
     public void setSpeed (float speed) {
-        this.speed = speed;
+        this.speed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, speed));
     }
 
     public List<NameValuePair> getDefaultConfig() {
-        final List<NameValuePair> config = new ArrayList<NameValuePair>(3);
+        final List<NameValuePair> config = new ArrayList<NameValuePair>(4);
+        config.add(new BasicNameValuePair("voice", this.voice));
         config.add(new BasicNameValuePair("translate", Boolean.toString(this.translate)));
         config.add(new BasicNameValuePair("silence", Integer.toString(this.silence)));
         config.add(new BasicNameValuePair("speed", Float.toString(this.speed)));
         return config;
-    }
-
-    public String getVoice() {
-        return voice;
     }
 
     @Override
@@ -84,27 +83,23 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
     @Override
     public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference){
 
-        if (reference.identifier.startsWith(TTS_PREFIX)) {
-            try {
-                URI queryUri = new URI(reference.identifier);
+        if (!reference.identifier.startsWith(TTS_PREFIX)) { return null; }
 
-                if (queryUri.getAuthority() == null)
-                    return null;
+        try {
+            URI queryUri = new URI(reference.identifier);
 
-                return new FloweryTTSAudioTrack(
-                        new AudioTrackInfo(
-                                queryUri.getAuthority(),
-                                "FloweryTTS",
-                                Units.CONTENT_LENGTH_UNKNOWN,
-                                queryUri.toString(),
-                                false,
-                                null),
-                        this);
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
+            return (queryUri.getAuthority() != null)?
+                new FloweryTTSAudioTrack(
+                    new AudioTrackInfo(
+                        queryUri.getAuthority(),
+                        "FloweryTTS",
+                        Units.CONTENT_LENGTH_UNKNOWN,
+                        reference.identifier,
+                        false,
+                        null), this) : null;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     @Override
