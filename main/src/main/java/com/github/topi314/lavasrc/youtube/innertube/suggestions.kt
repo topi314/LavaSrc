@@ -26,9 +26,9 @@ data class SearchSuggestionsRenderer(val suggestion: Suggestion) {
 
 @Serializable
 data class MusicResponsiveListItemRenderer(
-    val navigationEndpoint: NavigationEndpoint? = null,
-    val thumbnail: Thumbnail? = null,
-    val flexColumns: List<FlexColumn> = emptyList(),
+    val navigationEndpoint: NavigationEndpoint,
+    val thumbnail: Thumbnail,
+    val flexColumns: List<FlexColumn>,
 ) {
     @Serializable
     data class NavigationEndpoint(
