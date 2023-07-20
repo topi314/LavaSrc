@@ -11,6 +11,7 @@ public class FloweryTTSConfig {
     private boolean translate;
     private int silence;
     private float speed;
+    private String audioFormat;
 
     public String getVoice() {
         return this.voice;
@@ -28,19 +29,27 @@ public class FloweryTTSConfig {
         this.translate = translate;
     }
 
-    public int getSilence(){
+    public int getSilence() {
         return this.silence;
     }
 
-    public void setSilence(int silence){
+    public void setSilence(int silence) {
         this.silence = silence;
     }
 
-    public float getSpeed(){
+    public float getSpeed() {
         return this.speed;
     }
 
-    public void setSpeed(float speed){
+    public void setSpeed(float speed) {
         this.speed = speed;
+    }
+    
+    public String getAudioFormat() {
+        return this.audioFormat;
+    }
+
+    public void setAudioFormat(String audioFormat) {
+        this.audioFormat = audioFormat;
     }
 }
