@@ -1,6 +1,8 @@
 package com.github.topi314.lavasrc.deezer;
 
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
+import com.github.topi314.lavasrc.search.SearchItem;
+import com.github.topi314.lavasrc.search.SearchSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -25,7 +27,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
+public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, SearchSourceManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?deezer\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>track|album|playlist|artist)/(?<identifier>[0-9]+)");
 	public static final String SEARCH_PREFIX = "dzsearch:";
@@ -65,6 +67,18 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			extendedAudioTrackInfo.isPreview,
 			this
 		);
+	}
+
+	@Override
+	public List<SearchItem> loadSearch(String query) {
+		try {
+			if (query.startsWith(SEARCH_PREFIX)) {
+				return this.getAutocomplete(query.substring(SEARCH_PREFIX.length()));
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return null;
 	}
 
 	@Override
@@ -168,6 +182,18 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			preview,
 			this
 		);
+	}
+
+	private List<SearchItem> getAutocomplete(String query) throws IOException {
+		var json = this.getJson(PRIVATE_API_BASE + "/search/autocomplete?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
+		if (json == null) {
+			return new ArrayList<>();
+		}
+
+		var items = new ArrayList<SearchItem>();
+
+
+		return items;
 	}
 
 	private AudioItem getTrackByISRC(String isrc, boolean preview) throws IOException {

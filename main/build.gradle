@@ -1,3 +1,7 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+}
 archivesBaseName = "lavasrc"
 
 sourceCompatibility = JavaVersion.VERSION_11
@@ -10,8 +14,9 @@ java {
 
 dependencies {
     compileOnly "com.github.topi314:lavaplayer-fork:8ca9418be9"
-    implementation "org.jsoup:jsoup:1.14.3"
-    implementation "commons-io:commons-io:2.6"
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'commons-io:commons-io:2.7'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
     compileOnly "org.slf4j:slf4j-api:1.7.25"
 }
 
