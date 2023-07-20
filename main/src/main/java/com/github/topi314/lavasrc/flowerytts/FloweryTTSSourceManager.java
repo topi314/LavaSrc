@@ -44,6 +44,7 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
     private boolean translate = false;
     private int silence = 0;
     private float speed = 1;
+    private String audioFormat = "mp3";
 
     private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
@@ -66,12 +67,17 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
         this.speed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, speed));
     }
 
+    public void setAudioFormat(String audioFormat) {
+        this.audioFormat = audioFormat;
+    }
+
     public List<NameValuePair> getDefaultConfig() {
-        final List<NameValuePair> config = new ArrayList<NameValuePair>(4);
+        final List<NameValuePair> config = new ArrayList<NameValuePair>(5);
         config.add(new BasicNameValuePair("voice", this.voice));
         config.add(new BasicNameValuePair("translate", Boolean.toString(this.translate)));
         config.add(new BasicNameValuePair("silence", Integer.toString(this.silence)));
         config.add(new BasicNameValuePair("speed", Float.toString(this.speed)));
+        config.add(new BasicNameValuePair("audio_format", this.audioFormat));
         return config;
     }
 
