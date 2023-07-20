@@ -1,7 +1,7 @@
 package com.github.topi314.lavasrc.deezer;
 
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
-import com.github.topi314.lavasrc.search.SearchResult;
+import com.github.topi314.lavasrc.protocol.*;
 import com.github.topi314.lavasrc.search.SearchSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -189,15 +189,60 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private SearchResult getAutocomplete(String query) throws IOException {
-		var json = this.getJson(PRIVATE_API_BASE + "/search/autocomplete?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
+		var json = this.getJson(PRIVATE_API_BASE + "/search/autocogmplete?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
 		if (json == null) {
 			return SearchResult.EMPTY;
 		}
 
-		var result = new SearchResult(null, null, null, null, null);
+		var albums = new ArrayList<SearchAlbum>();
+		for (var album : json.get("albums").values()) {
+			albums.add(new SearchAlbum(
+				album.get("id").text(),
+				album.get("title").text(),
+				album.get("artist").get("name").text(),
+				album.get("link").text(),
+				album.get("nb_tracks").as(Integer.class),
+				album.get("cover_xl").text(),
+				null
+			));
+		}
 
+		var artists = new ArrayList<SearchArtist>();
+		for (var artist : json.get("artists").values()) {
+			artists.add(new SearchArtist(
+				artist.get("id").text(),
+				artist.get("name").text(),
+				artist.get("link").text(),
+				artist.get("picture_xl").text()
+			));
+		}
 
-		return result;
+		var playlists = new ArrayList<SearchPlaylist>();
+		for (var playlist : json.get("playlists").values()) {
+			playlists.add(new SearchPlaylist(
+				playlist.get("id").text(),
+				playlist.get("title").text(),
+				playlist.get("link").text(),
+				playlist.get("picture_xl").text(),
+				playlist.get("nb_tracks").as(Integer.class)
+			));
+		}
+
+		var tracks = new ArrayList<SearchTrack>();
+		for (var track : json.get("tracks").values()) {
+			tracks.add(new SearchTrack(
+				track.get("title").text(),
+				track.get("artist").get("name").text(),
+				track.get("duration").as(Long.class) * 1000,
+				track.get("id").text(),
+				false,
+				track.get("link").text(),
+				track.get("album").get("cover_xl").text(),
+				null
+			));
+		}
+
+		return new SearchResult(albums, artists, playlists, tracks, new ArrayList<SearchText>());
 	}
 
 	private AudioItem getTrackByISRC(String isrc, boolean preview) throws IOException {

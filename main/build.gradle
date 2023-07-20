@@ -18,6 +18,7 @@ dependencies {
     implementation 'commons-io:commons-io:2.7'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
     implementation 'org.jetbrains.kotlin:kotlin-annotations-jvm:1.9.0'
+    implementation project(":protocol")
     compileOnly "org.slf4j:slf4j-api:1.7.25"
 }
 
@@ -30,4 +31,8 @@ publishing {
             }
         }
     }
+}
+
+kotlin {
+    jvmToolchain(11)
 }

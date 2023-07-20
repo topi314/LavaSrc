@@ -1,5 +1,6 @@
 package com.github.topi314.lavasrc.search;
 
+import com.github.topi314.lavasrc.protocol.SearchResult;
 import kotlin.annotations.jvm.ReadOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

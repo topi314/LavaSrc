@@ -1,11 +1,7 @@
 package com.github.topi314.lavasrc.youtube
 
-import com.github.topi314.lavasrc.search.SearchResult
+import com.github.topi314.lavasrc.protocol.*
 import com.github.topi314.lavasrc.search.SearchSourceManager
-import com.github.topi314.lavasrc.search.item.SearchAlbum
-import com.github.topi314.lavasrc.search.item.SearchArtist
-import com.github.topi314.lavasrc.search.item.SearchText
-import com.github.topi314.lavasrc.search.item.SearchTrack
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer
 import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
@@ -41,7 +37,7 @@ class YoutubeSearchManager : SearchSourceManager {
                     val url = item.navigationEndpoint.toUrl()
                     val artist = item.flexColumns.getOrNull(1)
                         ?.musicResponsiveListItemFlexColumnRenderer
-                        ?.text?.joinRuns()
+                        ?.text?.joinRuns() ?: "Unknown Author"
                     if (item.navigationEndpoint.watchEndpoint != null) {
                         SearchTrack(
                             item.flexColumns.first().musicResponsiveListItemFlexColumnRenderer.text.joinRuns(),
@@ -64,8 +60,8 @@ class YoutubeSearchManager : SearchSourceManager {
                                 name,
                                 artist,
                                 url,
+                                -1,
                                 thumbnail,
-                                null,
                                 null
                             )
 
@@ -86,8 +82,8 @@ class YoutubeSearchManager : SearchSourceManager {
             items.filterIfEnabled<SearchAlbum>("album" in types),
             items.filterIfEnabled<SearchArtist>("artists" in types),
             emptyList(),
-            items.filterIfEnabled<SearchText>("texts" in types),
             items.filterIfEnabled<SearchTrack>("tracks" in types),
+            items.filterIfEnabled<SearchText>("texts" in types),
         )
     }
 

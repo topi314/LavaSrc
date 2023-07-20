@@ -1,15 +1,17 @@
 package com.github.topi314.lavasrc.search;
 
+import com.github.topi314.lavasrc.protocol.SearchResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SearchManager {
 
 	private final List<SearchSourceManager> sourceManagers;
 
-	public SearchManager(List<SearchSourceManager> sourcesManagers) {
-		this.sourceManagers = sourcesManagers;
+	public SearchManager() {
+		this.sourceManagers = new ArrayList<>();
 	}
 
 	public void registerSourceManager(SearchSourceManager sourceManager) {
@@ -17,7 +19,6 @@ public class SearchManager {
 	}
 
 	@Nullable
-	@SuppressWarnings("unchecked")
 	public <T extends SearchSourceManager> T source(Class<T> klass) {
 		for (SearchSourceManager sourceManager : sourceManagers) {
 			if (klass.isAssignableFrom(sourceManager.getClass())) {
