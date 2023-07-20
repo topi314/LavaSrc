@@ -1,2 +1,3 @@
 include(":main")
 include(":plugin")
+include(":plugin-api")

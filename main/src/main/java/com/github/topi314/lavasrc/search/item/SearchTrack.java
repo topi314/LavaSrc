@@ -1,8 +1,6 @@
 package com.github.topi314.lavasrc.search.item;
 
-import com.github.topi314.lavasrc.search.SearchItem;
-
-public class SearchTrack implements SearchItem {
+public class SearchTrack {
 
 	public final String title;
 	public final String author;

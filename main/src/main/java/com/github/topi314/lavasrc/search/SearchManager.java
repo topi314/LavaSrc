@@ -1,5 +1,7 @@
 package com.github.topi314.lavasrc.search;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 public class SearchManager {
@@ -14,6 +16,8 @@ public class SearchManager {
 		sourceManagers.add(sourceManager);
 	}
 
+	@Nullable
+	@SuppressWarnings("unchecked")
 	public <T extends SearchSourceManager> T source(Class<T> klass) {
 		for (SearchSourceManager sourceManager : sourceManagers) {
 			if (klass.isAssignableFrom(sourceManager.getClass())) {
@@ -34,15 +38,15 @@ public class SearchManager {
 		}
 	}
 
-	public List<SearchItem> loadSearch(String query) {
-		for (SearchSourceManager sourceManager : this.sourceManagers) {
-			List<SearchItem> searchItems = sourceManager.loadSearch(query);
-			if (searchItems != null) {
-				return searchItems;
+	@Nullable
+	public SearchResult loadSearch(String query, List<String> types) {
+		for (var sourceManager : this.sourceManagers) {
+			var searchResults = sourceManager.loadSearch(query, types);
+			if (searchResults != null) {
+				return searchResults;
 			}
 		}
 		return null;
 	}
-
 
 }

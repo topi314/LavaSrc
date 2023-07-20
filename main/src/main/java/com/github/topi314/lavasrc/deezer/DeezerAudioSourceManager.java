@@ -1,7 +1,7 @@
 package com.github.topi314.lavasrc.deezer;
 
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
-import com.github.topi314.lavasrc.search.SearchItem;
+import com.github.topi314.lavasrc.search.SearchResult;
 import com.github.topi314.lavasrc.search.SearchSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -14,6 +14,8 @@ import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	}
 
+	@NotNull
 	@Override
 	public String getSourceName() {
 		return "deezer";
@@ -70,7 +73,8 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	@Override
-	public List<SearchItem> loadSearch(String query) {
+	@Nullable
+	public SearchResult loadSearch(String query, List<String> types) {
 		try {
 			if (query.startsWith(SEARCH_PREFIX)) {
 				return this.getAutocomplete(query.substring(SEARCH_PREFIX.length()));
@@ -184,16 +188,16 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		);
 	}
 
-	private List<SearchItem> getAutocomplete(String query) throws IOException {
+	private SearchResult getAutocomplete(String query) throws IOException {
 		var json = this.getJson(PRIVATE_API_BASE + "/search/autocomplete?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
 		if (json == null) {
-			return new ArrayList<>();
+			return SearchResult.EMPTY;
 		}
 
-		var items = new ArrayList<SearchItem>();
+		var result = new SearchResult(null, null, null, null, null);
 
 
-		return items;
+		return result;
 	}
 
 	private AudioItem getTrackByISRC(String isrc, boolean preview) throws IOException {
