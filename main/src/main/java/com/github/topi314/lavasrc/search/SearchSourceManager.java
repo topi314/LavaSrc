@@ -1,8 +1,8 @@
 package com.github.topi314.lavasrc.search;
 
+import kotlin.annotations.jvm.ReadOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import kotlin.annotation.jvm
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public interface SearchSourceManager {
 	String getSourceName();
 
 	@Nullable
-	SearchResult loadSearch(String query, @ReadOnly List<String> types);
+	SearchResult loadSearch(@NotNull String query, @NotNull @ReadOnly List<String> types);
 
 	void shutdown();
 }

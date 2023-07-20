@@ -74,7 +74,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	@Override
 	@Nullable
-	public SearchResult loadSearch(String query, List<String> types) {
+	public SearchResult loadSearch(@NotNull String query, @NotNull List<String> types) {
 		try {
 			if (query.startsWith(SEARCH_PREFIX)) {
 				return this.getAutocomplete(query.substring(SEARCH_PREFIX.length()));

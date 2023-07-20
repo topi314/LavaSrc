@@ -21,7 +21,7 @@ public class SearchManager {
 	public <T extends SearchSourceManager> T source(Class<T> klass) {
 		for (SearchSourceManager sourceManager : sourceManagers) {
 			if (klass.isAssignableFrom(sourceManager.getClass())) {
-				return (T) sourceManager;
+				return klass.cast(sourceManager);
 			}
 		}
 

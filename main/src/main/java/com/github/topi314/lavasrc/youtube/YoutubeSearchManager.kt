@@ -1,6 +1,6 @@
 package com.github.topi314.lavasrc.youtube
 
-import com.github.topi314.lavasrc.search.SearchItem
+import com.github.topi314.lavasrc.search.SearchResult
 import com.github.topi314.lavasrc.search.SearchSourceManager
 import com.github.topi314.lavasrc.search.item.SearchAlbum
 import com.github.topi314.lavasrc.search.item.SearchArtist
@@ -25,12 +25,12 @@ class YoutubeSearchManager : SearchSourceManager {
     private val httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager()
     override fun getSourceName(): String = "youtube"
 
-    override fun loadSearch(query: String): List<SearchItem> {
+    override fun loadSearch(query: String, types: List<String>): SearchResult {
         val result = httpInterfaceManager.`interface`.use {
             it.requestMusicAutoComplete(query)
         }
 
-        return result.contents.flatMap {
+        val items = result.contents.flatMap {
             it.searchSuggestionsSectionRenderer.contents.mapNotNull {
                 if (it.searchSuggestionRenderer != null) {
                     SearchText(it.searchSuggestionRenderer.suggestion.joinRuns())
@@ -80,8 +80,19 @@ class YoutubeSearchManager : SearchSourceManager {
                     null
                 }
             }
+
         }
+        return SearchResult(
+            items.filterIfEnabled<SearchAlbum>("album" in types),
+            items.filterIfEnabled<SearchArtist>("artists" in types),
+            emptyList(),
+            items.filterIfEnabled<SearchText>("texts" in types),
+            items.filterIfEnabled<SearchTrack>("tracks" in types),
+        )
     }
 
     override fun shutdown() = httpInterfaceManager.close()
 }
+
+private inline fun <reified T : Any> List<Any>.filterIfEnabled(enabled: Boolean) =
+    if (enabled) filterIsInstance<T>() else emptyList()
