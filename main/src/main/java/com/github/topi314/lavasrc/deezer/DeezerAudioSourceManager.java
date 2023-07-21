@@ -1,8 +1,8 @@
 package com.github.topi314.lavasrc.deezer;
 
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
-import com.github.topi314.lavasrc.protocol.*;
-import com.github.topi314.lavasrc.search.SearchSourceManager;
+import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasearch.SearchSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;

@@ -2,4 +2,3 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":main")
 include(":plugin")
-include(":protocol")

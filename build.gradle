@@ -8,6 +8,7 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url "https://maven.topi.wtf/snapshots" }
         maven { url "https://maven.arbjerg.dev/releases" }
         maven { url "https://jitpack.io" }
         jcenter()

@@ -10,7 +10,7 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
-## Summary
+## ~~Summary~~
 
 * [Lavaplayer Usage](#lavaplayer-usage)
 * [Lavalink Usage](#lavalink-usage)
@@ -49,8 +49,7 @@ dependencies {
 ```xml
 <repositories>
   <repository>
-    <id>jitpack</id>
-    <url>https://jitpack.io</url>
+    <url>https://maven.topi.wtf/releases</url>
   </repository>
 </repositories>
 

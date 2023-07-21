@@ -6,7 +6,7 @@ archivesBaseName = "lavasrc-plugin"
 lavalinkPlugin {
     name = "lavasrc-plugin"
     apiVersion = "4.0.0-beta.2"
-    serverVersion = "4.0.0-beta.2"
+    serverVersion = gitHash("3a59d42445f28bd63fbb8e837478845aeb23ea68")
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -14,7 +14,8 @@ targetCompatibility = JavaVersion.VERSION_17
 
 dependencies {
     implementation project(":main")
-    implementation project(":protocol")
+    compileOnly "com.github.topi314.lavasearch:lavasearch:8b70129"
+    compileOnly "com.github.topi314.lavasearch:lavasearch-plugin-api:8b70129"
 }
 
 publishing {

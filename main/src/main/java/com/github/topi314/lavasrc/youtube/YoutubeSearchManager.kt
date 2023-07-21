@@ -1,7 +1,7 @@
 package com.github.topi314.lavasrc.youtube
 
-import com.github.topi314.lavasrc.protocol.*
-import com.github.topi314.lavasrc.search.SearchSourceManager
+import com.github.topi314.lavasearch.SearchSourceManager
+import com.github.topi314.lavasearch.protocol.*
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer
 import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools

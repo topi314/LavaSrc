@@ -1,9 +1,9 @@
 package com.github.topi314.lavasrc.plugin;
 
+import com.github.topi314.lavasearch.SearchManager;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
-import com.github.topi314.lavasrc.search.SearchManager;
-import com.github.topi314.lavasrc.search.SearchManagerConfiguration;
+import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
