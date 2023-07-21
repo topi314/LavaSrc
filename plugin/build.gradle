@@ -5,8 +5,8 @@ plugins {
 archivesBaseName = "lavasrc-plugin"
 lavalinkPlugin {
     name = "lavasrc-plugin"
-    apiVersion = "4.0.0-beta.1"
-    serverVersion = gitHash("1c0795bf156fe6559c9c0aed0412bcd8f323a3e0")
+    apiVersion = "4.0.0-beta.2"
+    serverVersion = "4.0.0-beta.2"
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
