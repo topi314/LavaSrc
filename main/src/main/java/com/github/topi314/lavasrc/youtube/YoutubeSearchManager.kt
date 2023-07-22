@@ -22,10 +22,11 @@ class YoutubeSearchManager : SearchSourceManager {
         const val SEARCH_PREFIX = "ytsearch:"
         const val MUSIC_SEARCH_PREFIX = "ytmsearch:"
     }
+
     private val httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager()
     override fun getSourceName(): String = "youtube"
 
-    override fun loadSearch(query: String, types: List<String>): SearchResult? {
+    override fun loadSearch(query: String, types: Set<SearchType>): SearchResult? {
         if (!query.startsWith(MUSIC_SEARCH_PREFIX)) return null
 
         val result = httpInterfaceManager.`interface`.use {
@@ -85,11 +86,11 @@ class YoutubeSearchManager : SearchSourceManager {
         }
         val bypass = types.isEmpty()
         return SearchResult(
-            items.filterIfEnabled<SearchAlbum>("album" in types, bypass),
-            items.filterIfEnabled<SearchArtist>("artists" in types, bypass),
+            items.filterIfEnabled<SearchAlbum>(SearchType.ALBUM in types, bypass),
+            items.filterIfEnabled<SearchArtist>(SearchType.ARTIST in types, bypass),
             emptyList(),
-            items.filterIfEnabled<SearchTrack>("tracks" in types, bypass),
-            items.filterIfEnabled<SearchText>("texts" in types, bypass),
+            items.filterIfEnabled<SearchTrack>(SearchType.TRACK in types, bypass),
+            items.filterIfEnabled<SearchText>(SearchType.TEXT in types, bypass),
         )
     }
 

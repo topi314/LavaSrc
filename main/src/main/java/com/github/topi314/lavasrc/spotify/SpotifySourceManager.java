@@ -1,5 +1,7 @@
 package com.github.topi314.lavasrc.spotify;
 
+import com.github.topi314.lavasearch.SearchSourceManager;
+import com.github.topi314.lavasearch.protocol.*;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
@@ -15,6 +17,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,15 +27,13 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
+public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable, SearchSourceManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";
@@ -109,6 +111,19 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	@Override
+	@Nullable
+	public SearchResult loadSearch(@NotNull String query, @NotNull Set<SearchType> types) {
+		try {
+			if (query.startsWith(SEARCH_PREFIX)) {
+				return this.getAutocomplete(query.substring(SEARCH_PREFIX.length()), types);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return null;
+	}
+
+	@Override
 	public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
 		var identifier = reference.identifier;
 		var preview = reference.identifier.startsWith(PREVIEW_PREFIX);
@@ -171,6 +186,72 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		var request = new HttpGet(uri);
 		request.addHeader("Authorization", "Bearer " + this.getToken());
 		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+	}
+
+	private SearchResult getAutocomplete(String query, Set<SearchType> types) throws IOException {
+		var finalTypes = new HashSet<>(Set.of(SearchType.ALBUM, SearchType.ARTIST, SearchType.PLAYLIST, SearchType.TRACK));
+		if (!types.isEmpty()) {
+			finalTypes.removeIf(type -> !types.contains(type));
+		}
+
+		var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8);
+		if (!types.isEmpty()) {
+			url += "&type=" + finalTypes.stream().map(SearchType::name).collect(Collectors.joining(","));
+		}
+		var json = this.getJson(url);
+		if (json == null) {
+			return SearchResult.EMPTY;
+		}
+
+		var albums = new ArrayList<SearchAlbum>();
+		for (var album : json.get("albums").get("items").values()) {
+			albums.add(new SearchAlbum(
+				album.get("id").text(),
+				album.get("name").text(),
+				album.get("artists").index(0).get("name").text(),
+				album.get("external_urls").get("spotify").text(),
+				(int) album.get("total_tracks").asLong(0),
+				album.get("images").index(0).get("url").text(),
+				album.get("external_ids").get("isrc").text()
+			));
+		}
+
+		var artists = new ArrayList<SearchArtist>();
+		for (var artist : json.get("artists").get("items").values()) {
+			artists.add(new SearchArtist(
+				artist.get("id").text(),
+				artist.get("name").text(),
+				artist.get("external_urls").get("spotify").text(),
+				artist.get("images").index(0).get("url").text()
+			));
+		}
+
+		var playlists = new ArrayList<SearchPlaylist>();
+		for (var playlist : json.get("playlists").get("items").values()) {
+			playlists.add(new SearchPlaylist(
+				playlist.get("id").text(),
+				playlist.get("name").text(),
+				playlist.get("external_urls").get("spotify").text(),
+				playlist.get("images").index(0).get("url").text(),
+				(int) playlist.get("tracks").get("total").asLong(0)
+			));
+		}
+
+		var tracks = new ArrayList<SearchTrack>();
+		for (var track : json.get("tracks").get("items").values()) {
+			tracks.add(new SearchTrack(
+				track.get("name").text(),
+				track.get("artists").index(0).get("name").text(),
+				track.get("duration_ms").as(Long.class),
+				track.get("id").text(),
+				false,
+				track.get("external_urls").get("spotify").text(),
+				track.get("album").get("images").index(0).text(),
+				track.get("external_ids").get("isrc").text()
+			));
+		}
+
+		return new SearchResult(albums, artists, playlists, tracks, new ArrayList<>());
 	}
 
 	public AudioItem getSearch(String query, boolean preview) throws IOException {

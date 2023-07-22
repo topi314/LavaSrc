@@ -86,18 +86,15 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	@Override
 	@NotNull
 	public SearchManager configure(@NotNull SearchManager manager) {
-//		if (this.spotify != null) {
-//			manager.registerSourceManager(this.spotify);
-//		}
+		if (this.spotify != null) {
+			manager.registerSourceManager(this.spotify);
+		}
 //		if (this.appleMusic != null) {
 //			manager.registerSourceManager(this.appleMusic);
 //		}
 		if (this.deezer != null) {
 			manager.registerSourceManager(this.deezer);
 		}
-//		if (this.yandexMusic != null) {
-//			manager.registerSourceManager(this.yandexMusic);
-//		}
 		if (this.youtube != null) {
 			manager.registerSourceManager(this.youtube);
 		}

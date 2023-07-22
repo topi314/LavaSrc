@@ -25,6 +25,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -74,10 +75,10 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	@Override
 	@Nullable
-	public SearchResult loadSearch(@NotNull String query, @NotNull List<String> types) {
+	public SearchResult loadSearch(@NotNull String query, @NotNull Set<SearchType> types) {
 		try {
 			if (query.startsWith(SEARCH_PREFIX)) {
-				return this.getAutocomplete(query.substring(SEARCH_PREFIX.length()));
+				return this.getAutocomplete(query.substring(SEARCH_PREFIX.length()), types);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -188,7 +189,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		);
 	}
 
-	private SearchResult getAutocomplete(String query) throws IOException {
+	private SearchResult getAutocomplete(String query, Set<SearchType> types) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/search/autocomplete?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
 		if (json == null) {
 			return SearchResult.EMPTY;
@@ -242,7 +243,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			));
 		}
 
-		return new SearchResult(albums, artists, playlists, tracks, new ArrayList<SearchText>());
+		return new SearchResult(albums, artists, playlists, tracks, new ArrayList<>());
 	}
 
 	private AudioItem getTrackByISRC(String isrc, boolean preview) throws IOException {
