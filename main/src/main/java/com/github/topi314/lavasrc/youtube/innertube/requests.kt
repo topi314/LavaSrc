@@ -7,16 +7,28 @@ import java.util.*
 val youtubeMusic = URI("https://music.youtube.com")
 
 fun musicContext(locale: Locale): InnerTubeContext {
+    val safeLocale = locale.convertToISO()
     return InnerTubeContext(
         InnerTubeContext.Client(
             "WEB_REMIX",
             "1.20230102.01.00",
-            locale.language,
-            locale.country!!
+            safeLocale.language,
+            safeLocale.country!!
         )
     )
 }
 
+private fun Locale.convertToISO(): Locale = when {
+    !country.isNullOrBlank() -> this
+    language == "cs" -> Locale(language, "CZ")
+    language == "da" -> Locale(language, "DK")
+    language == "el" -> Locale(language, "GR")
+    language == "hi" -> Locale(language, "IN")
+    language == "ja" -> Locale(language, "JP")
+    language == "uk" -> Locale(language, "UA")
+    language == "vi" -> Locale(language, "VN")
+    else -> Locale(language, language.uppercase(Locale.ENGLISH))
+}
 
 @Serializable
 data class InnerTubeContext(val client: Client) {

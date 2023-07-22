@@ -82,19 +82,19 @@ class YoutubeSearchManager : SearchSourceManager {
                     null
                 }
             }
-
         }
+        val bypass = types.isEmpty()
         return SearchResult(
-            items.filterIfEnabled<SearchAlbum>("album" in types),
-            items.filterIfEnabled<SearchArtist>("artists" in types),
+            items.filterIfEnabled<SearchAlbum>("album" in types, bypass),
+            items.filterIfEnabled<SearchArtist>("artists" in types, bypass),
             emptyList(),
-            items.filterIfEnabled<SearchTrack>("tracks" in types),
-            items.filterIfEnabled<SearchText>("texts" in types),
+            items.filterIfEnabled<SearchTrack>("tracks" in types, bypass),
+            items.filterIfEnabled<SearchText>("texts" in types, bypass),
         )
     }
 
     override fun shutdown() = httpInterfaceManager.close()
 }
 
-private inline fun <reified T : Any> List<Any>.filterIfEnabled(enabled: Boolean) =
-    if (enabled) filterIsInstance<T>() else emptyList()
+private inline fun <reified T : Any> List<Any>.filterIfEnabled(enabled: Boolean, isEmpty: Boolean) =
+    if (enabled || isEmpty) filterIsInstance<T>() else emptyList()

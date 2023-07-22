@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import org.apache.http.HttpHeaders
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.client.utils.URIBuilder
+import org.apache.http.entity.ContentType
 import org.apache.http.entity.StringEntity
 import java.net.URI
 import java.util.*
@@ -22,7 +23,7 @@ fun HttpInterface.requestMusicAutoComplete(
         youtubeMusic,
         "music",
         "get_search_suggestions",
-        body = MusicSearchRequest(musicContext(locale ?: Locale.ENGLISH), input)
+        body = MusicSearchRequest(musicContext(locale ?: Locale("en", "US")), input)
     ) {
         if (locale != null) {
             val localeString = if (locale.country != null) {
@@ -47,7 +48,8 @@ private inline fun <reified B, reified R> HttpInterface.makeRequest(
     val post = HttpPost(uri.build()).apply {
         addHeader(HttpHeaders.REFERER, domain.toString())
         if (body != null) {
-            entity = StringEntity(json.encodeToString(body))
+            addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+            entity = StringEntity(json.encodeToString(body).also { println(it) })
         }
         builder()
     }
