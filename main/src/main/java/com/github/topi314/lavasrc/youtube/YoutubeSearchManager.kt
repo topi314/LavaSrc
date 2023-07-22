@@ -18,12 +18,18 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
 }
 
 class YoutubeSearchManager : SearchSourceManager {
+    companion object {
+        const val SEARCH_PREFIX = "ytsearch:"
+        const val MUSIC_SEARCH_PREFIX = "ytmsearch:"
+    }
     private val httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager()
     override fun getSourceName(): String = "youtube"
 
-    override fun loadSearch(query: String, types: List<String>): SearchResult {
+    override fun loadSearch(query: String, types: List<String>): SearchResult? {
+        if (!query.startsWith(MUSIC_SEARCH_PREFIX)) return null
+
         val result = httpInterfaceManager.`interface`.use {
-            it.requestMusicAutoComplete(query)
+            it.requestMusicAutoComplete(query.removePrefix(MUSIC_SEARCH_PREFIX))
         }
 
         val items = result.contents.flatMap {

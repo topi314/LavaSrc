@@ -1,9 +1,9 @@
 package com.github.topi314.lavasrc.plugin;
 
 import com.github.topi314.lavasearch.SearchManager;
+import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
-import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
@@ -19,18 +19,19 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 	private static final Logger log = LoggerFactory.getLogger(LavaSrcPlugin.class);
 
+	private AudioPlayerManager manager;
 	private SpotifySourceManager spotify;
 	private AppleMusicSourceManager appleMusic;
 	private DeezerAudioSourceManager deezer;
 	private YandexMusicSourceManager yandexMusic;
 	private YoutubeSearchManager youtube;
 
-	public LavaSrcPlugin(AudioPlayerManager manager, LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
 		log.info("Loading LavaSrc plugin...");
 
 		if (sourcesConfig.isSpotify()) {
 			log.info("Registering Spotify audio source manager...");
-			this.spotify = new SpotifySourceManager(pluginConfig.getProviders(), spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getCountryCode(), manager);
+			this.spotify = new SpotifySourceManager(pluginConfig.getProviders(), spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getCountryCode(), unused -> manager);
 			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
 				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
 			}
@@ -40,13 +41,14 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (sourcesConfig.isAppleMusic()) {
 			log.info("Registering Apple Music audio source manager...");
-			var appleMusicSourceManager = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), manager);
+			var appleMusicSourceManager = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager);
 			if (appleMusicConfig.getPlaylistLoadLimit() > 0) {
 				appleMusicSourceManager.setPlaylistPageLimit(appleMusicConfig.getPlaylistLoadLimit());
 			}
 			if (appleMusicConfig.getAlbumLoadLimit() > 0) {
 				appleMusicSourceManager.setAlbumPageLimit(appleMusicConfig.getAlbumLoadLimit());
 			}
+			this.appleMusic = appleMusicSourceManager;
 		}
 		if (sourcesConfig.isDeezer()) {
 			log.info("Registering Deezer audio source manager...");
@@ -65,6 +67,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	@NotNull
 	@Override
 	public AudioPlayerManager configure(@NotNull AudioPlayerManager manager) {
+		this.manager = manager;
 		if (this.spotify != null) {
 			manager.registerSourceManager(this.spotify);
 		}

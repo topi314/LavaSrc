@@ -53,10 +53,18 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private Instant tokenExpire;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
+		this(clientId, clientSecret, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
+	}
+
+	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
 		this(clientId, clientSecret, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
 
 	public SpotifySourceManager(String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+		this(clientId, clientSecret, countryCode, unused -> audioPlayerManager, mirroringAudioTrackResolver);
+	}
+
+	public SpotifySourceManager(String clientId, String clientSecret, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 
 		if (clientId == null || clientId.isEmpty()) {

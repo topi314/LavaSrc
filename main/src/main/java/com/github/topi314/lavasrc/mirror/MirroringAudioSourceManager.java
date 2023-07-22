@@ -20,12 +20,16 @@ public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceMan
 	public static final String ISRC_PATTERN = "%ISRC%";
 	public static final String QUERY_PATTERN = "%QUERY%";
 	private static final Logger log = LoggerFactory.getLogger(MirroringAudioSourceManager.class);
-	protected final AudioPlayerManager audioPlayerManager;
+	protected final Function<Void, AudioPlayerManager> audioPlayerManager;
 	protected final MirroringAudioTrackResolver resolver;
 
 	protected final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
 	protected MirroringAudioSourceManager(AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver resolver) {
+		this(unused -> audioPlayerManager, resolver);
+	}
+
+	protected MirroringAudioSourceManager(Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver resolver) {
 		this.audioPlayerManager = audioPlayerManager;
 		this.resolver = resolver;
 	}
@@ -54,7 +58,7 @@ public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceMan
 	}
 
 	public AudioPlayerManager getAudioPlayerManager() {
-		return this.audioPlayerManager;
+		return this.audioPlayerManager.apply(null);
 	}
 
 	public MirroringAudioTrackResolver getResolver() {
