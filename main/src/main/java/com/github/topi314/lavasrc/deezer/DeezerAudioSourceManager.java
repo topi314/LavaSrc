@@ -41,7 +41,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
 	public static final String PRIVATE_API_BASE = "https://www.deezer.com/ajax/gw-light.php";
 	public static final String MEDIA_BASE = "https://media.deezer.com/v1";
-
+	public static final Set<SearchType> SEARCH_TYPES = Set.of(SearchType.TRACK, SearchType.ALBUM, SearchType.PLAYLIST, SearchType.ARTIST);
 	private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
 
 	private final String masterDecryptionKey;
@@ -190,6 +190,12 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private SearchResult getAutocomplete(String query, Set<SearchType> types) throws IOException {
+		if (types.contains(SearchType.TEXT)) {
+			throw new IllegalArgumentException("text is not a valid search type for Deezer");
+		}
+		if (types.isEmpty()) {
+			types = SEARCH_TYPES;
+		}
 		var json = this.getJson(PUBLIC_API_BASE + "/search/autocomplete?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
 		if (json == null) {
 			return SearchResult.EMPTY;

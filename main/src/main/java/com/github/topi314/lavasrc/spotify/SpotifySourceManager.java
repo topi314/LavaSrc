@@ -43,6 +43,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 	public static final String API_BASE = "https://api.spotify.com/v1/";
+	public static final Set<SearchType> SEARCH_TYPES = Set.of(SearchType.ALBUM, SearchType.ARTIST, SearchType.PLAYLIST, SearchType.TRACK);
 	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
@@ -191,6 +192,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private SearchResult getAutocomplete(String query, Set<SearchType> types) throws IOException {
 		if (types.contains(SearchType.TEXT)) {
 			throw new IllegalArgumentException("text is not a valid search type for Spotify");
+		}
+		if (types.isEmpty()) {
+			types = SEARCH_TYPES;
 		}
 		var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=" + types.stream().map(SearchType::getValue).collect(Collectors.joining(","));
 		var json = this.getJson(url);

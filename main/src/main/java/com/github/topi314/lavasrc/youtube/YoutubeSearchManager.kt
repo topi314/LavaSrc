@@ -21,6 +21,7 @@ class YoutubeSearchManager : SearchSourceManager {
     companion object {
         const val SEARCH_PREFIX = "ytsearch:"
         const val MUSIC_SEARCH_PREFIX = "ytmsearch:"
+        val SEARCH_TYPES = setOf(SearchType.ALBUM, SearchType.ARTIST, SearchType.TRACK, SearchType.TEXT)
     }
 
     private val httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager()
@@ -84,12 +85,13 @@ class YoutubeSearchManager : SearchSourceManager {
                 }
             }
         }
+        val finalTypes = types.ifEmpty { SEARCH_TYPES }
         return SearchResult(
-            items.filter<SearchAlbum>(SearchType.ALBUM in types),
-            items.filter<SearchArtist>(SearchType.ARTIST in types),
+            items.filter<SearchAlbum>(SearchType.ALBUM in finalTypes),
+            items.filter<SearchArtist>(SearchType.ARTIST in finalTypes),
             emptyList(),
-            items.filter<SearchTrack>(SearchType.TRACK in types),
-            items.filter<SearchText>(SearchType.TEXT in types),
+            items.filter<SearchTrack>(SearchType.TRACK in finalTypes),
+            items.filter<SearchText>(SearchType.TEXT in finalTypes),
         )
     }
 
