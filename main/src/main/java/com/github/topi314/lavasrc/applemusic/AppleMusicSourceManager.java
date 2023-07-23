@@ -4,6 +4,7 @@ import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -33,7 +34,6 @@ import java.util.regex.Pattern;
 public class AppleMusicSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
-	public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile("const \\w{2}=\"(?<token>(ey[\\w-]+)\\.([\\w-]+)\\.([\\w-]+))\"");
 	public static final String SEARCH_PREFIX = "amsearch:";
 	public static final int MAX_PAGE_ITEMS = 300;
 	public static final String API_BASE = "https://api.music.apple.com/v1/";
@@ -42,7 +42,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private final String countryCode;
 	private int playlistPageLimit;
 	private int albumPageLimit;
-	private String token;
+	private final String token;
 	private String origin;
 	private Instant tokenExpire;
 
@@ -52,12 +52,17 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
+		if (mediaAPIToken == null || mediaAPIToken.isEmpty()) {
+			throw new RuntimeException("Apple Music API token is empty or null");
+		}
 		this.token = mediaAPIToken;
+
 		try {
 			this.parseTokenData();
 		} catch (IOException e) {
-			throw new IllegalArgumentException("Cannot parse token for expire date and origin", e);
+			throw new RuntimeException("Failed to parse Apple Music API token", e);
 		}
+
 		if (countryCode == null || countryCode.isEmpty()) {
 			this.countryCode = "us";
 		} else {
@@ -130,44 +135,14 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	public void parseTokenData() throws IOException {
-		if (this.token == null || this.token.isEmpty()) {
-			return;
-		}
 		var json = JsonBrowser.parse(new String(Base64.getDecoder().decode(this.token.split("\\.")[1])));
 		this.tokenExpire = Instant.ofEpochSecond(json.get("exp").asLong(0));
 		this.origin = json.get("root_https_origin").index(0).text();
 	}
 
-	public void requestToken() throws IOException {
-		var request = new HttpGet("https://music.apple.com");
-		try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
-			var document = Jsoup.parse(response.getEntity().getContent(), null, "");
-			var elements = document.select("script[type=module][src~=/assets/index.*.js]");
-			if (elements.isEmpty()) {
-				throw new IllegalStateException("Cannot find token script element");
-			}
-
-			for (var element : elements) {
-				var tokenScriptURL = element.attr("src");
-				request = new HttpGet("https://music.apple.com" + tokenScriptURL);
-				try (var indexResponse = this.httpInterfaceManager.getInterface().execute(request)) {
-					var tokenScript = IOUtils.toString(indexResponse.getEntity().getContent(), StandardCharsets.UTF_8);
-					var tokenMatcher = TOKEN_SCRIPT_PATTERN.matcher(tokenScript);
-					if (tokenMatcher.find()) {
-						this.token = tokenMatcher.group("token");
-						this.parseTokenData();
-						return;
-					}
-				}
-
-			}
-		}
-		throw new IllegalStateException("Cannot find token script url");
-	}
-
 	public String getToken() throws IOException {
-		if (this.token == null || this.tokenExpire == null || this.tokenExpire.isBefore(Instant.now())) {
-			this.requestToken();
+		if (this.tokenExpire.isBefore(Instant.now())) {
+			throw new FriendlyException("Apple Music API token is expired", FriendlyException.Severity.SUSPICIOUS, null);
 		}
 		return this.token;
 	}
