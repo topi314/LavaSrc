@@ -1,5 +1,7 @@
 package com.github.topi314.lavasrc.applemusic;
 
+import com.github.topi314.lavasearch.SearchSourceManager;
+import com.github.topi314.lavasearch.protocol.*;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
@@ -9,10 +11,14 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -21,7 +27,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class AppleMusicSourceManager extends MirroringAudioSourceManager {
+public class AppleMusicSourceManager extends MirroringAudioSourceManager implements SearchSourceManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final Pattern TOKEN_SCRIPT_PATTERN = Pattern.compile("const \\w{2}=\"(?<token>(ey[\\w-]+)\\.([\\w-]+)\\.([\\w-]+))\"");
@@ -81,12 +87,24 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
 		return new AppleMusicAudioTrack(trackInfo,
-			extendedAudioTrackInfo.albumName,
-			extendedAudioTrackInfo.artistArtworkUrl,
-			extendedAudioTrackInfo.previewUrl,
-			extendedAudioTrackInfo.isPreview,
-			this
+				extendedAudioTrackInfo.albumName,
+				extendedAudioTrackInfo.artistArtworkUrl,
+				extendedAudioTrackInfo.previewUrl,
+				extendedAudioTrackInfo.isPreview,
+				this
 		);
+	}
+
+	@Override
+	public @Nullable SearchResult loadSearch(@NotNull String query, @NotNull Set<SearchType> types) {
+		try {
+			if (query.startsWith(SEARCH_PREFIX)) {
+				return getSearchSuggestions(query, types);
+			}
+		} catch (IOException | URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+		return null;
 	}
 
 	@Override
@@ -174,6 +192,91 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 			this.requestToken();
 		}
 		return this.token;
+	}
+
+	public SearchResult getSearchSuggestions(String query, Set<SearchType> types) throws IOException, URISyntaxException {
+		var urlBuilder = new URIBuilder(API_BASE + "catalog/" + countryCode + "/search/suggestions");
+		urlBuilder.setParameter("term", query.substring(SEARCH_PREFIX.length()));
+		urlBuilder.setParameter("kinds", "terms,topResults");
+		var typesString = SearchTypeUtil.buildAppleMusicTypes(types);
+		if (typesString.length() > 1) {
+			urlBuilder.setParameter("types", typesString);
+		}
+		var json = getJson(urlBuilder.build().toString());
+
+		var allSuggestions = json.get("results").get("suggestions");
+		var terms = new ArrayList<SearchText>();
+		var albums = new ArrayList<SearchAlbum>();
+		var artists = new ArrayList<SearchArtist>();
+		var playLists = new ArrayList<SearchPlaylist>();
+		var tracks = new ArrayList<SearchTrack>();
+		for (var term : allSuggestions.values()) {
+			var kind = term.get("kind").text();
+			if (kind.equals("terms")) {
+				terms.add(new SearchText(term.get("searchTerm").text()));
+			} else {
+				var content = term.get("content");
+				var type = content.get("type").text();
+				var id = content.get("id").text();
+				var attributes = content.get("attributes");
+				var url = attributes.get("url").text();
+
+				switch (type) {
+					case "albums": {
+						var name = attributes.get("name").text();
+						var artist = attributes.get("artistName").text();
+						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
+						var trackCount = (int) attributes.get("trackCount").asLong(-1);
+						var album = new SearchAlbum(
+								id,
+								name,
+								artist,
+								url,
+								trackCount,
+								artworkUrl,
+								null
+						);
+						if (types.isEmpty() || types.contains(SearchType.ALBUM)) {
+							albums.add(album);
+						}
+						break;
+					}
+					case "artists": {
+						var name = attributes.get("name").text();
+						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
+						var artist = new SearchArtist(id, name, url, artworkUrl);
+						if (types.isEmpty() || types.contains(SearchType.ARTIST)) {
+							artists.add(artist);
+						}
+						break;
+					}
+					case "playlists": {
+						var name = attributes.get("name").text();
+						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
+						var trackCount = (int) attributes.get("trackCount").asLong(-1);
+						var playlist = new SearchPlaylist(id, name, url, artworkUrl, trackCount);
+						if (types.isEmpty() || types.contains(SearchType.PLAYLIST)) {
+							playLists.add(playlist);
+						}
+						break;
+					}
+					case "songs": {
+						var name = attributes.get("name").text();
+						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
+						var isrc = attributes.get("isrc").text();
+						var author = attributes.get("artistName").text();
+						var length = attributes.get("durationInMillis").asLong(0);
+						var track = new SearchTrack(name, author, length, id, false, url, artworkUrl, isrc);
+						if (types.isEmpty() || types.contains(SearchType.TRACK)) {
+							tracks.add(track);
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		return new SearchResult(albums, artists, playLists, tracks, terms);
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
