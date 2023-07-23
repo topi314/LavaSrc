@@ -2,12 +2,12 @@ package com.github.topi314.lavasrc.applemusic;
 
 import com.github.topi314.lavasearch.SearchSourceManager;
 import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -36,6 +36,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public static final long PREVIEW_LENGTH = 30000;
 	public static final int MAX_PAGE_ITEMS = 300;
 	public static final String API_BASE = "https://api.music.apple.com/v1/";
+	public static final Set<SearchType> SEARCH_TYPES = Set.of(SearchType.TRACK, SearchType.ALBUM, SearchType.PLAYLIST, SearchType.ARTIST, SearchType.TEXT);
+	public static final Set<SearchType> TOP_RESULT_SEARCH_TYPES = Set.of(SearchType.TRACK, SearchType.ALBUM, SearchType.PLAYLIST, SearchType.ARTIST);
+
 	private final String countryCode;
 	private int playlistPageLimit;
 	private int albumPageLimit;
@@ -87,11 +90,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
 		return new AppleMusicAudioTrack(trackInfo,
-				extendedAudioTrackInfo.albumName,
-				extendedAudioTrackInfo.artistArtworkUrl,
-				extendedAudioTrackInfo.previewUrl,
-				extendedAudioTrackInfo.isPreview,
-				this
+			extendedAudioTrackInfo.albumName,
+			extendedAudioTrackInfo.artistArtworkUrl,
+			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.isPreview,
+			this
 		);
 	}
 
@@ -99,7 +102,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public @Nullable SearchResult loadSearch(@NotNull String query, @NotNull Set<SearchType> types) {
 		try {
 			if (query.startsWith(SEARCH_PREFIX)) {
-				return getSearchSuggestions(query, types);
+				return this.getSearchSuggestions(query.substring(SEARCH_PREFIX.length()), types);
 			}
 		} catch (IOException | URISyntaxException e) {
 			throw new RuntimeException(e);
@@ -112,7 +115,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var identifier = reference.identifier;
 		var preview = reference.identifier.startsWith(PREVIEW_PREFIX);
 
-		return loadItem(preview ? identifier.substring(PREVIEW_PREFIX.length()) : identifier, preview);
+		return this.loadItem(preview ? identifier.substring(PREVIEW_PREFIX.length()) : identifier, preview);
 	}
 
 	public AudioItem loadItem(String identifier, boolean preview) {
@@ -195,11 +198,25 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	public SearchResult getSearchSuggestions(String query, Set<SearchType> types) throws IOException, URISyntaxException {
+		if (types.isEmpty()) {
+			types = SEARCH_TYPES;
+		}
+
 		var urlBuilder = new URIBuilder(API_BASE + "catalog/" + countryCode + "/search/suggestions");
-		urlBuilder.setParameter("term", query.substring(SEARCH_PREFIX.length()));
-		urlBuilder.setParameter("kinds", "terms,topResults");
+		urlBuilder.setParameter("term", query);
+		var kinds = new HashSet<String>();
+		if (types.contains(SearchType.TEXT)) {
+			kinds.add("terms");
+		}
+		for (var type : types) {
+			if (TOP_RESULT_SEARCH_TYPES.contains(type)) {
+				kinds.add("topResults");
+				break;
+			}
+		}
+		urlBuilder.setParameter("kinds", String.join(",", kinds));
 		var typesString = SearchTypeUtil.buildAppleMusicTypes(types);
-		if (typesString.length() > 1) {
+		if (!typesString.isEmpty()) {
 			urlBuilder.setParameter("types", typesString);
 		}
 		var json = getJson(urlBuilder.build().toString());
@@ -227,15 +244,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var artist = attributes.get("artistName").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
 						var trackCount = (int) attributes.get("trackCount").asLong(-1);
-						var album = new SearchAlbum(
-								id,
-								name,
-								artist,
-								url,
-								trackCount,
-								artworkUrl,
-								null
-						);
+						var album = new SearchAlbum(id, name, artist, url, trackCount, artworkUrl, null);
 						albums.add(album);
 						break;
 					}
@@ -277,7 +286,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		if (this.origin != null && !this.origin.isEmpty()) {
 			request.addHeader("Origin", "https://" + this.origin);
 		}
-		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	public Map<String, String> getArtistCover(List<String> ids) throws IOException {

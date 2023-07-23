@@ -1,8 +1,9 @@
 package com.github.topi314.lavasrc.deezer;
 
-import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
-import com.github.topi314.lavasearch.protocol.*;
 import com.github.topi314.lavasearch.SearchSourceManager;
+import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -147,7 +148,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
-		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) {

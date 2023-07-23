@@ -1,5 +1,6 @@
 package com.github.topi314.lavasrc.yandexmusic;
 
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -163,7 +164,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Authorization", "OAuth " + this.accessToken);
-		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	public String getDownloadStrings(String uri) throws IOException {

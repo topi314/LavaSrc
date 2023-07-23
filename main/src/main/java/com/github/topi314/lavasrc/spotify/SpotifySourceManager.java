@@ -2,6 +2,7 @@ package com.github.topi314.lavasrc.spotify;
 
 import com.github.topi314.lavasearch.SearchSourceManager;
 import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
@@ -27,7 +28,10 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -171,7 +175,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		request.addHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((this.clientId + ":" + this.clientSecret).getBytes(StandardCharsets.UTF_8)));
 		request.setEntity(new UrlEncodedFormEntity(List.of(new BasicNameValuePair("grant_type", "client_credentials")), StandardCharsets.UTF_8));
 
-		var json = HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 		this.token = json.get("access_token").text();
 		this.tokenExpire = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
 	}
@@ -186,7 +190,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.addHeader("Authorization", "Bearer " + this.getToken());
-		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	private SearchResult getAutocomplete(String query, Set<SearchType> types) throws IOException {

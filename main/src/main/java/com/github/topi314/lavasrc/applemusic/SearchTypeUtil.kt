@@ -6,7 +6,6 @@ import com.github.topi314.lavasearch.protocol.SearchType
 
 @JvmName("buildAppleMusicTypes")
 fun Collection<SearchType>.toAppleMusicTypes(): String {
-    if (isEmpty()) return enumValues<SearchType>().toList().toAppleMusicTypes()
     return asSequence()
         .mapNotNull(SearchType::appleMusicName)
         .joinToString(",")
