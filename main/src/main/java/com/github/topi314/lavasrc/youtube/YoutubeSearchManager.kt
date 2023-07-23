@@ -7,7 +7,6 @@ import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
 import org.apache.http.client.methods.HttpGet
 import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer.NavigationEndpoint.BrowseEndpoint.Configs.Config.Type as PageType
 
 private val searchPattern = """\["([\w\s]+)",\s*\d+,\s*\[(?:\d+,?\s*)+]""".toRegex()
