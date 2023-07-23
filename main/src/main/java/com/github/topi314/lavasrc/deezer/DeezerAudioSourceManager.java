@@ -196,51 +196,59 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		var albums = new ArrayList<SearchAlbum>();
-		for (var album : json.get("albums").get("data").values()) {
-			albums.add(new SearchAlbum(
-				album.get("id").text(),
-				album.get("title").text(),
-				album.get("artist").get("name").text(),
-				album.get("link").text(),
-				(int) album.get("nb_tracks").asLong(0),
-				album.get("cover_xl").text(),
-				null
-			));
+		if (types.contains(SearchType.ALBUM)) {
+			for (var album : json.get("albums").get("data").values()) {
+				albums.add(new SearchAlbum(
+					album.get("id").text(),
+					album.get("title").text(),
+					album.get("artist").get("name").text(),
+					album.get("link").text(),
+					(int) album.get("nb_tracks").asLong(0),
+					album.get("cover_xl").text(),
+					null
+				));
+			}
 		}
 
 		var artists = new ArrayList<SearchArtist>();
-		for (var artist : json.get("artists").get("data").values()) {
-			artists.add(new SearchArtist(
-				artist.get("id").text(),
-				artist.get("name").text(),
-				artist.get("link").text(),
-				artist.get("picture_xl").text()
-			));
+		if (types.contains(SearchType.ARTIST)) {
+			for (var artist : json.get("artists").get("data").values()) {
+				artists.add(new SearchArtist(
+					artist.get("id").text(),
+					artist.get("name").text(),
+					artist.get("link").text(),
+					artist.get("picture_xl").text()
+				));
+			}
 		}
 
 		var playlists = new ArrayList<SearchPlaylist>();
-		for (var playlist : json.get("playlists").get("data").values()) {
-			playlists.add(new SearchPlaylist(
-				playlist.get("id").text(),
-				playlist.get("title").text(),
-				playlist.get("link").text(),
-				playlist.get("picture_xl").text(),
-				(int) playlist.get("nb_tracks").asLong(0)
-			));
+		if (types.contains(SearchType.PLAYLIST)) {
+			for (var playlist : json.get("playlists").get("data").values()) {
+				playlists.add(new SearchPlaylist(
+					playlist.get("id").text(),
+					playlist.get("title").text(),
+					playlist.get("link").text(),
+					playlist.get("picture_xl").text(),
+					(int) playlist.get("nb_tracks").asLong(0)
+				));
+			}
 		}
 
 		var tracks = new ArrayList<SearchTrack>();
-		for (var track : json.get("tracks").get("data").values()) {
-			tracks.add(new SearchTrack(
-				track.get("title").text(),
-				track.get("artist").get("name").text(),
-				track.get("duration").as(Long.class) * 1000,
-				track.get("id").text(),
-				false,
-				track.get("link").text(),
-				track.get("album").get("cover_xl").text(),
-				null
-			));
+		if (types.contains(SearchType.TRACK)) {
+			for (var track : json.get("tracks").get("data").values()) {
+				tracks.add(new SearchTrack(
+					track.get("title").text(),
+					track.get("artist").get("name").text(),
+					track.get("duration").as(Long.class) * 1000,
+					track.get("id").text(),
+					false,
+					track.get("link").text(),
+					track.get("album").get("cover_xl").text(),
+					null
+				));
+			}
 		}
 
 		return new SearchResult(albums, artists, playlists, tracks, new ArrayList<>());

@@ -189,15 +189,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	private SearchResult getAutocomplete(String query, Set<SearchType> types) throws IOException {
-		var finalTypes = new HashSet<>(Set.of(SearchType.ALBUM, SearchType.ARTIST, SearchType.PLAYLIST, SearchType.TRACK));
-		if (!types.isEmpty()) {
-			finalTypes.removeIf(type -> !types.contains(type));
+		if (types.contains(SearchType.TEXT)) {
+			throw new IllegalArgumentException("text is not a valid search type for Spotify");
 		}
-
-		var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8);
-		if (!types.isEmpty()) {
-			url += "&type=" + finalTypes.stream().map(SearchType::name).collect(Collectors.joining(","));
-		}
+		var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=" + types.stream().map(SearchType::getValue).collect(Collectors.joining(","));
 		var json = this.getJson(url);
 		if (json == null) {
 			return SearchResult.EMPTY;
