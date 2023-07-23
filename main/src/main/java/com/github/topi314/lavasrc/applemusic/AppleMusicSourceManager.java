@@ -236,18 +236,14 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 								artworkUrl,
 								null
 						);
-						if (types.isEmpty() || types.contains(SearchType.ALBUM)) {
-							albums.add(album);
-						}
+						albums.add(album);
 						break;
 					}
 					case "artists": {
 						var name = attributes.get("name").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
 						var artist = new SearchArtist(id, name, url, artworkUrl);
-						if (types.isEmpty() || types.contains(SearchType.ARTIST)) {
-							artists.add(artist);
-						}
+						artists.add(artist);
 						break;
 					}
 					case "playlists": {
@@ -255,9 +251,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
 						var trackCount = (int) attributes.get("trackCount").asLong(-1);
 						var playlist = new SearchPlaylist(id, name, url, artworkUrl, trackCount);
-						if (types.isEmpty() || types.contains(SearchType.PLAYLIST)) {
-							playLists.add(playlist);
-						}
+						playLists.add(playlist);
 						break;
 					}
 					case "songs": {
@@ -267,9 +261,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var author = attributes.get("artistName").text();
 						var length = attributes.get("durationInMillis").asLong(0);
 						var track = new SearchTrack(name, author, length, id, false, url, artworkUrl, isrc);
-						if (types.isEmpty() || types.contains(SearchType.TRACK)) {
-							tracks.add(track);
-						}
+						tracks.add(track);
 						break;
 					}
 				}
