@@ -232,7 +232,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		var tracks = this.getJson(PUBLIC_API_BASE + "/artist/" + id + "/top?limit=50");
-		if (json.get("data").values().isEmpty()) {
+		if (tracks.get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 
