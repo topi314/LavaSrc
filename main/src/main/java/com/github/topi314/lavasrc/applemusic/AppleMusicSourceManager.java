@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -86,6 +87,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		this.albumPageLimit = albumPageLimit;
 	}
 
+	@NotNull
 	@Override
 	public String getSourceName() {
 		return "applemusic";
@@ -265,6 +267,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	public Map<String, String> getArtistCover(List<String> ids) throws IOException {
+		if (ids.isEmpty()) {
+			return Map.of();
+		}
 		var json = getJson(API_BASE + "catalog/" + countryCode + "/artists?ids=" + String.join(",", ids));
 		var data = json.get("data");
 
@@ -279,7 +284,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	public AudioItem getSearch(String query, boolean preview) throws IOException {
-		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25 + "&extend=artistUrl");
+		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/search?term=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=" + 25);
 		if (json == null || json.get("results").get("songs").get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -374,7 +379,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) throws IOException {
-		var ids = json.get("data").values().stream().map(this::parseArtistId).collect(Collectors.toList());
+		var ids = json.get("data").values().stream().map(this::parseArtistId).filter(Predicate.not(String::isBlank)).collect(Collectors.toList());
 		return parseTracks(json, preview, getArtistCover(ids));
 	}
 
@@ -405,6 +410,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	private String parseArtistId(JsonBrowser json) {
 		var url = json.get("data").index(0).get("attributes").get("artistUrl").text();
+		if (url == null || url.isEmpty()) {
+			return "";
+		}
 		return url.substring(url.lastIndexOf('/'));
 	}
 
