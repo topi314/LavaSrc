@@ -103,10 +103,10 @@ follow [this guide](https://developer.apple.com/help/account/configure-app-capab
 #### Deezer
 
 ```java
-AudioPlayerManager playerManager=new DefaultAudioPlayerManager();
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new DeezerSourceManager with the master decryption key and register it
-        playerManager.registerSourceManager(new DeezerSourceManager("...");
+playerManager.registerSourceManager(new DeezerSourceManager("...");
 ```
 
 #### Yandex Music
