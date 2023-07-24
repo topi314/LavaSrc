@@ -13,8 +13,8 @@ java {
 }
 
 dependencies {
-    implementation "com.github.topi314.lavasearch:lavasearch:55e35c1"
-    implementation "com.github.topi314.lavasearch:lavasearch-protocol:55e35c1"
+    implementation "com.github.topi314.lavasearch:lavasearch:c3f58ff"
+    implementation "com.github.topi314.lavasearch:lavasearch-protocol:c3f58ff"
     compileOnly "com.github.topi314:lavaplayer-fork:8ca9418be9"
     implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'commons-io:commons-io:2.7'
