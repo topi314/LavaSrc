@@ -10,6 +10,7 @@ java {
 
 dependencies {
     compileOnly "com.github.walkyst:lavaplayer-fork:17c75f5"
+    implementation "com.auth0:java-jwt:4.4.0"
     implementation "org.jsoup:jsoup:1.14.3"
     implementation "commons-io:commons-io:2.6"
     compileOnly "org.slf4j:slf4j-api:1.7.25"
