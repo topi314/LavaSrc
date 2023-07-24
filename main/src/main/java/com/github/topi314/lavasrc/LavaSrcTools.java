@@ -27,10 +27,12 @@ public class LavaSrcTools {
 			int statusCode = response.getStatusLine().getStatusCode();
 
 			if (statusCode == HttpStatus.SC_NOT_FOUND) {
+				var data = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+				log.error("Server responded with not found to '{}': {}", request.getURI(), data);
 				return null;
 			} else if (!HttpClientTools.isSuccessWithContent(statusCode)) {
 				var data = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-				log.error("Server responded with an error: {}", data);
+				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
 				throw new FriendlyException("Server responded with an error.", SUSPICIOUS,
 					new IllegalStateException("Response code from channel info is " + statusCode));
 			}
