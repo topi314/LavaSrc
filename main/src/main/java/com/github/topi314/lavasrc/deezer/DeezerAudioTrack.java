@@ -1,11 +1,11 @@
 package com.github.topi314.lavasrc.deezer;
 
 import com.github.topi314.lavasrc.ExtendedAudioTrack;
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
@@ -37,14 +37,14 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 	private URI getTrackMediaURI() throws IOException, URISyntaxException {
 		var getSessionID = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.ping&input=3&api_version=1.0&api_token=");
-		var json = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getSessionID);
+		var json = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getSessionID);
 
 		this.checkResponse(json, "Failed to get session ID: ");
 		var sessionID = json.get("results").get("SESSION").text();
 
 		var getUserToken = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.getUserData&input=3&api_version=1.0&api_token=");
 		getUserToken.setHeader("Cookie", "sid=" + sessionID);
-		json = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getUserToken);
+		json = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getUserToken);
 
 		this.checkResponse(json, "Failed to get user token: ");
 		var userLicenseToken = json.get("results").get("USER").get("OPTIONS").get("license_token").text();
@@ -52,20 +52,23 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 		var getTrackToken = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=song.getData&input=3&api_version=1.0&api_token=" + apiToken);
 		getTrackToken.setEntity(new StringEntity("{\"sng_id\":\"" + this.trackInfo.identifier + "\"}", ContentType.APPLICATION_JSON));
-		json = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getTrackToken);
+		json = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getTrackToken);
 
 		this.checkResponse(json, "Failed to get track token: ");
 		var trackToken = json.get("results").get("TRACK_TOKEN").text();
 
 		var getMediaURL = new HttpPost(DeezerAudioSourceManager.MEDIA_BASE + "/get_url");
 		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + userLicenseToken + "\",\"media\": [{\"type\": \"FULL\",\"formats\": [{\"cipher\": \"BF_CBC_STRIPE\", \"format\": \"MP3_128\"}]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
-		json = HttpClientTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getMediaURL);
+		json = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), getMediaURL);
 
 		this.checkResponse(json, "Failed to get media URL: ");
 		return new URI(json.get("data").index(0).get("media").index(0).get("sources").index(0).get("url").text());
 	}
 
 	private void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
+		if (json == null) {
+			throw new IllegalStateException(message + "No response");
+		}
 		var errors = json.get("data").index(0).get("errors").values();
 		if (!errors.isEmpty()) {
 			var errorsStr = errors.stream().map(error -> error.get("code").text() + ": " + error.get("message").text()).collect(Collectors.joining(", "));

@@ -1,6 +1,10 @@
 package com.github.topi314.lavasrc.deezer;
 
+import com.github.topi314.lavasearch.SearchSourceManager;
+import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -12,6 +16,8 @@ import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +27,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
+public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, SearchSourceManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?deezer\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>track|album|playlist|artist)/(?<identifier>[0-9]+)");
 	public static final String SEARCH_PREFIX = "dzsearch:";
@@ -36,7 +43,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
 	public static final String PRIVATE_API_BASE = "https://www.deezer.com/ajax/gw-light.php";
 	public static final String MEDIA_BASE = "https://media.deezer.com/v1";
-
+	public static final Set<SearchType> SEARCH_TYPES = Set.of(SearchType.TRACK, SearchType.ALBUM, SearchType.PLAYLIST, SearchType.ARTIST);
 	private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
 
 	private final String masterDecryptionKey;
@@ -50,6 +57,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	}
 
+	@NotNull
 	@Override
 	public String getSourceName() {
 		return "deezer";
@@ -67,6 +75,19 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 				extendedAudioTrackInfo.isPreview,
 				this
 		);
+	}
+
+	@Override
+	@Nullable
+	public SearchResult loadSearch(@NotNull String query, @NotNull Set<SearchType> types) {
+		try {
+			if (query.startsWith(SEARCH_PREFIX)) {
+				return this.getAutocomplete(query.substring(SEARCH_PREFIX.length()), types);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return null;
 	}
 
 	@Override
@@ -130,7 +151,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
-		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) {
@@ -174,6 +195,77 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		);
 	}
 
+	private SearchResult getAutocomplete(String query, Set<SearchType> types) throws IOException {
+		if (types.contains(SearchType.TEXT)) {
+			throw new IllegalArgumentException("text is not a valid search type for Deezer");
+		}
+		if (types.isEmpty()) {
+			types = SEARCH_TYPES;
+		}
+		var json = this.getJson(PUBLIC_API_BASE + "/search/autocomplete?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8));
+		if (json == null) {
+			return SearchResult.EMPTY;
+		}
+
+		var albums = new ArrayList<SearchAlbum>();
+		if (types.contains(SearchType.ALBUM)) {
+			for (var album : json.get("albums").get("data").values()) {
+				albums.add(new SearchAlbum(
+					album.get("id").text(),
+					album.get("title").text(),
+					album.get("artist").get("name").text(),
+					album.get("link").text(),
+					(int) album.get("nb_tracks").asLong(0),
+					album.get("cover_xl").text(),
+					null
+				));
+			}
+		}
+
+		var artists = new ArrayList<SearchArtist>();
+		if (types.contains(SearchType.ARTIST)) {
+			for (var artist : json.get("artists").get("data").values()) {
+				artists.add(new SearchArtist(
+					artist.get("id").text(),
+					artist.get("name").text(),
+					artist.get("link").text(),
+					artist.get("picture_xl").text()
+				));
+			}
+		}
+
+		var playlists = new ArrayList<SearchPlaylist>();
+		if (types.contains(SearchType.PLAYLIST)) {
+			for (var playlist : json.get("playlists").get("data").values()) {
+				playlists.add(new SearchPlaylist(
+					playlist.get("id").text(),
+					playlist.get("title").text(),
+					playlist.get("link").text(),
+					playlist.get("picture_xl").text(),
+					(int) playlist.get("nb_tracks").asLong(0)
+				));
+			}
+		}
+
+		var tracks = new ArrayList<SearchTrack>();
+		if (types.contains(SearchType.TRACK)) {
+			for (var track : json.get("tracks").get("data").values()) {
+				tracks.add(new SearchTrack(
+					track.get("title").text(),
+					track.get("artist").get("name").text(),
+					track.get("duration").as(Long.class) * 1000,
+					track.get("id").text(),
+					false,
+					track.get("link").text(),
+					track.get("album").get("cover_xl").text(),
+					null
+				));
+			}
+		}
+
+		return new SearchResult(albums, artists, playlists, tracks, new ArrayList<>());
+	}
+
 	private AudioItem getTrackByISRC(String isrc, boolean preview) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
 		if (json == null || json.get("id").isNull()) {
@@ -204,7 +296,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			track.get("artist").put("picture_xl", json.get("artist").get("picture_xl"));
 		}
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks"), preview), "album", json.get("link").text(), artworkUrl, author);
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks"), preview), ExtendedAudioPlaylist.Type.ALBUM, json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -226,7 +318,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 		var tracks = this.getJson(PUBLIC_API_BASE + "/playlist/" + id + "/tracks");
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(tracks, preview), "playlist", json.get("link").text(), artworkUrl, author);
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(tracks, preview), ExtendedAudioPlaylist.Type.PLAYLIST, json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getArtist(String id, boolean preview) throws IOException {
@@ -242,7 +334,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 		var artworkUrl = json.get("picture_xl").text();
 		var author = json.get("name").text();
-		return new DeezerAudioPlaylist(author + "'s Top Tracks", this.parseTracks(tracks, preview), "artist", json.get("link").text(), artworkUrl, author);
+		return new DeezerAudioPlaylist(author + "'s Top Tracks", this.parseTracks(tracks, preview), ExtendedAudioPlaylist.Type.ARTIST, json.get("link").text(), artworkUrl, author);
 	}
 
 	@Override

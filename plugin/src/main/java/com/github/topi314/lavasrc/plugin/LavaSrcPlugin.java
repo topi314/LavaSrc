@@ -1,69 +1,102 @@
 package com.github.topi314.lavasrc.plugin;
 
+import com.github.topi314.lavasearch.SearchManager;
+import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
+import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
+public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchManagerConfiguration {
 
 	private static final Logger log = LoggerFactory.getLogger(LavaSrcPlugin.class);
 
-	private final LavaSrcConfig pluginConfig;
-	private final SourcesConfig sourcesConfig;
-	private final SpotifyConfig spotifyConfig;
-	private final AppleMusicConfig appleMusicConfig;
-	private final YandexMusicConfig yandexMusicConfig;
-
-	private final DeezerConfig deezerConfig;
+	private AudioPlayerManager manager;
+	private SpotifySourceManager spotify;
+	private AppleMusicSourceManager appleMusic;
+	private DeezerAudioSourceManager deezer;
+	private YandexMusicSourceManager yandexMusic;
+	private YoutubeSearchManager youtube;
 
 	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
 		log.info("Loading LavaSrc plugin...");
-		this.pluginConfig = pluginConfig;
-		this.sourcesConfig = sourcesConfig;
-		this.spotifyConfig = spotifyConfig;
-		this.appleMusicConfig = appleMusicConfig;
-		this.deezerConfig = deezerConfig;
-		this.yandexMusicConfig = yandexMusicConfig;
+
+		if (sourcesConfig.isSpotify()) {
+			log.info("Registering Spotify audio source manager...");
+			this.spotify = new SpotifySourceManager(pluginConfig.getProviders(), spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getCountryCode(), unused -> manager);
+			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
+				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
+			}
+			if (spotifyConfig.getAlbumLoadLimit() > 0) {
+				this.spotify.setAlbumPageLimit(spotifyConfig.getAlbumLoadLimit());
+			}
+		}
+		if (sourcesConfig.isAppleMusic()) {
+			log.info("Registering Apple Music audio source manager...");
+			var appleMusicSourceManager = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager);
+			if (appleMusicConfig.getPlaylistLoadLimit() > 0) {
+				appleMusicSourceManager.setPlaylistPageLimit(appleMusicConfig.getPlaylistLoadLimit());
+			}
+			if (appleMusicConfig.getAlbumLoadLimit() > 0) {
+				appleMusicSourceManager.setAlbumPageLimit(appleMusicConfig.getAlbumLoadLimit());
+			}
+			this.appleMusic = appleMusicSourceManager;
+		}
+		if (sourcesConfig.isDeezer()) {
+			log.info("Registering Deezer audio source manager...");
+			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey());
+		}
+		if (sourcesConfig.isYandexMusic()) {
+			log.info("Registering Yandex Music audio source manager...");
+			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
+		}
+		if (sourcesConfig.isYoutube()) {
+			log.info("Registering Youtube search manager...");
+			this.youtube = new YoutubeSearchManager();
+		}
+	}
+
+	@NotNull
+	@Override
+	public AudioPlayerManager configure(@NotNull AudioPlayerManager manager) {
+		this.manager = manager;
+		if (this.spotify != null) {
+			manager.registerSourceManager(this.spotify);
+		}
+		if (this.appleMusic != null) {
+			manager.registerSourceManager(this.appleMusic);
+		}
+		if (this.deezer != null) {
+			manager.registerSourceManager(this.deezer);
+		}
+		if (this.yandexMusic != null) {
+			manager.registerSourceManager(this.yandexMusic);
+		}
+		return manager;
 	}
 
 	@Override
-	public AudioPlayerManager configure(AudioPlayerManager manager) {
-		if (this.sourcesConfig.isSpotify()) {
-			log.info("Registering Spotify audio source manager...");
-			var spotifySourceManager = new SpotifySourceManager(this.pluginConfig.getProviders(), this.spotifyConfig.getClientId(), this.spotifyConfig.getClientSecret(), this.spotifyConfig.getCountryCode(), manager);
-			if (this.spotifyConfig.getPlaylistLoadLimit() > 0) {
-				spotifySourceManager.setPlaylistPageLimit(this.spotifyConfig.getPlaylistLoadLimit());
-			}
-			if (this.spotifyConfig.getAlbumLoadLimit() > 0) {
-				spotifySourceManager.setAlbumPageLimit(this.spotifyConfig.getAlbumLoadLimit());
-			}
-			manager.registerSourceManager(spotifySourceManager);
+	@NotNull
+	public SearchManager configure(@NotNull SearchManager manager) {
+		if (this.spotify != null) {
+			manager.registerSourceManager(this.spotify);
 		}
-		if (this.sourcesConfig.isAppleMusic()) {
-			log.info("Registering Apple Music audio source manager...");
-			var appleMusicSourceManager = new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getMediaAPIToken(), this.appleMusicConfig.getCountryCode(), manager);
-			if (this.appleMusicConfig.getPlaylistLoadLimit() > 0) {
-				appleMusicSourceManager.setPlaylistPageLimit(this.appleMusicConfig.getPlaylistLoadLimit());
-			}
-			if (this.appleMusicConfig.getAlbumLoadLimit() > 0) {
-				appleMusicSourceManager.setAlbumPageLimit(this.appleMusicConfig.getAlbumLoadLimit());
-			}
-			manager.registerSourceManager(appleMusicSourceManager);
+		if (this.appleMusic != null) {
+			manager.registerSourceManager(this.appleMusic);
 		}
-		if (this.sourcesConfig.isDeezer()) {
-			log.info("Registering Deezer audio source manager...");
-			manager.registerSourceManager(new DeezerAudioSourceManager(this.deezerConfig.getMasterDecryptionKey()));
+		if (this.deezer != null) {
+			manager.registerSourceManager(this.deezer);
 		}
-		if (this.sourcesConfig.isYandexMusic()) {
-			log.info("Registering Yandex Music audio source manager...");
-			manager.registerSourceManager(new YandexMusicSourceManager(this.yandexMusicConfig.getAccessToken()));
+		if (this.youtube != null) {
+			manager.registerSourceManager(this.youtube);
 		}
 		return manager;
 	}
