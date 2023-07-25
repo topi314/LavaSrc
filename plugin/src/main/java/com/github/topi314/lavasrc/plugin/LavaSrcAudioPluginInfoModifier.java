@@ -34,10 +34,12 @@ public class LavaSrcAudioPluginInfoModifier implements AudioPluginInfoModifier {
 	public JsonObject modifyAudioTrackPluginInfo(@NotNull AudioTrack track) {
 		if (track instanceof ExtendedAudioTrack extendedTrack) {
 			return new JsonObject(Map.of(
-				"albumName", JsonElementKt.JsonPrimitive(extendedTrack.getAlbumName()),
-				"artistArtworkUrl", JsonElementKt.JsonPrimitive(extendedTrack.getArtistArtworkUrl()),
-				"previewUrl", JsonElementKt.JsonPrimitive(extendedTrack.getPreviewUrl()),
-				"isPreview", JsonElementKt.JsonPrimitive(extendedTrack.isPreview())
+					"albumName", JsonElementKt.JsonPrimitive(extendedTrack.getAlbumName()),
+					"albumUrl", JsonElementKt.JsonPrimitive(extendedTrack.getAlbumUrl()),
+					"artistUrl", JsonElementKt.JsonPrimitive(extendedTrack.getArtistUrl()),
+					"artistArtworkUrl", JsonElementKt.JsonPrimitive(extendedTrack.getArtistArtworkUrl()),
+					"previewUrl", JsonElementKt.JsonPrimitive(extendedTrack.getPreviewUrl()),
+					"isPreview", JsonElementKt.JsonPrimitive(extendedTrack.isPreview())
 			));
 		}
 		return null;

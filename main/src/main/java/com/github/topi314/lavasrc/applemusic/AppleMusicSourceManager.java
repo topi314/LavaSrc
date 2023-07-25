@@ -96,11 +96,13 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
 		return new AppleMusicAudioTrack(trackInfo,
-			extendedAudioTrackInfo.albumName,
-			extendedAudioTrackInfo.artistArtworkUrl,
-			extendedAudioTrackInfo.previewUrl,
-			extendedAudioTrackInfo.isPreview,
-			this
+				extendedAudioTrackInfo.albumName,
+				extendedAudioTrackInfo.albumUrl,
+				extendedAudioTrackInfo.artistUrl,
+				extendedAudioTrackInfo.artistArtworkUrl,
+				extendedAudioTrackInfo.previewUrl,
+				extendedAudioTrackInfo.isPreview,
+				this
 		);
 	}
 
@@ -386,22 +388,27 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview, String artistArtwork) {
 		var attributes = json.get("attributes");
+		var artistUrl = attributes.get("url").text();
 		return new AppleMusicAudioTrack(
-			new AudioTrackInfo(
-				attributes.get("name").text(),
-				attributes.get("artistName").text(),
-				preview ? PREVIEW_LENGTH : attributes.get("durationInMillis").asLong(0),
-				json.get("id").text(),
-				false,
-				attributes.get("url").text(),
-				this.parseArtworkUrl(attributes.get("artwork")),
-				attributes.get("isrc").text()
-			),
-			attributes.get("albumName").text(),
-			artistArtwork,
-			attributes.get("previews").index(0).get("hlsUrl").text(),
-			preview,
-			this
+				new AudioTrackInfo(
+						attributes.get("name").text(),
+						attributes.get("artistName").text(),
+						preview ? PREVIEW_LENGTH : attributes.get("durationInMillis").asLong(0),
+						json.get("id").text(),
+						false,
+						artistUrl,
+						this.parseArtworkUrl(attributes.get("artwork")),
+						attributes.get("isrc").text()
+				),
+				attributes.get("albumName").text(),
+				// Apple doesn't give us the album url, however the track url is
+				// /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
+				artistUrl.substring(0, artistUrl.indexOf('?')),
+				attributes.get("artistUrl").text(),
+				artistArtwork,
+				attributes.get("previews").index(0).get("hlsUrl").text(),
+				preview,
+				this
 		);
 	}
 

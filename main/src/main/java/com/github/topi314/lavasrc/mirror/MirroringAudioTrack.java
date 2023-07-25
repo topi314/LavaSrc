@@ -20,8 +20,8 @@ public abstract class MirroringAudioTrack extends ExtendedAudioTrack {
 
 	protected final MirroringAudioSourceManager sourceManager;
 
-	public MirroringAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, boolean isPreview, MirroringAudioSourceManager sourceManager) {
-		super(trackInfo, albumName, artistArtworkUrl, previewUrl, isPreview);
+	public MirroringAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, MirroringAudioSourceManager sourceManager) {
+		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview);
 		this.sourceManager = sourceManager;
 	}
 

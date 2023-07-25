@@ -108,11 +108,13 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
 		return new SpotifyAudioTrack(trackInfo,
-			extendedAudioTrackInfo.albumName,
-			extendedAudioTrackInfo.artistArtworkUrl,
-			extendedAudioTrackInfo.previewUrl,
-			extendedAudioTrackInfo.isPreview,
-			this
+				extendedAudioTrackInfo.albumName,
+				extendedAudioTrackInfo.albumUrl,
+				extendedAudioTrackInfo.artistUrl,
+				extendedAudioTrackInfo.artistArtworkUrl,
+				extendedAudioTrackInfo.previewUrl,
+				extendedAudioTrackInfo.isPreview,
+				this
 		);
 	}
 
@@ -382,21 +384,23 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
 		return new SpotifyAudioTrack(
-			new AudioTrackInfo(
-				json.get("name").text(),
-				json.get("artists").index(0).get("name").text(),
-				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
-				json.get("id").text(),
-				false,
-				json.get("external_urls").get("spotify").text(),
-				json.get("album").get("images").index(0).get("url").text(),
-				json.get("external_ids").get("isrc").text()
-			),
-			json.get("album").get("name").text(),
-			json.get("artists").index(0).get("images").index(0).get("url").text(),
-			json.get("preview_url").text(),
-			preview,
-			this
+				new AudioTrackInfo(
+						json.get("name").text(),
+						json.get("artists").index(0).get("name").text(),
+						preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
+						json.get("id").text(),
+						false,
+						json.get("external_urls").get("spotify").text(),
+						json.get("album").get("images").index(0).get("url").text(),
+						json.get("external_ids").get("isrc").text()
+				),
+				json.get("album").get("name").text(),
+				json.get("album").get("external_urls").get("spotify").text(),
+				json.get("artists").index(0).get("external_urls").get("spotify").text(),
+				json.get("artists").index(0).get("images").index(0).get("url").text(),
+				json.get("preview_url").text(),
+				preview,
+				this
 		);
 	}
 

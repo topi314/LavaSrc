@@ -27,11 +27,11 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 	private final DeezerAudioSourceManager sourceManager;
 
 	public DeezerAudioTrack(AudioTrackInfo trackInfo, DeezerAudioSourceManager sourceManager) {
-		this(trackInfo, null, null, null, false, sourceManager);
+		this(trackInfo, null, null, null, null, null, false, sourceManager);
 	}
 
-	public DeezerAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, boolean isPreview, DeezerAudioSourceManager sourceManager) {
-		super(trackInfo, albumName, artistArtworkUrl, previewUrl, isPreview);
+	public DeezerAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, DeezerAudioSourceManager sourceManager) {
+		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview);
 		this.sourceManager = sourceManager;
 	}
 
@@ -107,7 +107,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new DeezerAudioTrack(this.trackInfo, this.albumName, this.artistArtworkUrl, this.previewUrl, this.isPreview, this.sourceManager);
+		return new DeezerAudioTrack(this.trackInfo, this.albumName, this.albumUrl, this.artistUrl, this.artistArtworkUrl, this.previewUrl, this.isPreview, this.sourceManager);
 	}
 
 	@Override
