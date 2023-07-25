@@ -1,5 +1,7 @@
 package com.github.topi314.lavasrc.applemusic;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
@@ -10,11 +12,9 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +23,12 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.ECKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -285,6 +291,24 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	@Override
 	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
 		this.httpInterfaceManager.configureBuilder(configurator);
+	}
+
+
+	public static AppleMusicSourceManager fromMusicKitKey(String musicKitKey, String keyId, String teamId, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		var base64 = musicKitKey.replaceAll("-----BEGIN PRIVATE KEY-----\n", "")
+				.replaceAll("-----END PRIVATE KEY-----", "")
+				.replaceAll("\\s", "");
+		var keyBytes = Base64.getDecoder().decode(base64);
+		var spec = new PKCS8EncodedKeySpec(keyBytes);
+		var keyFactory = KeyFactory.getInstance("EC");
+		var key = (ECKey) keyFactory.generatePrivate(spec);
+		var jwt = JWT.create()
+				.withIssuer(teamId)
+				.withIssuedAt(Instant.now())
+				.withExpiresAt(Instant.now().plus(Duration.ofSeconds(15777000)))
+				.withKeyId(keyId)
+				.sign(Algorithm.ECDSA256(key));
+		return new AppleMusicSourceManager(jwt, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
 }

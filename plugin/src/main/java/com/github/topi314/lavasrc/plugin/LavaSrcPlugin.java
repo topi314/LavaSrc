@@ -2,6 +2,7 @@ package com.github.topi314.lavasrc.plugin;
 
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
+import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -9,6 +10,11 @@ import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Objects;
 
 @Service
 public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
@@ -48,7 +54,20 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration {
 		}
 		if (this.sourcesConfig.isAppleMusic()) {
 			log.info("Registering Apple Music audio source manager...");
-			var appleMusicSourceManager = new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getMediaAPIToken(), this.appleMusicConfig.getCountryCode(), manager);
+			AppleMusicSourceManager appleMusicSourceManager;
+			if (appleMusicConfig.getMusicKitKey() != null) {
+				Objects.requireNonNull(appleMusicConfig.getTeamID(), () -> "teamID is required when using musicKitKey");
+				Objects.requireNonNull(appleMusicConfig.getKeyID(), () -> "keyID is required when using musicKitKey");
+
+				try {
+					appleMusicSourceManager = AppleMusicSourceManager.fromMusicKitKey(appleMusicConfig.getMusicKitKey(), appleMusicConfig.getKeyID(), appleMusicConfig.getTeamID(),appleMusicConfig.getCountryCode(), manager, new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()));
+				} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				appleMusicSourceManager = new AppleMusicSourceManager(this.pluginConfig.getProviders(), this.appleMusicConfig.getMediaAPIToken(), this.appleMusicConfig.getCountryCode(), manager);
+			}
+
 			if (this.appleMusicConfig.getPlaylistLoadLimit() > 0) {
 				appleMusicSourceManager.setPlaylistPageLimit(this.appleMusicConfig.getPlaylistLoadLimit());
 			}

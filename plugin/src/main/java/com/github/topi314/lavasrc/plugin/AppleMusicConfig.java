@@ -8,6 +8,10 @@ import org.springframework.stereotype.Component;
 public class AppleMusicConfig {
 
 	private String countryCode = "us";
+	private String musicKitKey;
+	private String teamID;
+	private String keyID;
+
 	private String mediaAPIToken;
 	private int playlistLoadLimit;
 	private int albumLoadLimit;
@@ -42,5 +46,29 @@ public class AppleMusicConfig {
 
 	public void setAlbumLoadLimit(int albumLoadLimit) {
 		this.albumLoadLimit = albumLoadLimit;
+	}
+
+	public String getMusicKitKey() {
+		return musicKitKey;
+	}
+
+	public void setMusicKitKey(String musicKitKey) {
+		this.musicKitKey = musicKitKey;
+	}
+
+	public String getTeamID() {
+		return teamID;
+	}
+
+	public void setTeamID(String teamID) {
+		this.teamID = teamID;
+	}
+
+	public String getKeyID() {
+		return keyID;
+	}
+
+	public void setKeyID(String keyID) {
+		this.keyID = keyID;
 	}
 }
