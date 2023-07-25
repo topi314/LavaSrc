@@ -80,6 +80,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 			extendedAudioTrackInfo.albumName,
 			extendedAudioTrackInfo.artistArtworkUrl,
 			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.artistUrl,
 			extendedAudioTrackInfo.isPreview,
 			this
 		);
@@ -244,7 +245,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 	}
 
 	public AudioItem getSong(String id, String countryCode, boolean preview) throws IOException {
-		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/songs/" + id);
+		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/songs/" + id + "?extend=artistUrl");
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
@@ -281,6 +282,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager {
 			attributes.get("albumName").text(),
 			artistArtwork,
 			attributes.get("previews").index(0).get("hlsUrl").text(),
+			attributes.get("artistUrl").text(),
 			preview,
 			this
 		);

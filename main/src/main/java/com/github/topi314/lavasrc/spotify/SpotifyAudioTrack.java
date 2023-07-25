@@ -11,11 +11,11 @@ public class SpotifyAudioTrack extends MirroringAudioTrack {
 
 
 	public SpotifyAudioTrack(AudioTrackInfo trackInfo, SpotifySourceManager sourceManager) {
-		this(trackInfo, null, null, null, false, sourceManager);
+		this(trackInfo, null, null, null, null, false, sourceManager);
 	}
 
-	public SpotifyAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, boolean isPreview, SpotifySourceManager sourceManager) {
-		super(trackInfo, albumName, artistArtworkUrl, previewUrl, isPreview, sourceManager);
+	public SpotifyAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, String artistUrl, boolean isPreview, SpotifySourceManager sourceManager) {
+		super(trackInfo, albumName, artistArtworkUrl, previewUrl, artistUrl, isPreview, sourceManager);
 	}
 
 	@Override

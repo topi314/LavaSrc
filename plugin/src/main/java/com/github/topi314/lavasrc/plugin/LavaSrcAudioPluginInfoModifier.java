@@ -37,6 +37,7 @@ public class LavaSrcAudioPluginInfoModifier implements AudioPluginInfoModifier {
 				"albumName", JsonElementKt.JsonPrimitive(extendedTrack.getAlbumName()),
 				"artistArtworkUrl", JsonElementKt.JsonPrimitive(extendedTrack.getArtistArtworkUrl()),
 				"previewUrl", JsonElementKt.JsonPrimitive(extendedTrack.getPreviewUrl()),
+				"artistUrl", JsonElementKt.JsonPrimitive(extendedTrack.getArtistUrl()),
 				"isPreview", JsonElementKt.JsonPrimitive(extendedTrack.isPreview())
 			));
 		}

@@ -17,6 +17,7 @@ public abstract class ExtendedAudioSourceManager implements AudioSourceManager {
 		DataFormatTools.writeNullableText(output, extendedTrack.getAlbumName());
 		DataFormatTools.writeNullableText(output, extendedTrack.getArtistArtworkUrl());
 		DataFormatTools.writeNullableText(output, extendedTrack.getPreviewUrl());
+		DataFormatTools.writeNullableText(output, extendedTrack.getArtistUrl());
 		output.writeBoolean(extendedTrack.isPreview());
 	}
 
@@ -29,6 +30,7 @@ public abstract class ExtendedAudioSourceManager implements AudioSourceManager {
 		String albumName = null;
 		String artistArtworkUrl = null;
 		String previewUrl = null;
+		String artistUrl = null;
 		boolean isPreview = false;
 		// Check if the input has more than 8 bytes available, which would indicate that the preview field is present.
 		// This is done to avoid breaking backwards compatibility with tracks that were saved before the preview field was added.
@@ -36,21 +38,24 @@ public abstract class ExtendedAudioSourceManager implements AudioSourceManager {
 			albumName = DataFormatTools.readNullableText(input);
 			artistArtworkUrl = DataFormatTools.readNullableText(input);
 			previewUrl = DataFormatTools.readNullableText(input);
+			artistUrl = DataFormatTools.readNullableText(input);
 			isPreview = input.readBoolean();
 		}
-		return new ExtendedAudioTrackInfo(albumName, artistArtworkUrl, previewUrl, isPreview);
+		return new ExtendedAudioTrackInfo(albumName, artistArtworkUrl, previewUrl, artistUrl, isPreview);
 	}
 
 	protected static class ExtendedAudioTrackInfo {
 		public final String albumName;
 		public final String artistArtworkUrl;
 		public final String previewUrl;
+		public final String artistUrl;
 		public final boolean isPreview;
 
-		public ExtendedAudioTrackInfo(String albumName, String artistArtworkUrl, String previewUrl, boolean isPreview) {
+		public ExtendedAudioTrackInfo(String albumName, String artistArtworkUrl, String previewUrl, String artistUrl, boolean isPreview) {
 			this.albumName = albumName;
 			this.artistArtworkUrl = artistArtworkUrl;
 			this.previewUrl = previewUrl;
+			this.artistUrl = artistUrl;
 			this.isPreview = isPreview;
 		}
 	}

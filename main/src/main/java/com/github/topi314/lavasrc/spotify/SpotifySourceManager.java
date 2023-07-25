@@ -95,6 +95,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			extendedAudioTrackInfo.albumName,
 			extendedAudioTrackInfo.artistArtworkUrl,
 			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.artistUrl,
 			extendedAudioTrackInfo.isPreview,
 			this
 		);
@@ -302,6 +303,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			json.get("album").get("name").text(),
 			json.get("artists").index(0).get("images").index(0).get("url").text(),
 			json.get("preview_url").text(),
+			json.get("artists").index(0).get("external_urls").get("spotify").text(),
 			preview,
 			this
 		);

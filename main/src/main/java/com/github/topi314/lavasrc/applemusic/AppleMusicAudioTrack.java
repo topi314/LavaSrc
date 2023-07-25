@@ -11,11 +11,11 @@ import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 public class AppleMusicAudioTrack extends MirroringAudioTrack {
 
 	public AppleMusicAudioTrack(AudioTrackInfo trackInfo, AppleMusicSourceManager sourceManager) {
-		this(trackInfo, null, null, null, false, sourceManager);
+		this(trackInfo, null, null, null, null, false, sourceManager);
 	}
 
-	public AppleMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, boolean isPreview, MirroringAudioSourceManager sourceManager) {
-		super(trackInfo, albumName, artistArtworkUrl, previewUrl, isPreview, sourceManager);
+	public AppleMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, String artistUrl, boolean isPreview, MirroringAudioSourceManager sourceManager) {
+		super(trackInfo, albumName, artistArtworkUrl, previewUrl, artistUrl, isPreview, sourceManager);
 	}
 
 	@Override

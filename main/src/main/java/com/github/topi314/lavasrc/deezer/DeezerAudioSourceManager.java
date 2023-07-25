@@ -62,6 +62,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			extendedAudioTrackInfo.albumName,
 			extendedAudioTrackInfo.artistArtworkUrl,
 			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.artistUrl,
 			extendedAudioTrackInfo.isPreview,
 			this
 		);
@@ -165,6 +166,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			json.get("album").get("title").text(),
 			json.get("artist").get("picture_xl").text(),
 			json.get("preview").text(),
+				json.get("artist").get("link").text(),
 			preview,
 			this
 		);
