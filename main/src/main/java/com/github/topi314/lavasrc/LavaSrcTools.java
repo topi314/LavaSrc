@@ -37,7 +37,9 @@ public class LavaSrcTools {
 					new IllegalStateException("Response code from channel info is " + statusCode));
 			}
 
-			return JsonBrowser.parse(response.getEntity().getContent());
+			var data = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+			log.debug("Response from '{}' was successful: {}", request.getURI(), data);
+			return JsonBrowser.parse(data);
 		}
 	}
 }

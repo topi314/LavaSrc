@@ -317,7 +317,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	public AudioItem getPlaylist(String id, String countryCode, boolean preview) throws IOException {
-		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id + "?extend=artistUrl");
+		var json = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id);
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
@@ -327,14 +327,16 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var offset = 0;
 		var pages = 0;
 		do {
-			page = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
+			page = this.getJson(API_BASE + "catalog/" + countryCode + "/playlists/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset + "&extend=artistUrl");
 			offset += MAX_PAGE_ITEMS;
 
-			page.values().forEach(tracksRaw::add);
+			page.get("data").values().forEach(tracksRaw::add);
 		}
 		while (page.get("next").text() != null && ++pages < playlistPageLimit);
 
-		var tracks = parseTracks(tracksRaw, preview);
+		var dataRaw = JsonBrowser.newMap();
+		dataRaw.put("data", tracksRaw);
+		var tracks = parseTracks(dataRaw, preview);
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
