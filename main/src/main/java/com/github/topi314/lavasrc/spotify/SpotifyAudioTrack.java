@@ -1,5 +1,6 @@
 package com.github.topi314.lavasrc.spotify;
 
+import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
@@ -11,11 +12,11 @@ public class SpotifyAudioTrack extends MirroringAudioTrack {
 
 
 	public SpotifyAudioTrack(AudioTrackInfo trackInfo, SpotifySourceManager sourceManager) {
-		this(trackInfo, null, null, null, null, false, sourceManager);
+		this(trackInfo, null, null, null, null, null, false, sourceManager);
 	}
 
-	public SpotifyAudioTrack(AudioTrackInfo trackInfo, String albumName, String artistArtworkUrl, String previewUrl, String artistUrl, boolean isPreview, SpotifySourceManager sourceManager) {
-		super(trackInfo, albumName, artistArtworkUrl, previewUrl, artistUrl, isPreview, sourceManager);
+	public SpotifyAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, MirroringAudioSourceManager sourceManager) {
+		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview, sourceManager);
 	}
 
 	@Override

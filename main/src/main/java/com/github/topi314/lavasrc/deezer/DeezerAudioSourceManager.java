@@ -59,12 +59,13 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
 		return new DeezerAudioTrack(trackInfo,
-			extendedAudioTrackInfo.albumName,
-			extendedAudioTrackInfo.artistArtworkUrl,
-			extendedAudioTrackInfo.previewUrl,
-			extendedAudioTrackInfo.artistUrl,
-			extendedAudioTrackInfo.isPreview,
-			this
+				extendedAudioTrackInfo.albumName,
+				extendedAudioTrackInfo.albumUrl,
+				extendedAudioTrackInfo.artistUrl,
+				extendedAudioTrackInfo.artistArtworkUrl,
+				extendedAudioTrackInfo.previewUrl,
+				extendedAudioTrackInfo.isPreview,
+				this
 		);
 	}
 
@@ -154,21 +155,22 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var id = json.get("id").text();
 		return new DeezerAudioTrack(
 			new AudioTrackInfo(
-				json.get("title").text(),
-				json.get("artist").get("name").text(),
-				preview ? PREVIEW_LENGTH : json.get("duration").asLong(0) * 1000,
-				id,
-				false,
-				"https://deezer.com/track/" + id,
-				json.get("album").get("cover_xl").text(),
-				json.get("isrc").text()
+					json.get("title").text(),
+					json.get("artist").get("name").text(),
+					preview ? PREVIEW_LENGTH : json.get("duration").asLong(0) * 1000,
+					id,
+					false,
+					"https://deezer.com/track/" + id,
+					json.get("album").get("cover_xl").text(),
+					json.get("isrc").text()
 			),
-			json.get("album").get("title").text(),
-			json.get("artist").get("picture_xl").text(),
-			json.get("preview").text(),
+				json.get("album").get("title").text(),
+				json.get("album").get("link").text(),
 				json.get("artist").get("link").text(),
-			preview,
-			this
+				json.get("artist").get("picture_xl").text(),
+				json.get("preview").text(),
+				preview,
+				this
 		);
 	}
 

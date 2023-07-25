@@ -15,9 +15,10 @@ public abstract class ExtendedAudioSourceManager implements AudioSourceManager {
 	public void encodeTrack(AudioTrack track, DataOutput output) throws IOException {
 		var extendedTrack = (ExtendedAudioTrack) track;
 		DataFormatTools.writeNullableText(output, extendedTrack.getAlbumName());
+		DataFormatTools.writeNullableText(output, extendedTrack.getAlbumUrl());
+		DataFormatTools.writeNullableText(output, extendedTrack.getArtistUrl());
 		DataFormatTools.writeNullableText(output, extendedTrack.getArtistArtworkUrl());
 		DataFormatTools.writeNullableText(output, extendedTrack.getPreviewUrl());
-		DataFormatTools.writeNullableText(output, extendedTrack.getArtistUrl());
 		output.writeBoolean(extendedTrack.isPreview());
 	}
 
@@ -28,31 +29,35 @@ public abstract class ExtendedAudioSourceManager implements AudioSourceManager {
 
 	protected ExtendedAudioTrackInfo decodeTrack(DataInput input) throws IOException {
 		String albumName = null;
+		String albumUrl = null;
+		String artistUrl = null;
 		String artistArtworkUrl = null;
 		String previewUrl = null;
-		String artistUrl = null;
 		boolean isPreview = false;
 		// Check if the input has more than 8 bytes available, which would indicate that the preview field is present.
 		// This is done to avoid breaking backwards compatibility with tracks that were saved before the preview field was added.
 		if (((DataInputStream) input).available() > Long.BYTES) {
 			albumName = DataFormatTools.readNullableText(input);
+			albumUrl = DataFormatTools.readNullableText(input);
+			artistUrl = DataFormatTools.readNullableText(input);
 			artistArtworkUrl = DataFormatTools.readNullableText(input);
 			previewUrl = DataFormatTools.readNullableText(input);
-			artistUrl = DataFormatTools.readNullableText(input);
 			isPreview = input.readBoolean();
 		}
-		return new ExtendedAudioTrackInfo(albumName, artistArtworkUrl, previewUrl, artistUrl, isPreview);
+		return new ExtendedAudioTrackInfo(albumName, albumUrl, artistArtworkUrl, previewUrl, artistUrl, isPreview);
 	}
 
 	protected static class ExtendedAudioTrackInfo {
 		public final String albumName;
+		public final String albumUrl;
 		public final String artistArtworkUrl;
 		public final String previewUrl;
 		public final String artistUrl;
 		public final boolean isPreview;
 
-		public ExtendedAudioTrackInfo(String albumName, String artistArtworkUrl, String previewUrl, String artistUrl, boolean isPreview) {
+		public ExtendedAudioTrackInfo(String albumName, String albumUrl, String artistArtworkUrl, String previewUrl, String artistUrl, boolean isPreview) {
 			this.albumName = albumName;
+			this.albumUrl = albumUrl;
 			this.artistArtworkUrl = artistArtworkUrl;
 			this.previewUrl = previewUrl;
 			this.artistUrl = artistUrl;
