@@ -2,6 +2,7 @@ package com.github.topi314.lavasrc.applemusic;
 
 import com.github.topi314.lavasearch.SearchSourceManager;
 import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
@@ -313,7 +314,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
 		var author = json.get("data").index(0).get("attributes").get("artistName").text();
-		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "album", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getPlaylist(String id, String countryCode, boolean preview) throws IOException {
@@ -343,7 +344,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
 		var author = json.get("data").index(0).get("attributes").get("curatorName").text();
-		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, "playlist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getArtist(String id, String countryCode, boolean preview) throws IOException {
@@ -357,7 +358,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var artworkUrl = this.parseArtworkUrl(jsonArtist.get("data").index(0).get("attributes").get("artwork"));
 		var author = jsonArtist.get("data").index(0).get("attributes").get("name").text();
 		var artistArtwork = Map.of(jsonArtist.get("data").index(0).get("id").text(), artworkUrl);
-		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json, preview, artistArtwork), "artist", json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
+		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json, preview, artistArtwork), ExtendedAudioPlaylist.Type.ARTIST, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
 	}
 
 	public AudioItem getSong(String id, String countryCode, boolean preview) throws IOException {

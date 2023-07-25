@@ -2,6 +2,7 @@ package com.github.topi314.lavasrc.deezer;
 
 import com.github.topi314.lavasearch.SearchSourceManager;
 import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -291,7 +292,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			track.get("artist").put("picture_xl", json.get("artist").get("picture_xl"));
 		}
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks"), preview), "album", json.get("link").text(), artworkUrl, author);
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks"), preview), ExtendedAudioPlaylist.Type.ALBUM, json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -313,7 +314,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 		var tracks = this.getJson(PUBLIC_API_BASE + "/playlist/" + id + "/tracks");
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(tracks, preview), "playlist", json.get("link").text(), artworkUrl, author);
+		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(tracks, preview), ExtendedAudioPlaylist.Type.PLAYLIST, json.get("link").text(), artworkUrl, author);
 	}
 
 	private AudioItem getArtist(String id, boolean preview) throws IOException {
@@ -329,7 +330,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 		var artworkUrl = json.get("picture_xl").text();
 		var author = json.get("name").text();
-		return new DeezerAudioPlaylist(author + "'s Top Tracks", this.parseTracks(tracks, preview), "artist", json.get("link").text(), artworkUrl, author);
+		return new DeezerAudioPlaylist(author + "'s Top Tracks", this.parseTracks(tracks, preview), ExtendedAudioPlaylist.Type.ARTIST, json.get("link").text(), artworkUrl, author);
 	}
 
 	@Override

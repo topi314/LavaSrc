@@ -2,6 +2,7 @@ package com.github.topi314.lavasrc.spotify;
 
 import com.github.topi314.lavasearch.SearchSourceManager;
 import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
@@ -272,7 +273,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		return new SpotifyAudioPlaylist("Spotify Recommendations:", this.parseTracks(json, preview), "recommendations", null, null, null);
+		return new SpotifyAudioPlaylist("Spotify Recommendations:", this.parseTracks(json, preview), ExtendedAudioPlaylist.Type.RECOMMENDATIONS, null, null, null);
 	}
 
 	public AudioItem getAlbum(String id, boolean preview) throws IOException {
@@ -307,7 +308,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, "album", json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("artists").index(0).get("name").text());
+		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("artists").index(0).get("name").text());
 
 	}
 
@@ -340,7 +341,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, "playlist", json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("owner").get("display_name").text());
+		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("owner").get("display_name").text());
 
 	}
 
@@ -349,7 +350,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		if (json == null || json.get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		return new SpotifyAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json, preview), "artist", json.get("tracks").index(0).get("external_urls").get("spotify").text(), json.get("tracks").index(0).get("album").get("images").index(0).get("url").text(), json.get("tracks").index(0).get("artists").index(0).get("name").text());
+		return new SpotifyAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json, preview), ExtendedAudioPlaylist.Type.ARTIST, json.get("tracks").index(0).get("external_urls").get("spotify").text(), json.get("tracks").index(0).get("album").get("images").index(0).get("url").text(), json.get("tracks").index(0).get("artists").index(0).get("name").text());
 	}
 
 	public AudioItem getTrack(String id, boolean preview) throws IOException {
