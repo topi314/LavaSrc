@@ -87,7 +87,7 @@ playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPITo
 ```
 
 <details>
-<summary>How to get media api token with Apple developer account</summary>
+<summary>How to get media api token without Apple developer account</summary>
 
 1. Go to https://music.apple.com
 2. Open DevTools and go to the Debugger tab
@@ -96,7 +96,11 @@ playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPITo
 
 </details>
 
+Alternatively, you can
+follow [this guide](https://developer.apple.com/help/account/configure-app-capabilities/create-a-media-identifier-and-private-key/)
+
 #### Deezer
+
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
@@ -197,6 +201,13 @@ plugins:
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       mediaAPIToken: "your apple music api token" # apple music api token
+      # or specify an apple music key
+      keyID: "your key id"
+      teamID: "your team id"
+      musicKitKey: |
+        -----BEGIN PRIVATE KEY-----
+        your key
+        -----END PRIVATE KEY-----      
       playlistLoadLimit: 6 # The number of pages at 300 tracks each
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
