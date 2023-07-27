@@ -162,7 +162,7 @@ Replace x.y.z with the latest version number
 ```yaml
 lavalink:
   plugins:
-    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:x.y.z"
+    - dependency: "com.github.TopiSenpai.LavaSrc:lavasrc-plugin:x.y.z"
       repository: "https://maven.topi.wtf/releases"
 ```
 
