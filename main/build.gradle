@@ -1,6 +1,6 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'org.jetbrains.kotlin.plugin.serialization'
+    id "org.jetbrains.kotlin.jvm"
+    id "org.jetbrains.kotlin.plugin.serialization"
 }
 archivesBaseName = "lavasrc"
 
@@ -13,15 +13,15 @@ java {
 }
 
 dependencies {
-    implementation "com.github.topi314.lavasearch:lavasearch:c3f58ff"
-    implementation "com.github.topi314.lavasearch:lavasearch-protocol:c3f58ff"
-    compileOnly "com.github.topi314:lavaplayer-fork:8ca9418be9"
-    implementation 'org.jsoup:jsoup:1.15.3'
-    implementation 'commons-io:commons-io:2.7'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
-    implementation 'org.jetbrains.kotlin:kotlin-annotations-jvm:1.9.0'
+    implementation "com.github.topi314.lavasearch:lavasearch:3c13bce"
+    implementation "com.github.topi314.lavasearch:lavasearch-protocol:3c13bce"
+    compileOnly "dev.arbjerg:lavaplayer:2.0.0"
+    implementation "org.jsoup:jsoup:1.15.3"
+    implementation "commons-io:commons-io:2.7"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1"
+    implementation "org.jetbrains.kotlin:kotlin-annotations-jvm:1.9.0"
     implementation "com.auth0:java-jwt:4.4.0"
-    compileOnly "org.slf4j:slf4j-api:1.7.25"
+    compileOnly "org.slf4j:slf4j-api:2.0.7"
 }
 
 publishing {
