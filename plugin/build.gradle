@@ -1,5 +1,5 @@
 plugins {
-    id "dev.arbjerg.lavalink.gradle-plugin" version "1.0.9"
+    id "dev.arbjerg.lavalink.gradle-plugin" version "1.0.10"
 }
 
 archivesBaseName = "lavasrc-plugin"
