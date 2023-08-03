@@ -1,5 +1,7 @@
 package com.github.topi314.lavasrc.yandexmusic;
 
+import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -113,7 +115,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		}
 		var coverUri = json.get("result").get("coverUri").text();
 		var author = json.get("result").get("artists").values().get(0).get("name").text();
-		return new YandexMusicAudioPlaylist(json.get("result").get("title").text(), tracks, "album", json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		return new YandexMusicAudioPlaylist(json.get("result").get("title").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
 	private AudioItem getTrack(String id) throws IOException {
@@ -138,7 +140,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		var artistJson = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
 		var coverUri = json.get("result").get("coverUri").text();
 		var author = artistJson.get("result").get("artist").get("name").text();
-		return new YandexMusicAudioPlaylist(author + "'s Top Tracks", tracks, "artist", json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		return new YandexMusicAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
 	private AudioItem getPlaylist(String userString, String id) throws IOException {
@@ -156,14 +158,14 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		var playlistTitle = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
 		var coverUri = json.get("result").get("cover").get("uri").text();
 		var author = json.get("result").get("owner").get("name").text();
-		return new YandexMusicAudioPlaylist(playlistTitle, tracks, "playlist", json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		return new YandexMusicAudioPlaylist(playlistTitle, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Authorization", "OAuth " + this.accessToken);
-		return HttpClientTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
 	public String getDownloadStrings(String uri) throws IOException {

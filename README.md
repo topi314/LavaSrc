@@ -10,10 +10,8 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
-
 > [!IMPORTANT]
 > For LavaSrc v3 look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy) 
-
 
 ## Summary
 
@@ -54,8 +52,7 @@ dependencies {
 ```xml
 <repositories>
   <repository>
-    <id>jitpack</id>
-    <url>https://jitpack.io</url>
+    <url>https://maven.topi.wtf/releases</url>
   </repository>
 </repositories>
 

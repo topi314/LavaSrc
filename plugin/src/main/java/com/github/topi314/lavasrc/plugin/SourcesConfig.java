@@ -12,6 +12,7 @@ public class SourcesConfig {
 	private boolean appleMusic = false;
 	private boolean deezer = false;
 	private boolean yandexMusic = false;
+	private boolean youtube = false;
 
 	public boolean isSpotify() {
 		return this.spotify;
@@ -43,5 +44,13 @@ public class SourcesConfig {
 
 	public void setYandexMusic(boolean yandexMusic) {
 		this.yandexMusic = yandexMusic;
+	}
+
+	public boolean isYoutube() {
+		return this.youtube;
+	}
+
+	public void setYoutube(boolean youtube) {
+		this.youtube = youtube;
 	}
 }
