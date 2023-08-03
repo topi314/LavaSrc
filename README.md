@@ -10,7 +10,10 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
-## ~~Summary~~
+> [!IMPORTANT]
+> For LavaSrc v3 look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy) 
+
+## Summary
 
 * [Lavaplayer Usage](#lavaplayer-usage)
 * [Lavalink Usage](#lavalink-usage)
