@@ -2,16 +2,23 @@ package com.github.topi314.lavasrc;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class ExtendedAudioPlaylist extends BasicAudioPlaylist {
-	private final String type;
-	private final String url;
-	private final String artworkURL;
-	private final String author;
 
-	public ExtendedAudioPlaylist(String name, List<AudioTrack> tracks, String type, String url, String artworkURL, String author) {
+	@NotNull
+	protected final Type type;
+	@Nullable
+	protected final String url;
+	@Nullable
+	protected final String artworkURL;
+	@Nullable
+	protected final String author;
+
+	public ExtendedAudioPlaylist(String name, List<AudioTrack> tracks, @NotNull Type type, @Nullable String url, @Nullable String artworkURL, @Nullable String author) {
 		super(name, tracks, null, false);
 		this.type = type;
 		this.url = url;
@@ -19,20 +26,36 @@ public class ExtendedAudioPlaylist extends BasicAudioPlaylist {
 		this.author = author;
 	}
 
-	public String getType() {
+	@NotNull
+	public Type getType() {
 		return type;
 	}
 
+	@Nullable
 	public String getUrl() {
 		return this.url;
 	}
 
+	@Nullable
 	public String getArtworkURL() {
 		return this.artworkURL;
 	}
 
+	@Nullable
 	public String getAuthor() {
 		return this.author;
 	}
 
+	public enum Type {
+		ALBUM("album"),
+		PLAYLIST("playlist"),
+		ARTIST("artist"),
+		RECOMMENDATIONS("recommendations");
+
+		public final String name;
+
+		Type(String name) {
+			this.name = name;
+		}
+	}
 }

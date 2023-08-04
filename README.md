@@ -10,6 +10,9 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
+> [!IMPORTANT]
+> For LavaSrc v3 look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy) 
+
 ## Summary
 
 * [Lavaplayer Usage](#lavaplayer-usage)
@@ -49,8 +52,7 @@ dependencies {
 ```xml
 <repositories>
   <repository>
-    <id>jitpack</id>
-    <url>https://jitpack.io</url>
+    <url>https://maven.topi.wtf/releases</url>
   </repository>
 </repositories>
 
@@ -83,11 +85,25 @@ playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, cli
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new AppleMusicSourceManager with the standard providers, token(pass null for automatic extraction), countrycode and AudioPlayerManager and register it
+// create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
 playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager));
 ```
 
+<details>
+<summary>How to get media api token without Apple developer account</summary>
+
+1. Go to https://music.apple.com
+2. Open DevTools and go to the Debugger tab
+3. Search with this regex `const \w{2}="(?<token>(ey[\w-]+)\.([\w-]+)\.([\w-]+))"` in all `index-*.js` files
+4. Copy the token from the source code
+
+</details>
+
+Alternatively, you can
+follow [this guide](https://developer.apple.com/help/account/configure-app-capabilities/create-a-media-identifier-and-private-key/)
+
 #### Deezer
+
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
@@ -100,7 +116,6 @@ playerManager.registerSourceManager(new DeezerSourceManager("...");
 <details>
 <summary>How to get access token</summary>
 
-## How to get access token
 1. (Optional) Open DevTools in your browser and on the Network tab enable trotlining.
 2. Go to https://oauth.yandex.ru/authorize?response_type=token&client_id=23cabbbdc6cd418abb4b39c32c41195d
 3. Authorize and grant access
@@ -161,6 +176,8 @@ For all supported urls and queries see [here](#supported-urls-and-queries)
 
 To get your Spotify clientId & clientSecret go [here](https://developer.spotify.com/dashboard/applications) & then copy them into your `application.yml` like the following.
 
+To get your Apple Music api token go [here](#apple-music)
+
 To get your Yandex Music access token go [here](#yandex-music)
 
 (YES `plugins` IS AT ROOT IN THE YAML)
@@ -186,7 +203,14 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 50 tracks each
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-      mediaAPIToken: "..." # apple music api token
+      mediaAPIToken: "your apple music api token" # apple music api token
+      # or specify an apple music key
+      keyID: "your key id"
+      teamID: "your team id"
+      musicKitKey: |
+        -----BEGIN PRIVATE KEY-----
+        your key
+        -----END PRIVATE KEY-----      
       playlistLoadLimit: 6 # The number of pages at 300 tracks each
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
