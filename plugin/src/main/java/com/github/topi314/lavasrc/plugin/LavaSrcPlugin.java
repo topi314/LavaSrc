@@ -4,10 +4,9 @@ import com.github.topi314.lavasearch.SearchManager;
 import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
-import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
-import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
@@ -15,11 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Objects;
 
 @Service
 public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchManagerConfiguration {
@@ -66,7 +60,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Yandex Music audio source manager...");
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
 		}
-		if (sourcesConfig.isFloweryTTS()){
+		if (sourcesConfig.isFloweryTTS()) {
 			log.info("Registering Flowery TTS audio source manager...");
 			this.flowerytts = new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
 			if (floweryTTSConfig.getTranslate()) {

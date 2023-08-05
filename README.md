@@ -275,6 +275,6 @@ plugins:
 * https://music.yandex.ru/artist/701626
 
 ### Flowery TTS
-* `tts://hello%20world`
-* `tts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0`
+* `ftts://hello%20world`
+* `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0`
 ---

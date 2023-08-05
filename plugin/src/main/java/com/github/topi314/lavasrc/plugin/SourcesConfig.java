@@ -54,7 +54,7 @@ public class SourcesConfig {
 	public void setFloweryTTS(boolean floweryTTS) {
 		this.floweryTTS = floweryTTS;
 	}
-	
+
 	public boolean isYoutube() {
 		return this.youtube;
 	}
