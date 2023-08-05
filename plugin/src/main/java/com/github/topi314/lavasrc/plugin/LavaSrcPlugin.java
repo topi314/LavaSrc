@@ -4,7 +4,7 @@ import com.github.topi314.lavasearch.SearchManager;
 import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
-import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
@@ -14,11 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Objects;
 
 @Service
 public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchManagerConfiguration {
@@ -30,9 +25,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private AppleMusicSourceManager appleMusic;
 	private DeezerAudioSourceManager deezer;
 	private YandexMusicSourceManager yandexMusic;
+	private FloweryTTSSourceManager flowerytts;
 	private YoutubeSearchManager youtube;
 
-	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig) {
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig) {
 		log.info("Loading LavaSrc plugin...");
 
 		if (sourcesConfig.isSpotify()) {
@@ -64,6 +60,22 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Yandex Music audio source manager...");
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
 		}
+		if (sourcesConfig.isFloweryTTS()) {
+			log.info("Registering Flowery TTS audio source manager...");
+			this.flowerytts = new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
+			if (floweryTTSConfig.getTranslate()) {
+				this.flowerytts.setTranslate(floweryTTSConfig.getTranslate());
+			}
+			if (floweryTTSConfig.getSilence() > 0) {
+				this.flowerytts.setSilence(floweryTTSConfig.getSilence());
+			}
+			if (floweryTTSConfig.getSpeed() > 0) {
+				this.flowerytts.setSpeed(floweryTTSConfig.getSpeed());
+			}
+			if (floweryTTSConfig.getAudioFormat() != null) {
+				this.flowerytts.setAudioFormat(floweryTTSConfig.getAudioFormat());
+			}
+		}
 		if (sourcesConfig.isYoutube()) {
 			log.info("Registering Youtube search manager...");
 			this.youtube = new YoutubeSearchManager();
@@ -85,6 +97,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (this.yandexMusic != null) {
 			manager.registerSourceManager(this.yandexMusic);
+		}
+		if (this.flowerytts != null) {
+			manager.registerSourceManager(this.flowerytts);
 		}
 		return manager;
 	}

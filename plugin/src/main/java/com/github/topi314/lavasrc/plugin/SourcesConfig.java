@@ -12,6 +12,7 @@ public class SourcesConfig {
 	private boolean appleMusic = false;
 	private boolean deezer = false;
 	private boolean yandexMusic = false;
+	private boolean floweryTTS = false;
 	private boolean youtube = false;
 
 	public boolean isSpotify() {
@@ -44,6 +45,14 @@ public class SourcesConfig {
 
 	public void setYandexMusic(boolean yandexMusic) {
 		this.yandexMusic = yandexMusic;
+	}
+
+	public boolean isFloweryTTS() {
+		return this.floweryTTS;
+	}
+
+	public void setFloweryTTS(boolean floweryTTS) {
+		this.floweryTTS = floweryTTS;
 	}
 
 	public boolean isYoutube() {
