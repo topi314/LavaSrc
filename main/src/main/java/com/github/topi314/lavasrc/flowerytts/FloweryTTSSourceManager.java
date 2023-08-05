@@ -35,6 +35,7 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 
     public static final String TTS_PREFIX = "tts://";
     private static final Logger log = LoggerFactory.getLogger(FloweryTTSSourceManager.class);
+    private static final int CHAR_MAX = 2000;
     private static final int SILENCE_MIN = 0;
     private static final int SILENCE_MAX = 10000;
     private static final float SPEED_MIN = 0.5f;
@@ -93,17 +94,24 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 
         try {
             URI queryUri = new URI(reference.identifier);
+            final String text = queryUri.getAuthority();
 
-            return (queryUri.getAuthority() != null)?
-                new FloweryTTSAudioTrack(
-                    new AudioTrackInfo(
-                        queryUri.getAuthority(),
-                        "FloweryTTS",
-                        Units.CONTENT_LENGTH_UNKNOWN,
-                        reference.identifier,
-                        false,
-                        null), this) : null;
-        } catch (URISyntaxException e) {
+            if (text == null) {
+                return null;
+            }
+            if (text.length() > CHAR_MAX) {
+                throw new IllegalArgumentException("Character limit per request exceeded");
+            }
+
+            return new FloweryTTSAudioTrack(
+                new AudioTrackInfo(
+                    text,
+                    "FloweryTTS",
+                    Units.CONTENT_LENGTH_UNKNOWN,
+                    reference.identifier,
+                    false,
+                    null), this);
+        } catch (URISyntaxException | IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
     }
