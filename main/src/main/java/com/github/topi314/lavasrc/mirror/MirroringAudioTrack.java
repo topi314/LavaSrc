@@ -40,16 +40,20 @@ public abstract class MirroringAudioTrack extends ExtendedAudioTrack {
 			}
 			return;
 		}
-		AudioItem track = this.sourceManager.getResolver().apply(this);
+		var track = this.sourceManager.getResolver().apply(this);
 
 		if (track instanceof AudioPlaylist) {
-			track = ((AudioPlaylist) track).getTracks().get(0);
+			var tracks = ((AudioPlaylist) track).getTracks();
+			if (tracks.isEmpty()) {
+				throw new TrackNotFoundException();
+			}
+			track = tracks.get(0);
 		}
 		if (track instanceof InternalAudioTrack) {
 			processDelegate((InternalAudioTrack) track, executor);
 			return;
 		}
-		throw new FriendlyException("No matching track found", FriendlyException.Severity.COMMON, new TrackNotFoundException());
+		throw new TrackNotFoundException();
 	}
 
 	@Override
