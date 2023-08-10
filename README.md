@@ -92,7 +92,7 @@ playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPITo
 
 1. Go to https://music.apple.com
 2. Open DevTools and go to the Debugger tab
-3. Search with this regex `const \w{2}="(?<token>(ey[\w-]+)\.([\w-]+)\.([\w-]+))"` in all `index-*.js` files
+3. Search with this regex `"(?<token>(ey[\w-]+)\.([\w-]+)\.([\w-]+))"` in all `index-*.js` files
 4. Copy the token from the source code
 
 </details>
