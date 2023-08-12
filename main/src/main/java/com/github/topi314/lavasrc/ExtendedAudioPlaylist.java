@@ -17,13 +17,16 @@ public class ExtendedAudioPlaylist extends BasicAudioPlaylist {
 	protected final String artworkURL;
 	@Nullable
 	protected final String author;
+	@Nullable
+	protected final Integer totalTracks;
 
-	public ExtendedAudioPlaylist(String name, List<AudioTrack> tracks, @NotNull Type type, @Nullable String url, @Nullable String artworkURL, @Nullable String author) {
+	public ExtendedAudioPlaylist(String name, List<AudioTrack> tracks, @NotNull Type type, @Nullable String url, @Nullable String artworkURL, @Nullable String author, @Nullable Integer totalTracks) {
 		super(name, tracks, null, false);
 		this.type = type;
 		this.url = url;
 		this.artworkURL = artworkURL;
 		this.author = author;
+		this.totalTracks = totalTracks;
 	}
 
 	@NotNull
@@ -44,6 +47,11 @@ public class ExtendedAudioPlaylist extends BasicAudioPlaylist {
 	@Nullable
 	public String getAuthor() {
 		return this.author;
+	}
+
+	@Nullable
+	public Integer getTotalTracks() {
+		return this.totalTracks;
 	}
 
 	public enum Type {

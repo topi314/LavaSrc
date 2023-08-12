@@ -2,8 +2,11 @@ package com.github.topi314.lavasrc.applemusic;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.github.topi314.lavasearch.SearchSourceManager;
-import com.github.topi314.lavasearch.protocol.*;
+import com.github.topi314.lavasearch.AudioSearchSourceManager;
+import com.github.topi314.lavasearch.result.AudioSearchResult;
+import com.github.topi314.lavasearch.result.AudioText;
+import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
+import com.github.topi314.lavasearch.result.BasicAudioText;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
@@ -36,7 +39,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class AppleMusicSourceManager extends MirroringAudioSourceManager implements SearchSourceManager {
+public class AppleMusicSourceManager extends MirroringAudioSourceManager implements AudioSearchSourceManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final String SEARCH_PREFIX = "amsearch:";
@@ -44,8 +47,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public static final long PREVIEW_LENGTH = 30000;
 	public static final int MAX_PAGE_ITEMS = 300;
 	public static final String API_BASE = "https://api.music.apple.com/v1/";
-	public static final Set<SearchType> SEARCH_TYPES = Set.of(SearchType.TRACK, SearchType.ALBUM, SearchType.PLAYLIST, SearchType.ARTIST, SearchType.TEXT);
-	public static final Set<SearchType> TOP_RESULT_SEARCH_TYPES = Set.of(SearchType.TRACK, SearchType.ALBUM, SearchType.PLAYLIST, SearchType.ARTIST);
+	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST, AudioSearchResult.Type.TEXT);
+	public static final Set<AudioSearchResult.Type> TOP_RESULT_SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST);
 
 	private final String countryCode;
 	private int playlistPageLimit;
@@ -104,18 +107,18 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
 		return new AppleMusicAudioTrack(trackInfo,
-				extendedAudioTrackInfo.albumName,
-				extendedAudioTrackInfo.albumUrl,
-				extendedAudioTrackInfo.artistUrl,
-				extendedAudioTrackInfo.artistArtworkUrl,
-				extendedAudioTrackInfo.previewUrl,
-				extendedAudioTrackInfo.isPreview,
-				this
+			extendedAudioTrackInfo.albumName,
+			extendedAudioTrackInfo.albumUrl,
+			extendedAudioTrackInfo.artistUrl,
+			extendedAudioTrackInfo.artistArtworkUrl,
+			extendedAudioTrackInfo.previewUrl,
+			extendedAudioTrackInfo.isPreview,
+			this
 		);
 	}
 
 	@Override
-	public @Nullable SearchResult loadSearch(@NotNull String query, @NotNull Set<SearchType> types) {
+	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> types) {
 		try {
 			if (query.startsWith(SEARCH_PREFIX)) {
 				return this.getSearchSuggestions(query.substring(SEARCH_PREFIX.length()), types);
@@ -183,7 +186,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		return this.token;
 	}
 
-	public SearchResult getSearchSuggestions(String query, Set<SearchType> types) throws IOException, URISyntaxException {
+	public AudioSearchResult getSearchSuggestions(String query, Set<AudioSearchResult.Type> types) throws IOException, URISyntaxException {
 		if (types.isEmpty()) {
 			types = SEARCH_TYPES;
 		}
@@ -192,7 +195,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		urlBuilder.setParameter("term", query);
 		urlBuilder.setParameter("extend", "artistUrl");
 		var kinds = new HashSet<String>();
-		if (types.contains(SearchType.TEXT)) {
+		if (types.contains(AudioSearchResult.Type.TEXT)) {
 			kinds.add("terms");
 		}
 		for (var type : types) {
@@ -209,15 +212,15 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var json = getJson(urlBuilder.build().toString());
 
 		var allSuggestions = json.get("results").get("suggestions");
-		var terms = new ArrayList<SearchText>();
-		var albums = new ArrayList<SearchAlbum>();
-		var artists = new ArrayList<SearchArtist>();
-		var playLists = new ArrayList<SearchPlaylist>();
-		var tracks = new ArrayList<SearchTrack>();
+		var terms = new ArrayList<AudioText>();
+		var albums = new ArrayList<AudioPlaylist>();
+		var artists = new ArrayList<AudioPlaylist>();
+		var playLists = new ArrayList<AudioPlaylist>();
+		var tracks = new ArrayList<AudioTrack>();
 		for (var term : allSuggestions.values()) {
 			var kind = term.get("kind").text();
 			if (kind.equals("terms")) {
-				terms.add(new SearchText(term.get("searchTerm").text()));
+				terms.add(new BasicAudioText(term.get("searchTerm").text()));
 			} else {
 				var content = term.get("content");
 				var type = content.get("type").text();
@@ -231,14 +234,14 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var artist = attributes.get("artistName").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
 						var trackCount = (int) attributes.get("trackCount").asLong(-1);
-						var album = new SearchAlbum(id, name, artist, url, trackCount, artworkUrl, null);
+						var album = new AppleMusicAudioPlaylist(name, List.of(), ExtendedAudioPlaylist.Type.ALBUM, url, artworkUrl, artist, trackCount);
 						albums.add(album);
 						break;
 					}
 					case "artists": {
 						var name = attributes.get("name").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
-						var artist = new SearchArtist(id, name, url, artworkUrl);
+						var artist = new AppleMusicAudioPlaylist(name, List.of(), ExtendedAudioPlaylist.Type.ARTIST, url, artworkUrl, null, null);
 						artists.add(artist);
 						break;
 					}
@@ -246,7 +249,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var name = attributes.get("name").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
 						var trackCount = (int) attributes.get("trackCount").asLong(-1);
-						var playlist = new SearchPlaylist(id, name, url, artworkUrl, trackCount);
+						var playlist = new AppleMusicAudioPlaylist(name, List.of(), ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, null, trackCount);
 						playLists.add(playlist);
 						break;
 					}
@@ -256,7 +259,21 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var isrc = attributes.get("isrc").text();
 						var author = attributes.get("artistName").text();
 						var length = attributes.get("durationInMillis").asLong(0);
-						var track = new SearchTrack(name, author, length, id, false, url, artworkUrl, isrc);
+						var albumName = attributes.get("albumName").text();
+						var artistUrl = attributes.get("artistUrl").text();
+						var albumUrl = url.substring(0, url.indexOf('?'));
+						var previewUrl = attributes.get("previews").index(0).get("url").text();
+						var info = new AudioTrackInfo(
+							name,
+							author,
+							length,
+							id,
+							false,
+							url,
+							artworkUrl,
+							isrc
+						);
+						var track = new AppleMusicAudioTrack(info, albumName, albumUrl, artistUrl, null, previewUrl, false, this);
 						tracks.add(track);
 						break;
 					}
@@ -264,7 +281,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			}
 		}
 
-		return new SearchResult(albums, artists, playLists, tracks, terms);
+		return new BasicAudioSearchResult(tracks, playLists, albums, artists, terms);
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
@@ -324,7 +341,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
 		var author = json.get("data").index(0).get("attributes").get("artistName").text();
-		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author, (int) json.get("data").index(0).get("attributes").get("trackCount").asLong(0));
 	}
 
 	public AudioItem getPlaylist(String id, String countryCode, boolean preview) throws IOException {
@@ -354,7 +371,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var artworkUrl = this.parseArtworkUrl(json.get("data").index(0).get("attributes").get("artwork"));
 		var author = json.get("data").index(0).get("attributes").get("curatorName").text();
-		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
+		return new AppleMusicAudioPlaylist(json.get("data").index(0).get("attributes").get("name").text(), tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author, (int) json.get("data").index(0).get("attributes").get("trackCount").asLong(0));
 	}
 
 	public AudioItem getArtist(String id, String countryCode, boolean preview) throws IOException {
@@ -368,7 +385,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var artworkUrl = this.parseArtworkUrl(jsonArtist.get("data").index(0).get("attributes").get("artwork"));
 		var author = jsonArtist.get("data").index(0).get("attributes").get("name").text();
 		var artistArtwork = Map.of(jsonArtist.get("data").index(0).get("id").text(), artworkUrl);
-		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", parseTracks(json, preview, artistArtwork), ExtendedAudioPlaylist.Type.ARTIST, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author);
+		var tracks = parseTracks(json, preview, artistArtwork);
+		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author, tracks.size());
 	}
 
 	public AudioItem getSong(String id, String countryCode, boolean preview) throws IOException {
@@ -396,27 +414,27 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview, String artistArtwork) {
 		var attributes = json.get("attributes");
-		var artistUrl = attributes.get("url").text();
+		var trackUrl = attributes.get("url").text();
 		return new AppleMusicAudioTrack(
-				new AudioTrackInfo(
-						attributes.get("name").text(),
-						attributes.get("artistName").text(),
-						preview ? PREVIEW_LENGTH : attributes.get("durationInMillis").asLong(0),
-						json.get("id").text(),
-						false,
-						artistUrl,
-						this.parseArtworkUrl(attributes.get("artwork")),
-						attributes.get("isrc").text()
-				),
-				attributes.get("albumName").text(),
-				// Apple doesn't give us the album url, however the track url is
-				// /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
-				artistUrl.substring(0, artistUrl.indexOf('?')),
-				attributes.get("artistUrl").text(),
-				artistArtwork,
-				attributes.get("previews").index(0).get("hlsUrl").text(),
-				preview,
-				this
+			new AudioTrackInfo(
+				attributes.get("name").text(),
+				attributes.get("artistName").text(),
+				preview ? PREVIEW_LENGTH : attributes.get("durationInMillis").asLong(0),
+				json.get("id").text(),
+				false,
+				trackUrl,
+				this.parseArtworkUrl(attributes.get("artwork")),
+				attributes.get("isrc").text()
+			),
+			attributes.get("albumName").text(),
+			// Apple doesn't give us the album url, however the track url is
+			// /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
+			trackUrl.substring(0, trackUrl.indexOf('?')),
+			attributes.get("artistUrl").text(),
+			artistArtwork,
+			attributes.get("previews").index(0).get("hlsUrl").text(),
+			preview,
+			this
 		);
 	}
 
@@ -435,18 +453,18 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	public static AppleMusicSourceManager fromMusicKitKey(String musicKitKey, String keyId, String teamId, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		var base64 = musicKitKey.replaceAll("-----BEGIN PRIVATE KEY-----\n", "")
-				.replaceAll("-----END PRIVATE KEY-----", "")
-				.replaceAll("\\s", "");
+			.replaceAll("-----END PRIVATE KEY-----", "")
+			.replaceAll("\\s", "");
 		var keyBytes = Base64.getDecoder().decode(base64);
 		var spec = new PKCS8EncodedKeySpec(keyBytes);
 		var keyFactory = KeyFactory.getInstance("EC");
 		var key = (ECKey) keyFactory.generatePrivate(spec);
 		var jwt = JWT.create()
-				.withIssuer(teamId)
-				.withIssuedAt(Instant.now())
-				.withExpiresAt(Instant.now().plus(Duration.ofSeconds(15777000)))
-				.withKeyId(keyId)
-				.sign(Algorithm.ECDSA256(key));
+			.withIssuer(teamId)
+			.withIssuedAt(Instant.now())
+			.withExpiresAt(Instant.now().plus(Duration.ofSeconds(15777000)))
+			.withKeyId(keyId)
+			.sign(Algorithm.ECDSA256(key));
 		return new AppleMusicSourceManager(jwt, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 

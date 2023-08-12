@@ -2,20 +2,21 @@
 
 package com.github.topi314.lavasrc.applemusic
 
-import com.github.topi314.lavasearch.protocol.SearchType
+import com.github.topi314.lavasearch.result.AudioSearchResult
+
 
 @JvmName("buildAppleMusicTypes")
-fun Collection<SearchType>.toAppleMusicTypes(): String {
+fun Collection<AudioSearchResult.Type>.toAppleMusicTypes(): String {
     return asSequence()
-        .mapNotNull(SearchType::appleMusicName)
+        .mapNotNull(AudioSearchResult.Type::appleMusicName)
         .joinToString(",")
 }
 
-private val SearchType.appleMusicName: String?
+private val AudioSearchResult.Type.appleMusicName: String?
     get() = when (this) {
-        SearchType.TRACK -> "songs"
-        SearchType.ALBUM -> "albums"
-        SearchType.ARTIST -> "artists"
-        SearchType.PLAYLIST -> "playlists"
-        SearchType.TEXT -> null
+        AudioSearchResult.Type.TRACK -> "songs"
+        AudioSearchResult.Type.ALBUM -> "albums"
+        AudioSearchResult.Type.ARTIST -> "artists"
+        AudioSearchResult.Type.PLAYLIST -> "playlists"
+        AudioSearchResult.Type.TEXT -> null
     }

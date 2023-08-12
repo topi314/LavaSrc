@@ -1,6 +1,6 @@
 package com.github.topi314.lavasrc.plugin;
 
-import com.github.topi314.lavasearch.SearchManager;
+import com.github.topi314.lavasearch.AudioSearchManager;
 import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
@@ -106,7 +106,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 	@Override
 	@NotNull
-	public SearchManager configure(@NotNull SearchManager manager) {
+	public AudioSearchManager configure(@NotNull AudioSearchManager manager) {
 		if (this.spotify != null) {
 			manager.registerSourceManager(this.spotify);
 		}

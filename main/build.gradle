@@ -1,4 +1,5 @@
 plugins {
+    id "java-library"
     id "org.jetbrains.kotlin.jvm"
     id "org.jetbrains.kotlin.plugin.serialization"
 }
@@ -13,8 +14,8 @@ java {
 }
 
 dependencies {
-    implementation "com.github.topi314.lavasearch:lavasearch:3c13bce"
-    implementation "com.github.topi314.lavasearch:lavasearch-protocol:3c13bce"
+    implementation "com.github.topi314.lavasearch:lavasearch:c220497"
+    implementation "com.github.topi314.lavasearch:lavasearch-protocol:c220497"
     compileOnly "dev.arbjerg:lavaplayer:2.0.0"
     implementation "org.jsoup:jsoup:1.15.3"
     implementation "commons-io:commons-io:2.7"
