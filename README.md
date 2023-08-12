@@ -7,6 +7,7 @@ A collection of additional [Lavaplayer](https://github.com/sedmelluq/lavaplayer)
 * [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
 * [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
+* [Flowery TSS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
@@ -275,6 +276,9 @@ plugins:
 * https://music.yandex.ru/artist/701626
 
 ### Flowery TTS
+You can ready about all the available options [here](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get),
+a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
+
 * `ftts://hello%20world`
 * `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0`
 ---
