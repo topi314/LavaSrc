@@ -23,7 +23,8 @@ public class LavaSrcAudioPluginInfoModifier implements AudioPluginInfoModifier {
 				"type", JsonElementKt.JsonPrimitive(extendedPlaylist.getType().name),
 				"url", JsonElementKt.JsonPrimitive(extendedPlaylist.getUrl()),
 				"artworkUrl", JsonElementKt.JsonPrimitive(extendedPlaylist.getArtworkURL()),
-				"author", JsonElementKt.JsonPrimitive(extendedPlaylist.getAuthor())
+				"author", JsonElementKt.JsonPrimitive(extendedPlaylist.getAuthor()),
+				"totalTracks", JsonElementKt.JsonPrimitive(extendedPlaylist.getTotalTracks())
 			));
 		}
 		return null;
@@ -40,6 +41,7 @@ public class LavaSrcAudioPluginInfoModifier implements AudioPluginInfoModifier {
 				"artistArtworkUrl", JsonElementKt.JsonPrimitive(extendedTrack.getArtistArtworkUrl()),
 				"previewUrl", JsonElementKt.JsonPrimitive(extendedTrack.getPreviewUrl()),
 				"isPreview", JsonElementKt.JsonPrimitive(extendedTrack.isPreview())
+
 			));
 		}
 		return null;

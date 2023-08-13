@@ -201,7 +201,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		if (types.isEmpty()) {
 			types = SEARCH_TYPES;
 		}
-		var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=" + types.stream().map(AudioSearchResult.Type::name).collect(Collectors.joining(","));
+		var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=" + types.stream().map(AudioSearchResult.Type::getName).collect(Collectors.joining(","));
 		var json = this.getJson(url);
 		if (json == null) {
 			return AudioSearchResult.EMPTY;

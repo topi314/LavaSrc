@@ -187,7 +187,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 				json.get("isrc").text()
 			),
 			json.get("album").get("title").text(),
-			json.get("album").get("link").text(),
+			"https://www.deezer.com/album/" + json.get("album").get("id").text(),
 			json.get("artist").get("link").text(),
 			json.get("artist").get("picture_xl").text(),
 			json.get("preview").text(),
@@ -227,12 +227,12 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		if (types.contains(AudioSearchResult.Type.ARTIST)) {
 			for (var artist : json.get("artists").get("data").values()) {
 				artists.add(new DeezerAudioPlaylist(
-					artist.get("name").text(),
+					artist.get("name").text() + "'s Top Tracks",
 					Collections.emptyList(),
 					DeezerAudioPlaylist.Type.ARTIST,
 					artist.get("link").text(),
 					artist.get("picture_xl").text(),
-					null,
+					artist.get("name").text(),
 					null
 				));
 			}
