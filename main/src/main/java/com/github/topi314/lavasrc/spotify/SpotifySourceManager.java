@@ -275,6 +275,12 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
+		var artistJson = this.getJson(API_BASE + "artists/" + json.get("artists").index(0).get("id").text());
+		if (artistJson == null) {
+			artistJson = JsonBrowser.newMap();
+		}
+
+
 		var tracks = new ArrayList<AudioTrack>();
 		JsonBrowser page;
 		var offset = 0;
@@ -287,12 +293,14 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			for (var track : tracksPage.get("tracks").values()) {
 				var albumJson = JsonBrowser.newMap();
+				albumJson.put("external_urls", json.get("external_urls"));
 				albumJson.put("name", json.get("name"));
+				albumJson.put("images", json.get("images"));
 				track.put("album", albumJson);
 
-				var artistsJson = JsonBrowser.newList();
-				artistsJson.add(json.get("artists").index(0));
+				track.get("artists").index(0).put("images", artistJson.get("images"));
 			}
+
 			tracks.addAll(this.parseTracks(tracksPage, preview));
 		}
 		while (page.get("next").text() != null && ++pages < this.albumPageLimit);
@@ -338,11 +346,21 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getArtist(String id, boolean preview) throws IOException {
-		var json = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode);
-		if (json == null || json.get("tracks").values().isEmpty()) {
+		var json = this.getJson(API_BASE + "artists/" + id);
+		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
-		return new SpotifyAudioPlaylist(json.get("tracks").index(0).get("artists").index(0).get("name").text() + "'s Top Tracks", this.parseTracks(json, preview), ExtendedAudioPlaylist.Type.ARTIST, json.get("tracks").index(0).get("external_urls").get("spotify").text(), json.get("tracks").index(0).get("album").get("images").index(0).get("url").text(), json.get("tracks").index(0).get("artists").index(0).get("name").text(), (int) json.get("tracks").get("total").asLong(0));
+
+		var tracksJson = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode);
+		if (tracksJson == null || tracksJson.get("tracks").values().isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+
+		for (var track : tracksJson.get("tracks").values()) {
+			track.get("artists").index(0).put("images", json.get("images"));
+		}
+
+		return new SpotifyAudioPlaylist(json.get("name").text() + "'s Top Tracks", this.parseTracks(tracksJson, preview), ExtendedAudioPlaylist.Type.ARTIST, json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("name").text(), (int) tracksJson.get("tracks").get("total").asLong(0));
 	}
 
 	public AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -350,6 +368,12 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
+
+		var artistJson = this.getJson(API_BASE + "artists/" + json.get("artists").index(0).get("id").text());
+		if (artistJson != null) {
+			json.get("artists").index(0).put("images", artistJson.get("images"));
+		}
+
 		return this.parseTrack(json, preview);
 	}
 

@@ -188,7 +188,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			),
 			json.get("album").get("title").text(),
 			"https://www.deezer.com/album/" + json.get("album").get("id").text(),
-			json.get("artist").get("link").text(),
+			"https://www.deezer.com/artist/" + json.get("artist").get("id").text(),
 			json.get("artist").get("picture_xl").text(),
 			json.get("preview").text(),
 			preview,
@@ -319,14 +319,18 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			return AudioReference.NO_TRACK;
 		}
 
-		var tracks = this.getJson(PUBLIC_API_BASE + "/artist/" + id + "/top?limit=50");
-		if (tracks.get("data").values().isEmpty()) {
+		var tracksJson = this.getJson(PUBLIC_API_BASE + "/artist/" + id + "/top?limit=50");
+		if (tracksJson == null || tracksJson.get("data").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
+		}
+
+		for (var track : tracksJson.get("data").values()) {
+			track.get("artist").put("picture_xl", json.get("picture_xl"));
 		}
 
 		var artworkUrl = json.get("picture_xl").text();
 		var author = json.get("name").text();
-		var deezerTracks = this.parseTracks(tracks, preview);
+		var deezerTracks = this.parseTracks(tracksJson, preview);
 		return new DeezerAudioPlaylist(author + "'s Top Tracks", deezerTracks, DeezerAudioPlaylist.Type.ARTIST, json.get("link").text(), artworkUrl, author, deezerTracks.size());
 	}
 
