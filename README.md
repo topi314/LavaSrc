@@ -237,6 +237,40 @@ plugins:
       audioFormat: "mp3" # supported formats are: mp3, ogg_opus, ogg_vorbis, aac, wav, and flac. Default format is mp3
 ```
 
+### Plugin Info
+
+LavaSrc adds the following fields to tracks & playlists in Lavalink
+
+#### Track
+
+| Field            | Type    | Description                    |
+|------------------|---------|--------------------------------|
+| albumName        | ?string | The name of the album          |
+| albumArtUrl      | ?string | The url of the album art       |
+| artistUrl        | ?string | The url of the artist          |
+| artistArtworkUrl | ?string | The url of the artist artwork  |
+| previewUrl       | ?string | The url of the preview         |
+| isPreview        | ?bool   | Whether the track is a preview |
+
+#### Playlist
+
+| Field       | Type                             | Description                                |
+|-------------|----------------------------------|--------------------------------------------|
+| type        | [Playlist Type](#playlist-types) | The type of the playlist                   |
+| url         | ?string                          | The url of the playlist                    |
+| artworkUrl  | ?string                          | The url of the playlist artwork            |
+| author      | ?string                          | The author of the playlist                 |
+| totalTracks | ?int                             | The total number of tracks in the playlist |
+
+#### Playlist Types
+
+| Type            | Description                                |
+|-----------------|--------------------------------------------|
+| album           | The playlist is an album                   |
+| playlist        | The playlist is a playlist                 |
+| artist          | The playlist is an artist                  |
+| recommendations | The playlist is a recommendations playlist |
+
 ---
 
 ## Supported URLs and Queries
