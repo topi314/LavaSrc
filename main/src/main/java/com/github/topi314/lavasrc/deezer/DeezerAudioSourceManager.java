@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -212,7 +213,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			for (var album : json.get("albums").get("data").values()) {
 				albums.add(new DeezerAudioPlaylist(
 					album.get("title").text(),
-					null,
+					Collections.emptyList(),
 					DeezerAudioPlaylist.Type.ALBUM,
 					album.get("link").text(),
 					album.get("cover_xl").text(),
@@ -227,7 +228,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			for (var artist : json.get("artists").get("data").values()) {
 				artists.add(new DeezerAudioPlaylist(
 					artist.get("name").text(),
-					null,
+					Collections.emptyList(),
 					DeezerAudioPlaylist.Type.ARTIST,
 					artist.get("link").text(),
 					artist.get("picture_xl").text(),
@@ -242,7 +243,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			for (var playlist : json.get("playlists").get("data").values()) {
 				playlists.add(new DeezerAudioPlaylist(
 					playlist.get("title").text(),
-					null,
+					Collections.emptyList(),
 					DeezerAudioPlaylist.Type.PLAYLIST,
 					playlist.get("link").text(),
 					playlist.get("picture_xl").text(),

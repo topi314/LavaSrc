@@ -233,23 +233,23 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var name = attributes.get("name").text();
 						var artist = attributes.get("artistName").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
-						var trackCount = (int) attributes.get("trackCount").asLong(-1);
-						var album = new AppleMusicAudioPlaylist(name, List.of(), ExtendedAudioPlaylist.Type.ALBUM, url, artworkUrl, artist, trackCount);
+						var trackCount = (int) attributes.get("trackCount").asLong(0);
+						var album = new AppleMusicAudioPlaylist(name, Collections.emptyList(), ExtendedAudioPlaylist.Type.ALBUM, url, artworkUrl, artist, trackCount);
 						albums.add(album);
 						break;
 					}
 					case "artists": {
 						var name = attributes.get("name").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
-						var artist = new AppleMusicAudioPlaylist(name, List.of(), ExtendedAudioPlaylist.Type.ARTIST, url, artworkUrl, null, null);
+						var artist = new AppleMusicAudioPlaylist(name + "'s Top Tracks", Collections.emptyList(), ExtendedAudioPlaylist.Type.ARTIST, url, artworkUrl, name, null);
 						artists.add(artist);
 						break;
 					}
 					case "playlists": {
 						var name = attributes.get("name").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
-						var trackCount = (int) attributes.get("trackCount").asLong(-1);
-						var playlist = new AppleMusicAudioPlaylist(name, List.of(), ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, null, trackCount);
+						var trackCount = (int) attributes.get("trackCount").asLong(0);
+						var playlist = new AppleMusicAudioPlaylist(name, Collections.emptyList(), ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, null, trackCount);
 						playLists.add(playlist);
 						break;
 					}

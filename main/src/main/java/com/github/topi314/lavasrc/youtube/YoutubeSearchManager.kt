@@ -97,7 +97,7 @@ class YoutubeSearchManager : AudioSearchSourceManager {
                             )
 
                             PageType.MUSIC_PAGE_TYPE_ARTIST -> ExtendedAudioPlaylist(
-                                name,
+                                "$name's Top Tracks",
                                 emptyList(),
                                 ExtendedAudioPlaylist.Type.ARTIST,
                                 url,

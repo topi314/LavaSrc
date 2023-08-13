@@ -30,10 +30,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -214,7 +211,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		for (var album : json.get("albums").get("items").values()) {
 			albums.add(new SpotifyAudioPlaylist(
 				album.get("name").text(),
-				null,
+				Collections.emptyList(),
 				ExtendedAudioPlaylist.Type.ALBUM,
 				album.get("external_urls").get("spotify").text(),
 				album.get("images").index(0).get("url").text(),
@@ -226,12 +223,12 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		var artists = new ArrayList<AudioPlaylist>();
 		for (var artist : json.get("artists").get("items").values()) {
 			artists.add(new SpotifyAudioPlaylist(
-				artist.get("name").text(),
-				null,
+				artist.get("name").text() + "'s Top Tracks",
+				Collections.emptyList(),
 				ExtendedAudioPlaylist.Type.ARTIST,
 				artist.get("external_urls").get("spotify").text(),
 				artist.get("images").index(0).get("url").text(),
-				null,
+				artist.get("name").text(),
 				null
 			));
 		}
@@ -240,7 +237,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		for (var playlist : json.get("playlists").get("items").values()) {
 			playlists.add(new SpotifyAudioPlaylist(
 				playlist.get("name").text(),
-				null,
+				Collections.emptyList(),
 				ExtendedAudioPlaylist.Type.PLAYLIST,
 				playlist.get("external_urls").get("spotify").text(),
 				playlist.get("images").index(0).get("url").text(),
@@ -338,7 +335,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		}
 
 		return new SpotifyAudioPlaylist(json.get("name").text(), tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("owner").get("display_name").text(), (int) json.get("tracks").get("total").asLong(0));
-
 	}
 
 	public AudioItem getArtist(String id, boolean preview) throws IOException {
