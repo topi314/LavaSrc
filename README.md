@@ -207,6 +207,7 @@ plugins:
       applemusic: false # Enable Apple Music source
       deezer: false # Enable Deezer source
       yandexmusic: false # Enable Yandex Music source
+      flowerytts: false # Enable Flowery TTS source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
