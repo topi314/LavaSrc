@@ -3,7 +3,7 @@ package com.github.topi314.lavasrc.plugin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = "plugins.lavasrc.flowery.tts")
+@ConfigurationProperties(prefix = "plugins.lavasrc.flowerytts")
 @Component
 public class FloweryTTSConfig {
 
