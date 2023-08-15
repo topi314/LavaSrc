@@ -257,6 +257,18 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
+		var artistIds = json.get("tracks").get("items").values().stream().map(track -> track.get("artists").index(0).get("id").text()).collect(Collectors.joining(","));
+		var artistJson = this.getJson(API_BASE + "artists?ids=" + artistIds);
+		if (artistJson != null) {
+			for (var artist : artistJson.get("artists").values()) {
+				for (var track : json.get("tracks").get("items").values()) {
+					if (track.get("artists").index(0).get("id").text().equals(artist.get("id").text())) {
+						track.get("artists").index(0).put("images", artist.get("images"));
+					}
+				}
+			}
+		}
+
 		return new BasicAudioPlaylist("Search results for: " + query, this.parseTrackItems(json.get("tracks"), preview), null, true);
 	}
 
