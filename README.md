@@ -2,7 +2,7 @@
 
 # LavaSrc
 
-A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer) & [LavaSearch](https://github.com/topi314/LavaSearch) Audio Source Managers and Lavalink v4 Plugin.
+A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer) & [LavaSearch](https://github.com/topi314/LavaSearch) Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
 * [Spotify*](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results
 * [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
@@ -12,7 +12,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 `*tracks are searched & played via YouTube or other configurable sources`
 
 > [!IMPORTANT]
-> For LavaSrc v3 look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy) 
+> For LavaSrc v3 (Lavaplayer v1 & Lavalink v3) look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy) 
 
 ## Summary
 
