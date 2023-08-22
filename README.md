@@ -8,6 +8,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
 * [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
 * [Flowery TTS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
+* [YouTube](https://youtube.com), [YouTubeMusic](https://music.youtube.com/), [Deezer](https://www.deezer.com), [Spotify](https://www.spotify.com) & [AppleMusic](https://www.apple.com/apple-music/) support for [LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
