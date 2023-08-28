@@ -107,7 +107,11 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		var tracks = new ArrayList<AudioTrack>();
 		for (var volume : json.get("result").get("volumes").values()) {
 			for (var track : volume.values()) {
-				tracks.add(this.parseTrack(track));
+				var parsedTrack = this.parseTrack(track);
+				if (parsedTrack != null) {
+					tracks.add(parsedTrack);
+				}
+				tracks.add(parsedTrack);
 			}
 		}
 		if (tracks.isEmpty()) {
@@ -150,7 +154,10 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		}
 		var tracks = new ArrayList<AudioTrack>();
 		for (var track : json.get("result").get("tracks").values()) {
-			tracks.add(this.parseTrack(track.get("track")));
+			var parsedTrack = this.parseTrack(track);
+			if (parsedTrack != null) {
+				tracks.add(parsedTrack);
+			}
 		}
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
