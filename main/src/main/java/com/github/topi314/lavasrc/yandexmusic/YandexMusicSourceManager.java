@@ -111,7 +111,6 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				if (parsedTrack != null) {
 					tracks.add(parsedTrack);
 				}
-				tracks.add(parsedTrack);
 			}
 		}
 		if (tracks.isEmpty()) {
