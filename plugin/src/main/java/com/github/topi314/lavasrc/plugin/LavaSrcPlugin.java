@@ -9,6 +9,7 @@ import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private static final Logger log = LoggerFactory.getLogger(LavaSrcPlugin.class);
 
 	private AudioPlayerManager manager;
+	private YoutubeAudioSourceManager youtubeAudioSourceManager;
 	private SpotifySourceManager spotify;
 	private AppleMusicSourceManager appleMusic;
 	private DeezerAudioSourceManager deezer;
@@ -78,7 +80,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (sourcesConfig.isYoutube()) {
 			log.info("Registering Youtube search manager...");
-			this.youtube = new YoutubeSearchManager();
+			this.youtube = new YoutubeSearchManager(() -> youtubeAudioSourceManager);
 		}
 	}
 
@@ -101,6 +103,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.flowerytts != null) {
 			manager.registerSourceManager(this.flowerytts);
 		}
+		if (this.youtube != null) {
+			this.youtubeAudioSourceManager = manager.source(YoutubeAudioSourceManager.class);
+		}
 		return manager;
 	}
 
@@ -117,6 +122,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			manager.registerSourceManager(this.deezer);
 		}
 		if (this.youtube != null) {
+			if (this.youtubeAudioSourceManager == null) {
+				throw new IllegalStateException("Youtube audio source manager is not initialized but required by Youtube search manager.");
+			}
 			manager.registerSourceManager(this.youtube);
 		}
 		return manager;

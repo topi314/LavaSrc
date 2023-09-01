@@ -8,8 +8,8 @@ import com.github.topi314.lavasearch.result.BasicAudioText
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer
 import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo
 import org.apache.http.client.methods.HttpGet
@@ -28,11 +28,18 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
     else -> error("Unknown endpoint: $this")
 }
 
-class YoutubeSearchManager : AudioSearchSourceManager {
+class YoutubeSearchManager(
+    private val sourceManager: () -> YoutubeAudioSourceManager
+) : AudioSearchSourceManager {
     companion object {
         const val SEARCH_PREFIX = "ytsearch:"
         const val MUSIC_SEARCH_PREFIX = "ytmsearch:"
-        val SEARCH_TYPES = setOf(AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.ARTIST, AudioSearchResult.Type.TRACK, AudioSearchResult.Type.TEXT)
+        val SEARCH_TYPES = setOf(
+            AudioSearchResult.Type.ALBUM,
+            AudioSearchResult.Type.ARTIST,
+            AudioSearchResult.Type.TRACK,
+            AudioSearchResult.Type.TEXT
+        )
     }
 
     private val httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager()
@@ -79,8 +86,7 @@ class YoutubeSearchManager : AudioSearchSourceManager {
                             thumbnail,
                             null
                         )
-
-                        YouTubeAudioSearchTrack(info, album)
+                        YouTubeAudioSearchTrack(sourceManager.invoke(), info, album)
                     } else if (item.navigationEndpoint.browseEndpoint != null) {
                         val type =
                             item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType
@@ -146,4 +152,5 @@ private inline fun <reified T : Any> List<Any>.filter(enabled: Boolean) =
     if (enabled) filterIsInstance<T>() else emptyList()
 
 private fun List<Any>.filter(enabled: Boolean, type: ExtendedAudioPlaylist.Type) =
-    if (enabled) asSequence().filterIsInstance<ExtendedAudioPlaylist>().filter { it.type == type }.toList() else emptyList()
+    if (enabled) asSequence().filterIsInstance<ExtendedAudioPlaylist>().filter { it.type == type }
+        .toList() else emptyList()
