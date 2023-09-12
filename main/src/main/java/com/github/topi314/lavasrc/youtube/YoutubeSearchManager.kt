@@ -25,7 +25,7 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
         PageType.MUSIC_PAGE_TYPE_ARTIST -> "https://music.youtube.com/channel/${browseEndpoint.browseId}"
     }
 
-    watchEndpoint != null -> "https://music.youtube.com/watch?v${watchEndpoint.videoId}"
+    watchEndpoint != null -> "https://music.youtube.com/watch?v=${watchEndpoint.videoId}"
     else -> error("Unknown endpoint: $this")
 }
 
