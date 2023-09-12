@@ -1,6 +1,6 @@
 package com.github.topi314.lavasrc.youtube
 
-import com.github.topi314.lavasearch.AudioSearchSourceManager
+import com.github.topi314.lavasearch.AudioSearchManager
 import com.github.topi314.lavasearch.result.AudioSearchResult
 import com.github.topi314.lavasearch.result.AudioText
 import com.github.topi314.lavasearch.result.BasicAudioSearchResult
@@ -9,6 +9,7 @@ import com.github.topi314.lavasrc.ExtendedAudioPlaylist
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer
 import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo
@@ -30,7 +31,7 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
 
 class YoutubeSearchManager(
     private val sourceManager: () -> YoutubeAudioSourceManager
-) : AudioSearchSourceManager {
+) : AudioSearchManager {
     companion object {
         const val SEARCH_PREFIX = "ytsearch:"
         const val MUSIC_SEARCH_PREFIX = "ytmsearch:"
@@ -72,9 +73,6 @@ class YoutubeSearchManager(
                     val artist = item.flexColumns.getOrNull(1)
                         ?.musicResponsiveListItemFlexColumnRenderer
                         ?.text?.joinRuns() ?: "Unknown Author"
-                    val album = item.flexColumns.getOrNull(2)
-                        ?.musicResponsiveListItemFlexColumnRenderer
-                        ?.text?.joinRuns()
                     if (item.navigationEndpoint.watchEndpoint != null) {
                         val info = AudioTrackInfo(
                             item.flexColumns.first().musicResponsiveListItemFlexColumnRenderer.text.joinRuns(),
@@ -86,7 +84,7 @@ class YoutubeSearchManager(
                             thumbnail,
                             null
                         )
-                        YouTubeAudioSearchTrack(sourceManager.invoke(), info, album)
+                        YoutubeAudioTrack(info, sourceManager())
                     } else if (item.navigationEndpoint.browseEndpoint != null) {
                         val type =
                             item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType

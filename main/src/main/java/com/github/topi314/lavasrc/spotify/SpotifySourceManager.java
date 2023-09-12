@@ -1,6 +1,6 @@
 package com.github.topi314.lavasrc.spotify;
 
-import com.github.topi314.lavasearch.AudioSearchSourceManager;
+import com.github.topi314.lavasearch.AudioSearchManager;
 import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
@@ -36,7 +36,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchSourceManager {
+public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";

@@ -2,7 +2,7 @@ package com.github.topi314.lavasrc.applemusic;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.github.topi314.lavasearch.AudioSearchSourceManager;
+import com.github.topi314.lavasearch.AudioSearchManager;
 import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasearch.result.AudioText;
 import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
@@ -39,7 +39,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class AppleMusicSourceManager extends MirroringAudioSourceManager implements AudioSearchSourceManager {
+public class AppleMusicSourceManager extends MirroringAudioSourceManager implements AudioSearchManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
 	public static final String SEARCH_PREFIX = "amsearch:";

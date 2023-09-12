@@ -49,7 +49,7 @@ private inline fun <reified B, reified R> HttpInterface.makeRequest(
         addHeader(HttpHeaders.REFERER, domain.toString())
         if (body != null) {
             addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-            entity = StringEntity(json.encodeToString(body).also { println(it) })
+            entity = StringEntity(json.encodeToString(body))
         }
         builder()
     }
