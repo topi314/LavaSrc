@@ -259,7 +259,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private AudioItem getTrackByISRC(String isrc, boolean preview) throws IOException {
-		var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + isrc);
+		var json = this.getJson(PUBLIC_API_BASE + "/track/isrc:" + URLEncoder.encode(isrc, StandardCharsets.UTF_8));
 		if (json == null || json.get("id").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
