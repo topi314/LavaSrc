@@ -247,7 +247,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 					DeezerAudioPlaylist.Type.PLAYLIST,
 					playlist.get("link").text(),
 					playlist.get("picture_xl").text(),
-					playlist.get("creator").get("name").text();
+					playlist.get("creator").get("name").text(),
 					(int) playlist.get("nb_tracks").asLong(0)
 				));
 			}
