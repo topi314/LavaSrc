@@ -249,7 +249,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 						var name = attributes.get("name").text();
 						var artworkUrl = parseArtworkUrl(attributes.get("artwork"));
 						var trackCount = (int) attributes.get("trackCount").asLong(0);
-						var playlist = new AppleMusicAudioPlaylist(name, Collections.emptyList(), ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, null, trackCount);
+						var author = attributes.get("data").index(0).get("attributes").get("curatorName").text();
+						var playlist = new AppleMusicAudioPlaylist(name, Collections.emptyList(), ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, author, trackCount);
 						playLists.add(playlist);
 						break;
 					}

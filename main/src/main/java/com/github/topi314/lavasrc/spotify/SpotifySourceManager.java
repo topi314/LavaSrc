@@ -241,7 +241,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				ExtendedAudioPlaylist.Type.PLAYLIST,
 				playlist.get("external_urls").get("spotify").text(),
 				playlist.get("images").index(0).get("url").text(),
-				null,
+				playlist.get("owner").get("display_name").text(),
 				(int) playlist.get("tracks").get("total").asLong(0)
 			));
 		}
