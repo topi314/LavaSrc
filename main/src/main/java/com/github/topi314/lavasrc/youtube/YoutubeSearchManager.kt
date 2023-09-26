@@ -121,9 +121,9 @@ class YoutubeSearchManager(
         val finalTypes = types.ifEmpty { SEARCH_TYPES }
         return BasicAudioSearchResult(
             items.filter<AudioTrack>(AudioSearchResult.Type.TRACK in finalTypes),
-            emptyList(),
             items.filter(AudioSearchResult.Type.ALBUM in finalTypes, ExtendedAudioPlaylist.Type.ALBUM),
             items.filter(AudioSearchResult.Type.ARTIST in finalTypes, ExtendedAudioPlaylist.Type.ARTIST),
+            emptyList(),
             items.filter<AudioText>(AudioSearchResult.Type.TEXT in finalTypes),
         )
     }
