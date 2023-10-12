@@ -1,0 +1,42 @@
+plugins {
+    id "java-library"
+    id "org.jetbrains.kotlin.multiplatform"
+    id "org.jetbrains.kotlin.plugin.serialization"
+}
+
+archivesBaseName = "lavasrc-protocol"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+}
+
+kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions.jvmTarget = "11"
+        }
+    }
+    js(IR) {
+        nodejs()
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                pom {
+                    artifactId archivesBaseName
+                    from components.java
+                }
+            }
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+                implementation("dev.arbjerg.lavalink:protocol:62d03df687cfc856af62cf507d7a913830508f8b-SNAPSHOT")
+            }
+        }
+    }
+}
