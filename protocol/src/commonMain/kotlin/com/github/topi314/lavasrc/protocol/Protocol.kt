@@ -14,7 +14,7 @@ data class ExtendedPlaylistInfo(
      * The type of the originating track list.
      */
     @Serializable
-    public enum class Type {
+    enum class Type {
         /**
          * A playlist from a music service.
          */
