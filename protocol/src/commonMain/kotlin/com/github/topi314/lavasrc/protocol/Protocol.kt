@@ -5,10 +5,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ExtendedPlaylistInfo(
-    val type: Type,
-    val url: String,
-    val artworkUrl: String,
-    val author: String
+    val type: Type = Type.PLAYLIST,
+    val url: String? = null,
+    val artworkUrl: String? = null,
+    val author: String? = null,
+    val totalTracks: Int? = null,
 ) {
     /**
      * The type of the originating track list.
@@ -42,11 +43,11 @@ data class ExtendedPlaylistInfo(
 }
 
 @Serializable
-data class ExtendedAudioTrack(
-    val albumName: String?,
-    val albumUrl: String?,
-    val artistUrl: String?,
-    val artistArtworkUrl: String?,
-    val previewUrl: String?,
-    val isPreview: Boolean
+data class ExtendedTrackInfo(
+    val albumName: String? = null,
+    val albumUrl: String? = null,
+    val artistUrl: String? = null,
+    val artistArtworkUrl: String? = null,
+    val previewUrl: String? = null,
+    val isPreview: Boolean = false
 )
