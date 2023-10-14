@@ -42,6 +42,7 @@ repositories {
 
 dependencies {
   implementation "com.github.topi314.lavasrc:lavasrc:x.y.z"
+  implementation "com.github.topi314.lavasrc:lavasrc-protocol:x.y.z"
 }
 ```
 </details>
@@ -63,6 +64,11 @@ dependencies {
     <groupId>com.github.topi314.lavasrc</groupId>
     <artifactId>lavasrc</artifactId>
     <version>x.y.z</version>
+  </dependency>
+  <dependency>
+      <groupId>com.github.topi314.lavasrc</groupId>
+      <artifactId>lavasrc-protocol</artifactId>
+      <version>x.y.z</version>
   </dependency>
 </dependencies>
 ```
@@ -253,7 +259,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 | artistUrl        | ?string | The url of the artist          |
 | artistArtworkUrl | ?string | The url of the artist artwork  |
 | previewUrl       | ?string | The url of the preview         |
-| isPreview        | ?bool   | Whether the track is a preview |
+| isPreview        | bool    | Whether the track is a preview |
 
 #### Playlist
 
