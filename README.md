@@ -1,4 +1,4 @@
-[![](https://jitpack.io/v/TopiSenpai/LavaSrc.svg)](https://jitpack.io/#TopiSenpai/LavaSrc)
+[![](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fmaven.topi.wtf%2Freleases%2Fcom%2Fgithub%2FTopiSenpai%2FLavaSrc%2Flavasrc%2Fmaven-metadata.xml)](https://maven.topi.wtf/#/releases/com/github/TopiSenpai/LavaSrc/lavasrc)
 
 # LavaSrc
 
