@@ -14,7 +14,7 @@ java {
 }
 
 dependencies {
-    implementation "com.github.topi314.lavasearch:lavasearch:1.0.0-beta.2"
+    api "com.github.topi314.lavasearch:lavasearch:1.0.0-beta.2"
     compileOnly "dev.arbjerg:lavaplayer:2.0.1"
     implementation "org.jsoup:jsoup:1.15.3"
     implementation "commons-io:commons-io:2.7"
