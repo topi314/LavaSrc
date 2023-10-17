@@ -49,7 +49,12 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 			}
 
 			provider = provider.replace(QUERY_PATTERN, getTrackTitle(mirroringAudioTrack));
-			track = mirroringAudioTrack.loadItem(provider);
+			try {
+				track = mirroringAudioTrack.loadItem(provider);
+			}
+			catch (Exception e) {
+				log.error("Failed to load track from provider \"{}\"!", provider, e);
+			}
 			if (track != AudioReference.NO_TRACK) {
 				break;
 			}
