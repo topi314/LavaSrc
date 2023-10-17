@@ -383,9 +383,13 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 		var jsonArtist = this.getJson(API_BASE + "catalog/" + countryCode + "/artists/" + id);
 
-		var artworkUrl = this.parseArtworkUrl(jsonArtist.get("data").index(0).get("attributes").get("artwork"));
 		var author = jsonArtist.get("data").index(0).get("attributes").get("name").text();
-		var artistArtwork = Map.of(jsonArtist.get("data").index(0).get("id").text(), artworkUrl);
+
+		var artworkUrl = this.parseArtworkUrl(jsonArtist.get("data").index(0).get("attributes").get("artwork"));
+		var artistArtwork = new HashMap<String, String>();
+		if (artworkUrl != null) {
+			artistArtwork.put(jsonArtist.get("data").index(0).get("id").text(), artworkUrl);
+		}
 		var tracks = parseTracks(json, preview, artistArtwork);
 		return new AppleMusicAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, json.get("data").index(0).get("attributes").get("url").text(), artworkUrl, author, tracks.size());
 	}
@@ -396,26 +400,34 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			return AudioReference.NO_TRACK;
 		}
 
-		var artistArtwork = getArtistCover(List.of(parseArtistId(json))).values().iterator().next();
+		var artistId = this.parseArtistId(json);
+		String artistArtwork = null;
+		if (artistId != null) {
+			artistArtwork = getArtistCover(List.of()).values().iterator().next();
+		}
 		return parseTrack(json.get("data").index(0), preview, artistArtwork);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview, Map<String, String> artistArtwork) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var value : json.get("data").values()) {
-			tracks.add(this.parseTrack(value, preview, artistArtwork.get(parseArtistId(value))));
+			tracks.add(this.parseTrack(value, preview, artistArtwork.get(this.parseArtistId(value))));
 		}
 		return tracks;
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) throws IOException {
-		var ids = json.get("data").values().stream().map(this::parseArtistId).filter(Predicate.not(String::isBlank)).collect(Collectors.toList());
+		var ids = json.get("data").values().stream().map(this::parseArtistId).filter(Predicate.not(Objects::isNull)).collect(Collectors.toList());
 		return parseTracks(json, preview, getArtistCover(ids));
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview, String artistArtwork) {
 		var attributes = json.get("attributes");
 		var trackUrl = attributes.get("url").text();
+		var artistUrl = json.get("artistUrl").text();
+		if (artistUrl != null && (artistUrl.isEmpty() || artistUrl.startsWith("https://music.apple.com/WebObjects/MZStore.woa/wa/viewCollaboration"))) {
+			artistUrl = null;
+		}
 		return new AppleMusicAudioTrack(
 			new AudioTrackInfo(
 				attributes.get("name").text(),
@@ -431,7 +443,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			// Apple doesn't give us the album url, however the track url is
 			// /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
 			trackUrl.substring(0, trackUrl.indexOf('?')),
-			attributes.get("artistUrl").text(),
+			artistUrl,
 			artistArtwork,
 			attributes.get("previews").index(0).get("hlsUrl").text(),
 			preview,
@@ -440,13 +452,21 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	private String parseArtworkUrl(JsonBrowser json) {
-		return json.get("url").text().replace("{w}", json.get("width").text()).replace("{h}", json.get("height").text());
+		var text = json.get("url").text();
+		if (text == null) {
+			return null;
+		}
+		return text.replace("{w}", json.get("width").text()).replace("{h}", json.get("height").text());
 	}
 
+	@Nullable
 	private String parseArtistId(JsonBrowser json) {
 		var url = json.get("data").index(0).get("attributes").get("artistUrl").text();
 		if (url == null || url.isEmpty()) {
-			return "";
+			return null;
+		}
+		if (url.startsWith("https://music.apple.com/WebObjects/MZStore.woa/wa/viewCollaboration")) {
+			return null;
 		}
 		return url.substring(url.lastIndexOf('/') + 1);
 	}
