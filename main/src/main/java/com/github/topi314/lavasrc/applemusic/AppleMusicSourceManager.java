@@ -403,7 +403,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		var artistId = this.parseArtistId(json);
 		String artistArtwork = null;
 		if (artistId != null) {
-			artistArtwork = getArtistCover(List.of()).values().iterator().next();
+			artistArtwork = getArtistCover(List.of(artistId)).values().iterator().next();
 		}
 		return parseTrack(json.get("data").index(0), preview, artistArtwork);
 	}
