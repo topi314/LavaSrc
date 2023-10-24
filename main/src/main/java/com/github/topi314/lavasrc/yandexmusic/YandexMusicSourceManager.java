@@ -214,7 +214,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				id,
 				false,
 				"https://music.yandex.ru/track/" + id,
-					this.formatCoverUri(coverUri),
+				this.formatCoverUri(coverUri),
 				null
 			),
 			this
