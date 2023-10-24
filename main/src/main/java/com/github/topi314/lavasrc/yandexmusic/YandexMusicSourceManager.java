@@ -26,9 +26,11 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album)/(?<identifier>[0-9]+)/?((?<type2>track/)(?<identifier2>[0-9]+)/?)?");
+	public static final Pattern URL_TRACK_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>track)/(?<identifier>[0-9]+)");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
 	public static final String PUBLIC_API_BASE = "https://api.music.yandex.net";
@@ -74,6 +76,11 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 						return this.getArtist(artistId);
 				}
 				return null;
+			}
+			matcher = URL_TRACK_PATTERN.matcher(reference.identifier);
+			if (matcher.find()) {
+				var trackId = matcher.group("identifier");
+				return this.getTrack(trackId);
 			}
 			matcher = URL_PLAYLIST_PATTERN.matcher(reference.identifier);
 			if (matcher.find()) {
@@ -193,12 +200,12 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json) {
-		if (!json.get("available").asBoolean(false) || json.get("albums").values().isEmpty()) {
+		if (!json.get("available").asBoolean(false)) {
 			return null;
 		}
 		var id = json.get("id").text();
-		var artist = json.get("major").get("name").text().equals("PODCASTS") ? json.get("albums").values().get(0).get("title").text() : json.get("artists").values().get(0).get("name").text();
-		var coverUri = json.get("albums").values().get(0).get("coverUri").text();
+		var artist = parseArtist(json);
+		var coverUri = json.get("coverUri").text();
 		return new YandexMusicAudioTrack(
 			new AudioTrackInfo(
 				json.get("title").text(),
@@ -206,12 +213,34 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				json.get("durationMs").as(Long.class),
 				id,
 				false,
-				"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text() + "/track/" + id,
-				this.formatCoverUri(coverUri),
+				"https://music.yandex.ru/track/" + id,
+					this.formatCoverUri(coverUri),
 				null
 			),
 			this
 		);
+	}
+
+	private String parseArtist(JsonBrowser json) {
+		if (!json.get("major").isNull() && json.get("major").get("name").text().equals("PODCASTS")) {
+			return json.get("albums").values().get(0).get("title").text();
+		}
+
+		if (!json.get("artists").values().isEmpty()) {
+			return extractArtists(json.get("artists"));
+		}
+
+		if (!json.get("matchedTrack").isNull()) {
+			return extractArtists(json.get("matchedTrack").get("artists"));
+		}
+
+		return "Unknown";
+	}
+
+	private String extractArtists(JsonBrowser artistNode) {
+		return artistNode.values().stream()
+				.map(node -> node.get("name").text())
+				.collect(Collectors.joining(", "));
 	}
 
 	private String formatCoverUri(String coverUri) {
