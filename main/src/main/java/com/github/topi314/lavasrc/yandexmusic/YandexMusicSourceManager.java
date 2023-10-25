@@ -29,8 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
-	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album)/(?<identifier>[0-9]+)/?((?<type2>track/)(?<identifier2>[0-9]+)/?)?");
-	public static final Pattern URL_TRACK_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>track)/(?<identifier>[0-9]+)");
+	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
 	public static final String PUBLIC_API_BASE = "https://api.music.yandex.net";
@@ -74,13 +73,11 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 					case "artist":
 						var artistId = matcher.group("identifier");
 						return this.getArtist(artistId);
+					case "track":
+					    	var trackId = matcher.group("identifier");
+					    	return this.getTrack(trackId);
 				}
 				return null;
-			}
-			matcher = URL_TRACK_PATTERN.matcher(reference.identifier);
-			if (matcher.find()) {
-				var trackId = matcher.group("identifier");
-				return this.getTrack(trackId);
 			}
 			matcher = URL_PLAYLIST_PATTERN.matcher(reference.identifier);
 			if (matcher.find()) {
