@@ -318,6 +318,54 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://music.yandex.ru/users/yamusic-bestsongs/playlists/701626
 * https://music.yandex.ru/artist/701626
 
+### Yandex Music Radio a.k.a "My Vibe"
+* `ymradio:<type>:<tag>`
+
+An infinite stream of tracks, generated based on certain criteria. Whether you're looking for tracks similar to a specific playlist, songs resonating with a particular artist's style, or the "My Vibe" feature that curates songs tailored just for you, this radio has got it all!
+
+**Type** - The type of radio. It can be one of the following:
+- `user`
+- `artist`
+- `album`
+- `playlist`
+- `track`
+- `genre`
+
+**Tag** - The radio identifier.
+
+**Examples**:
+- `user:onyourwave` (My Vibe)
+- `track:{trackId}` (Radio by Track)
+- `playlist:{playlistOwnerId_playlistId}` (Radio by Playlist)
+- `album:{albumId}` (Radio by Album)
+- `artist:{artistId}` (Radio by Artist)
+- `genre:(pop|rap|rock|etc)` (Radio by Genre)
+
+**Sample Implementation**:
+```java
+// Inside AudioLoadResultHandler
+@Override
+public void trackLoaded(AudioTrack track) {
+    if (track instanceof YandexMusicAudioRadio) {
+        YandexMusicAudioRadio radio = (YandexMusicAudioRadio) track:
+        //save instance for that radio somewhere in your player that extends @AudioEventAdapter
+        audioPlayer.startTrack(radio.nextTrack());
+    }
+}
+
+// Inside AudioEventAdapter
+@Override
+public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+    if (endReason.mayStartNext) {
+        try {
+            player.startTrack(radio.nextTrack(), false);
+        } catch (URISyntaxException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
 ### Flowery TTS
 You can ready about all the available options [here](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get),
 a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)

@@ -1,6 +1,9 @@
 package com.github.topi314.lavasrc.yandexmusic;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.yandexmusic.radio.AudioRadioBatch;
+import com.github.topi314.lavasrc.yandexmusic.radio.YandexMusicAudioRadio;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
@@ -10,18 +13,27 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,6 +42,7 @@ import java.util.regex.Pattern;
 public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album)/(?<identifier>[0-9]+)/?((?<type2>track/)(?<identifier2>[0-9]+)/?)?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
+	public static final Pattern RADIO_PATTERN = Pattern.compile("ymradio:(?<identifier>[0-9A-Za-z@.-]+):(?<identifier2>[0-9A-Za-z@._-]+)");
 	public static final String SEARCH_PREFIX = "ymsearch:";
 	public static final String PUBLIC_API_BASE = "https://api.music.yandex.net";
 
@@ -80,6 +93,12 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				var userId = matcher.group("identifier");
 				var playlistId = matcher.group("identifier2");
 				return this.getPlaylist(userId, playlistId);
+			}
+			matcher = RADIO_PATTERN.matcher(reference.identifier);
+			if (matcher.find()) {
+				var type = matcher.group("identifier");
+				var tag = matcher.group("identifier2");
+				return this.getRadio(type, tag);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -167,11 +186,45 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		return new YandexMusicAudioPlaylist(playlistTitle, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
+	public AudioItem getRadio(String type, String tag) throws IOException {
+		var station = type + ":" + tag;
+		var json = this.getJson(PUBLIC_API_BASE + "/rotor/station/" + station + "/tracks");
+		if (json.isNull() || json.get("result").isNull() || json.get("result").get("sequence").values().isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+		var tracks = this.parseTracks(json.get("result").get("sequence"), true);
+		var batchId = json.get("result").get("batchId").text();
+		var station_json = this.getJson(PUBLIC_API_BASE + "/rotor/station/" + station + "/info");
+		var station_name = station_json.get("result").values().get(0).get("station").get("name").text();
+		return new YandexMusicAudioRadio(station_name, station, batchId, tracks, this);
+	}
+
 	public JsonBrowser getJson(String uri) throws IOException {
+		return getJson(URI.create(uri));
+	}
+
+	public JsonBrowser getJson(String uri, List<NameValuePair> params) throws URISyntaxException, IOException {
+		return getJson(buildUriWithParams(uri, params));
+	}
+
+	public JsonBrowser getJson(URI uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Authorization", "OAuth " + this.accessToken);
-		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+        return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+	}
+
+	public JsonBrowser postJson(URI uri, String entity) throws IOException {
+		var request = new HttpPost(uri);
+		request.setHeader("Accept", "application/json");
+		request.setHeader("Authorization", "OAuth " + this.accessToken);
+		request.setHeader("Content-Type", "application/json");
+		request.setEntity(new StringEntity(entity, ContentType.APPLICATION_JSON));
+        return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+	}
+
+	private URI buildUriWithParams(String uri, List<NameValuePair> params) throws URISyntaxException {
+		return new URIBuilder(uri).addParameters(params).build();
 	}
 
 	public String getDownloadStrings(String uri) throws IOException {
@@ -182,9 +235,13 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json) {
+		return parseTracks(json, false);
+	}
+
+	private List<AudioTrack> parseTracks(JsonBrowser json, boolean isRadio) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var track : json.values()) {
-			var parsedTrack = this.parseTrack(track);
+			var parsedTrack = isRadio ? this.parseTrack(track.get("track")) : this.parseTrack(track);
 			if (parsedTrack != null) {
 				tracks.add(parsedTrack);
 			}
@@ -253,5 +310,64 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
 	public HttpInterface getHttpInterface() {
 		return this.httpInterfaceManager.getInterface();
+	}
+
+	public AudioRadioBatch getRadioBatch(String station, String identifier) throws IOException, URISyntaxException {
+		var json = this.getJson(PUBLIC_API_BASE + "/rotor/station/" + station + "/tracks", new ArrayList<>() {{
+			add(new BasicNameValuePair("queue", identifier));
+		}});
+
+		if (json.isNull() || json.get("result").isNull() || json.get("result").get("sequence").values().isEmpty()) {
+			return null;
+		}
+		var tracks = this.parseTracks(json.get("result").get("sequence"), true);
+		var batchId = json.get("result").get("batchId").text();
+		return new AudioRadioBatch(batchId, tracks);
+	}
+
+	public void radioFeedBack(String station,
+							  String action,
+							  String trackId,
+							  String timestamp,
+							  String batchId,
+							  String totalPlayedSeconds) throws URISyntaxException, IOException {
+		var url = PUBLIC_API_BASE + "/rotor/station/" + station + "/feedback";
+		if (timestamp == null) {
+			timestamp = String.valueOf(System.currentTimeMillis()/1000L);
+		}
+		var data = new HashMap<String, Object>();
+		var params = new ArrayList<NameValuePair>();
+		data.put("type", action);
+		data.put("timestamp", Integer.parseInt(timestamp));
+		if (batchId != null) {
+			params.add(new BasicNameValuePair("batch-id", batchId));
+		}
+		if (trackId != null) {
+			data.put("trackId", Integer.parseInt(trackId));
+		}
+		if (totalPlayedSeconds != null) {
+			data.put("totalPlayedSeconds", Integer.parseInt(totalPlayedSeconds));
+		}
+		var URI = this.buildUriWithParams(url, params);
+		postJson(URI, new ObjectMapper().writeValueAsString(data));
+	}
+
+	public void radioFeedBackRadioStarted(String station, String batchId) throws IOException, URISyntaxException {
+		radioFeedBack(station, "radioStarted", null, null, batchId, null);
+	}
+
+	public void radioFeedBackTrackFinished(String station,
+										   AudioTrack currentTrack,
+										   long totalPlayedSeconds,
+										   String batchId) throws URISyntaxException, IOException {
+		radioFeedBack(station, "trackFinished", currentTrack.getIdentifier(), null, batchId, String.valueOf(totalPlayedSeconds));
+	}
+
+	public void radioFeedBackTrackStarted(String station, AudioTrack currentTrack, String batchId) throws URISyntaxException, IOException {
+		radioFeedBack(station, "trackStarted", currentTrack.getIdentifier(), null, batchId, null);
+	}
+
+	public void radioFeedBackTrackSkipped(String station, AudioTrack currentTrack, long totalPlayedSeconds, String batchId) throws URISyntaxException, IOException {
+		radioFeedBack(station, "skip", currentTrack.getIdentifier(), null, batchId, String.valueOf(totalPlayedSeconds));
 	}
 }
