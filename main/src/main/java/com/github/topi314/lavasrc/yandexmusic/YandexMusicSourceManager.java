@@ -10,15 +10,20 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -26,6 +31,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album)/(?<identifier>[0-9]+)/?((?<type2>track/)(?<identifier2>[0-9]+)/?)?");
@@ -81,10 +87,10 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				var playlistId = matcher.group("identifier2");
 				return this.getPlaylist(userId, playlistId);
 			}
-		} catch (IOException e) {
+		} catch (IOException | URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
-		return null;
+        return null;
 	}
 
 	private AudioItem getSearch(String query) throws IOException {
@@ -146,14 +152,18 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		return new YandexMusicAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
-	private AudioItem getPlaylist(String userString, String id) throws IOException {
+	private AudioItem getPlaylist(String userString, String id) throws IOException, URISyntaxException {
 		var json = this.getJson(PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id);
 		if (json.isNull() || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = new ArrayList<AudioTrack>();
-		for (var track : json.get("result").get("tracks").values()) {
-			var parsedTrack = this.parseTrack(track.get("track"));
+		var tracksToParse = json.get("result").get("tracks").values();
+		if (tracksToParse.get(0).get("track").isNull()) {
+			tracksToParse = getTracks(getTrackIds(tracksToParse));
+		}
+		for (var track : tracksToParse) {
+			var parsedTrack = track.get("track").isNull() ? this.parseTrack(track) : this.parseTrack(track.get("track"));
 			if (parsedTrack != null) {
 				tracks.add(parsedTrack);
 			}
@@ -167,11 +177,35 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		return new YandexMusicAudioPlaylist(playlistTitle, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
+	private List<JsonBrowser> getTracks(String trackIds) throws URISyntaxException, IOException {
+		return getJson(PUBLIC_API_BASE + "/tracks", new ArrayList<>() {{
+			add(new BasicNameValuePair("track-ids", trackIds));
+		}}).get("result").values();
+	}
+
+	private String getTrackIds(List<JsonBrowser> tracksToParse) {
+		return tracksToParse.stream()
+				.map(node -> node.get("id").text())
+				.collect(Collectors.joining(","));
+	}
+
 	public JsonBrowser getJson(String uri) throws IOException {
+		return getJson(URI.create(uri));
+	}
+
+	public JsonBrowser getJson(String uri, List<NameValuePair> params) throws URISyntaxException, IOException {
+		return getJson(buildUriWithParams(uri, params));
+	}
+
+	public JsonBrowser getJson(URI uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Authorization", "OAuth " + this.accessToken);
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+	}
+
+	private URI buildUriWithParams(String uri, List<NameValuePair> params) throws URISyntaxException {
+		return new URIBuilder(uri).addParameters(params).build();
 	}
 
 	public String getDownloadStrings(String uri) throws IOException {
