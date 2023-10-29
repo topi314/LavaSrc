@@ -411,7 +411,12 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview, Map<String, String> artistArtwork) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var value : json.get("data").values()) {
-			tracks.add(this.parseTrack(value, preview, artistArtwork.get(this.parseArtistId(value))));
+			var artistId = this.parseArtistId(value);
+			String artworkUrl = null;
+			if (artistId != null) {
+				artworkUrl = artistArtwork.get(artistId);
+			}
+			tracks.add(this.parseTrack(value, preview, artworkUrl));
 		}
 		return tracks;
 	}
