@@ -41,6 +41,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "sprec:";
+	public static final String SHARE_URL = "https://spotify.link/";
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 	public static final String API_BASE = "https://api.spotify.com/v1/";
@@ -109,6 +110,21 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
 				return this.getRecommendations(reference.identifier.substring(RECOMMENDATIONS_PREFIX.length()).trim());
+			}
+
+			// If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
+			if (reference.identifier.startsWith(SHARE_URL)) {
+				var request = new HttpGet(reference.identifier);
+				request.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build());
+				try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
+					if (response.getStatusLine().getStatusCode() == 307) {
+						var location = response.getFirstHeader("Location").getValue();
+						if (location.startsWith("https://open.spotify.com/")) {
+							return this.loadItem(manager, new AudioReference(location, reference.title));
+						}
+					}
+					return null;
+				}
 			}
 
 			var matcher = URL_PATTERN.matcher(reference.identifier);
