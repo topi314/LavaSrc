@@ -43,6 +43,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final String RECOMMENDATIONS_PREFIX = "sprec:";
 	public static final String PREVIEW_PREFIX = "spprev:";
 	public static final long PREVIEW_LENGTH = 30000;
+	public static final String SHARE_URL = "https://spotify.link/";
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 	public static final String API_BASE = "https://api.spotify.com/v1/";
@@ -144,6 +145,21 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			if (identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
 				return this.getRecommendations(identifier.substring(RECOMMENDATIONS_PREFIX.length()).trim(), preview);
+			}
+
+			// If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
+			if (identifier.startsWith(SHARE_URL)) {
+				var request = new HttpGet(identifier);
+				request.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build());
+				try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
+					if (response.getStatusLine().getStatusCode() == 307) {
+						var location = response.getFirstHeader("Location").getValue();
+						if (location.startsWith("https://open.spotify.com/")) {
+							return this.loadItem(location, preview);
+						}
+					}
+					return null;
+				}
 			}
 
 			var matcher = URL_PATTERN.matcher(identifier);
