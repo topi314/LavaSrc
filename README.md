@@ -55,6 +55,8 @@ dependencies {
 ```xml
 <repositories>
   <repository>
+    <id>TopiWTF-releases</id>
+    <name>Topis Maven Repo</name>
     <url>https://maven.topi.wtf/releases</url>
   </repository>
 </repositories>
@@ -67,7 +69,7 @@ dependencies {
   </dependency>
   <dependency>
       <groupId>com.github.topi314.lavasrc</groupId>
-      <artifactId>lavasrc-protocol</artifactId>
+      <artifactId>lavasrc-plugin</artifactId>
       <version>x.y.z</version>
   </dependency>
 </dependencies>
