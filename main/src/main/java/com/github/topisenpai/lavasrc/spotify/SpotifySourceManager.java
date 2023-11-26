@@ -17,6 +17,7 @@ import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
@@ -114,7 +115,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			// If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
 			if (reference.identifier.startsWith(SHARE_URL)) {
-				var request = new HttpGet(reference.identifier);
+				var request = new HttpHead(reference.identifier);
 				request.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build());
 				try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
 					if (response.getStatusLine().getStatusCode() == 307) {
