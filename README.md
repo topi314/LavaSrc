@@ -42,7 +42,7 @@ repositories {
 
 dependencies {
   implementation "com.github.topi314.lavasrc:lavasrc:x.y.z"
-  implementation "com.github.topi314.lavasrc:lavasrc-plugin:x.y.z"
+  implementation "com.github.topi314.lavasrc:lavasrc-protocol:x.y.z"
 }
 ```
 </details>
@@ -69,7 +69,7 @@ dependencies {
   </dependency>
   <dependency>
       <groupId>com.github.topi314.lavasrc</groupId>
-      <artifactId>lavasrc-plugin</artifactId>
+      <artifactId>lavasrc-protocol</artifactId>
       <version>x.y.z</version>
   </dependency>
 </dependencies>
