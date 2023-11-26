@@ -55,6 +55,8 @@ dependencies {
 ```xml
 <repositories>
   <repository>
+    <id>TopiWTF-releases</id>
+    <name>Topis Maven Repo</name>
     <url>https://maven.topi.wtf/releases</url>
   </repository>
 </repositories>
