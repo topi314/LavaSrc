@@ -55,7 +55,6 @@ subprojects {
 
     publishing {
         repositories {
-            println(name)
             if (isMavenDefined) {
                 System.out.println("Publishing to Maven Repo")
 
