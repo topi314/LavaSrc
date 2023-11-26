@@ -184,7 +184,7 @@ Replace x.y.z with the latest version number
 lavalink:
   plugins:
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:x.y.z"
-      repository: "https://maven.topi.wtf/releases"
+      repository: "https://maven.lavalink.dev/releases" # this is optional for lavalink v4.0.0-beta.5 or greater
 ```
 
 Snapshot builds are available in https://maven.topi.wtf/snapshots with the short commit hash as the version
