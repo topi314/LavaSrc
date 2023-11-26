@@ -41,6 +41,7 @@ def getGitVersion() {
 }
 
 var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
+var isLavalinkMavenDefined = findProperty("LAVALINK_MAVEN_USERNAME") != null && findProperty("LAVALINK_MAVEN_PASSWORD") != null
 
 subprojects {
     apply plugin: "java"
@@ -53,9 +54,10 @@ subprojects {
     compileJava.options.encoding = "UTF-8"
 
     publishing {
-        if (isMavenDefined) {
-            System.out.println("Publishing to Maven Repo")
-            repositories {
+        repositories {
+            if (isMavenDefined) {
+                System.out.println("Publishing to Maven Repo")
+
                 def snapshots = "https://maven.topi.wtf/snapshots"
                 def releases = "https://maven.topi.wtf/releases"
 
@@ -65,6 +67,21 @@ subprojects {
                     credentials {
                         username = findProperty("MAVEN_USERNAME")
                         password = findProperty("MAVEN_PASSWORD")
+                    }
+
+                }
+            }
+            if (isLavalinkMavenDefined && name == "plugin") {
+                System.out.println("Publishing to Lavalink Maven Repo")
+                def lavalinkSnapshots = "https://maven.lavalink.dev/snapshots"
+                def lavalinkReleases = "https://maven.lavalink.dev/releases"
+
+                maven {
+                    name = "Reposilite-Lavalink"
+                    url = isSnapshot ? lavalinkSnapshots : lavalinkReleases
+                    credentials {
+                        username = findProperty("LAVALINK_MAVEN_USERNAME")
+                        password = findProperty("LAVALINK_MAVEN_PASSWORD")
                     }
                 }
             }

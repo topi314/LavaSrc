@@ -6,7 +6,7 @@ archivesBaseName = "lavasrc-plugin"
 lavalinkPlugin {
     name = "lavasrc-plugin"
     apiVersion = "4.0.0-beta.3"
-    serverVersion = "4.0.0-beta.3"
+    serverVersion = "4.0.0-beta.5"
     configurePublishing = false
 }
 
