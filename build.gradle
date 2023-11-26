@@ -54,9 +54,11 @@ subprojects {
     compileJava.options.encoding = "UTF-8"
 
     publishing {
-        if (isMavenDefined) {
-            System.out.println("Publishing to Maven Repo")
-            repositories {
+        repositories {
+            println(name)
+            if (isMavenDefined) {
+                System.out.println("Publishing to Maven Repo")
+
                 def snapshots = "https://maven.topi.wtf/snapshots"
                 def releases = "https://maven.topi.wtf/releases"
 
@@ -67,18 +69,17 @@ subprojects {
                         username = findProperty("MAVEN_USERNAME")
                         password = findProperty("MAVEN_PASSWORD")
                     }
+
                 }
             }
-        }
-        if (isLavalinkMavenDefined && name == "plugin") {
-            System.out.println("Publishing to Lavalink Maven Repo")
-            repositories {
-                def snapshots = "https://maven.lavalink.dev/snapshots"
-                def releases = "https://maven.lavalink.dev/releases"
+            if (isLavalinkMavenDefined && name == "plugin") {
+                System.out.println("Publishing to Lavalink Maven Repo")
+                def lavalinkSnapshots = "https://maven.lavalink.dev/snapshots"
+                def lavalinkReleases = "https://maven.lavalink.dev/releases"
 
                 maven {
                     name = "Reposilite Lavalink"
-                    url = isSnapshot ? snapshots : releases
+                    url = isSnapshot ? lavalinkSnapshots : lavalinkReleases
                     credentials {
                         username = findProperty("LAVALINK_MAVEN_USERNAME")
                         password = findProperty("LAVALINK_MAVEN_PASSWORD")
