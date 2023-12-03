@@ -154,7 +154,7 @@ To install this plugin either download the latest release and place it into your
 Lavalink supports plugins only in v3.5 and above
 
 > **Note**
-> For a full `application.yml` example see [here](https://github.com/TopiSenpai/LavaSrc/blob/master/application.yml.example)
+> For a full `application.yml` example see [here](application.yml.example)
 
 Replace x.y.z with the latest version number
 ```yaml
