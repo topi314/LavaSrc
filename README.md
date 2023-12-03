@@ -179,7 +179,7 @@ This plugin requires Lavalink `v4` or greater
 To install this plugin either download the latest release and place it into your `plugins` folder or add the following into your `application.yml`
 
 > **Note**
-> For a full `application.yml` example see [here](https://github.com/TopiSenpai/LavaSrc/blob/master/application.example.yml)
+> For a full `application.yml` example see [here](application.example.yml)
 
 Replace x.y.z with the latest version number
 ```yaml
