@@ -133,6 +133,8 @@ playerManager.registerSourceManager(new DeezerSourceManager("...");
    Very quickly there will be a redirect to another page, so you need to have time to copy the link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
 5. Your accessToken, what is after `access_token`.
 
+Alternatively, you can use [this open-source browser extensions and apps](https://github.com/MarshalX/yandex-music-token/) to obtain your OAuth Yandex Music token much easier.
+
 Token expires in 1 year. You can get a new one by repeating the steps above.
 
 ## Important information
