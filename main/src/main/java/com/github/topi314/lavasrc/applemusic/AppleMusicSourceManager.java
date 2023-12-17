@@ -331,11 +331,11 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			page = this.getJson(API_BASE + "catalog/" + countryCode + "/albums/" + id + "/tracks?limit=" + MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += MAX_PAGE_ITEMS;
 
-			page.values().forEach(tracksRaw::add);
+			page.get("data").values().forEach(tracksRaw::add);
 		}
 		while (page.get("next").text() != null && ++pages < albumPageLimit);
 
-		var tracks = parseTracks(tracksRaw, preview);
+		var tracks = parseTrackList(tracksRaw, preview);
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -363,9 +363,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		}
 		while (page.get("next").text() != null && ++pages < playlistPageLimit);
 
-		var dataRaw = JsonBrowser.newMap();
-		dataRaw.put("data", tracksRaw);
-		var tracks = parseTracks(dataRaw, preview);
+		var tracks = parseTrackList(tracksRaw, preview);
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -419,6 +417,12 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			tracks.add(this.parseTrack(value, preview, artworkUrl));
 		}
 		return tracks;
+	}
+
+	private List<AudioTrack> parseTrackList(JsonBrowser json, boolean preview) throws IOException {
+		var jsonData = JsonBrowser.newMap();
+		jsonData.put("data", json);
+		return parseTracks(jsonData, preview);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) throws IOException {
