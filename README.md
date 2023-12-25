@@ -69,7 +69,7 @@ dependencies {
   </dependency>
   <dependency>
       <groupId>com.github.topi314.lavasrc</groupId>
-      <artifactId>lavasrc-protocol</artifactId>
+      <artifactId>lavasrc-protocol-jvm</artifactId>
       <version>x.y.z</version>
   </dependency>
 </dependencies>
