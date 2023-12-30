@@ -130,7 +130,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private AudioItem getArtist(String id) throws IOException {
-		var json = this.getJson(PUBLIC_API_BASE + "/artists/" + id + "/tracks?page-size=10");
+		var json = this.getJson(PUBLIC_API_BASE + "/artists/" + id + "/tracks?page_size=300");
 		if (json.isNull() || json.get("result").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -157,16 +157,54 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 			if (parsedTrack != null) {
 				tracks.add(parsedTrack);
 			}
+				
 		}
+		
+		if (tracks.isEmpty()) {
+			var playlistTracks = new ArrayList<String>();
+			for (var track : json.get("result").get("tracks").values()) {
+				playlistTracks.add(track.get("id").text());
+				
+				}
+			if (playlistTracks.size() > 300) {
+				int chunkSize = 300;
+				for (int i = 0; i < playlistTracks.size(); i += chunkSize) {
+					int endIndex = Math.min(i + chunkSize, playlistTracks.size());
+					List<String> trackIds = playlistTracks.subList(i, endIndex);
+					var trackIdsStr = String.join("%2C", trackIds);
+					var additionalTracksJson = this.getJson(PUBLIC_API_BASE + "/tracks?trackIds=" + trackIdsStr);
+					
+					for (var trackInfo : additionalTracksJson.get("result").values()) {
+						System.out.println(trackInfo);
+						var parsedTrack = this.parseTrack(trackInfo);
+						if (parsedTrack != null) {
+							tracks.add(parsedTrack);
+						}
+					}
+				}
+			}
+			else if (playlistTracks.size() < 300 && playlistTracks.size() != 0) {
+				var trackIdsStr = String.join("%2C", playlistTracks);
+				var additionalTracksJson = this.getJson(PUBLIC_API_BASE + "/tracks?trackIds=" + trackIdsStr);
+				for (var trackInfo : additionalTracksJson.get("result").values()) {
+					var parsedTrack = this.parseTrack(trackInfo);
+					if (parsedTrack != null) {
+						tracks.add(parsedTrack);
+					}
+				}
+			}
+		}
+		
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
-		}
+		}	
+			
 		var playlistTitle = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
 		var coverUri = json.get("result").get("cover").get("uri").text();
 		var author = json.get("result").get("owner").get("name").text();
 		return new YandexMusicAudioPlaylist(playlistTitle, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
-
+	
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
