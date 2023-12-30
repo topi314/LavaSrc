@@ -166,7 +166,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				playlistTracks.add(track.get("id").text());
 				
 				}
-			if (playlistTracks.size() > 300) {
+			if (playlistTracks.size() != 0) {
 				int chunkSize = 300;
 				for (int i = 0; i < playlistTracks.size(); i += chunkSize) {
 					int endIndex = Math.min(i + chunkSize, playlistTracks.size());
@@ -183,21 +183,11 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 					}
 				}
 			}
-			else if (playlistTracks.size() < 300 && playlistTracks.size() != 0) {
-				var trackIdsStr = String.join("%2C", playlistTracks);
-				var additionalTracksJson = this.getJson(PUBLIC_API_BASE + "/tracks?trackIds=" + trackIdsStr);
-				for (var trackInfo : additionalTracksJson.get("result").values()) {
-					var parsedTrack = this.parseTrack(trackInfo);
-					if (parsedTrack != null) {
-						tracks.add(parsedTrack);
-					}
-				}
+			else {
+				return AudioReference.NO_TRACK;
 			}
 		}
 		
-		if (tracks.isEmpty()) {
-			return AudioReference.NO_TRACK;
-		}	
 			
 		var playlistTitle = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
 		var coverUri = json.get("result").get("cover").get("uri").text();
