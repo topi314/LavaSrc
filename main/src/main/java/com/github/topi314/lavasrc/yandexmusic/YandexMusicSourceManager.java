@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album)/(?<identifier>[0-9]+)/?((?<type2>track/)(?<identifier2>[0-9]+)/?)?");
@@ -157,7 +158,6 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 			if (parsedTrack != null) {
 				tracks.add(parsedTrack);
 			}
-				
 		}
 		
 		if (tracks.isEmpty()) {
@@ -175,6 +175,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 					var additionalTracksJson = this.getJson(PUBLIC_API_BASE + "/tracks?trackIds=" + trackIdsStr);
 					
 					for (var trackInfo : additionalTracksJson.get("result").values()) {
+						System.out.println(trackInfo);
 						var parsedTrack = this.parseTrack(trackInfo);
 						if (parsedTrack != null) {
 							tracks.add(parsedTrack);
@@ -187,7 +188,6 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 			}
 		}
 		
-			
 		var playlistTitle = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
 		var coverUri = json.get("result").get("cover").get("uri").text();
 		var author = json.get("result").get("owner").get("name").text();
@@ -224,7 +224,12 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 			return null;
 		}
 		var id = json.get("id").text();
-		var artist = json.get("major").get("name").text().equals("PODCASTS") ? json.get("albums").values().get(0).get("title").text() : json.get("artists").values().get(0).get("name").text();
+		var joinedArtistNames = json.get("artists").values()
+        .stream()
+        .map(artist -> artist.get("name").text())
+        .collect(Collectors.joining(", "));
+
+		var artist = json.get("major").get("name").text().equals("PODCASTS") ? json.get("albums").values().get(0).get("title").text() : joinedArtistNames;
 		var coverUri = json.get("albums").values().get(0).get("coverUri").text();
 		return new YandexMusicAudioTrack(
 			new AudioTrackInfo(
