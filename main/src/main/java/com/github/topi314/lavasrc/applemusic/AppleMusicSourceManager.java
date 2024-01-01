@@ -282,7 +282,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			}
 		}
 
-		return new BasicAudioSearchResult(tracks, playLists, albums, artists, terms);
+		return new BasicAudioSearchResult(tracks, albums, artists, playLists, terms);
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
