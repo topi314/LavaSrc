@@ -89,36 +89,15 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	private AudioItem getSearch(String query) throws IOException {
-		var json = this.getJson(PUBLIC_API_BASE + "/search?text=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=all&page=0");
-		if (json == null || json.isNull() || !json.get("error").isNull() || (json.get("result").get("best").isNull() && json.get("result").get("tracks").isNull())) {
+		var json = this.getJson(PUBLIC_API_BASE + "/search?text=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track&page=0");
+		if (json.isNull() || json.get("result").get("tracks").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
-		var typeBest = json.get("result").get("best").get("type").text();
-		switch (typeBest) {
-			case "track":
-				var tracks = this.parseTracks(json.get("result").get("tracks").get("results"));
-				if (tracks.isEmpty()) {
-					return AudioReference.NO_TRACK;
-				}
-				return new BasicAudioPlaylist("Yandex Music Search: " + query, tracks, null, true);
-
-			case "album":
-				var albumId = json.get("result").get("best").get("result").get("id").text();
-				return this.getAlbum(albumId);
-
-			case "artist":
-				var artistId = json.get("result").get("best").get("result").get("id").text();
-				return this.getArtist(artistId);
-
-			case "playlist":
-				var userId = json.get("result").get("best").get("result").get("uid").text();
-				var playlistId = json.get("result").get("best").get("result").get("kind").text();
-				return this.getPlaylist(userId, playlistId);
-
-			default:
-				return AudioReference.NO_TRACK;
+		var tracks = this.parseTracks(json.get("result").get("tracks").get("results"));
+		if (tracks.isEmpty()) {
+			return AudioReference.NO_TRACK;
 		}
-	}
+		return new BasicAudioPlaylist("Yandex Music Search: " + query, tracks, null, true);
 
 	private AudioItem getAlbum(String id) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/albums/" + id + "/with-tracks");
