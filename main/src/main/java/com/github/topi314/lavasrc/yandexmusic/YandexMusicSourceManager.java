@@ -90,7 +90,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
 	private AudioItem getSearch(String query) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/search?text=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track&page=0");
-		if (json == null || json.isNull() || json.get("result").get("tracks").isNull()) {
+		if (json == null || json.isNull() || !json.get("error").isNull() || json.get("result").get("tracks").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = this.parseTracks(json.get("result").get("tracks").get("results"));
