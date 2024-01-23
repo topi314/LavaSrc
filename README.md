@@ -55,6 +55,8 @@ dependencies {
 ```xml
 <repositories>
   <repository>
+    <id>TopiWTF-releases</id>
+    <name>Topis Maven Repo</name>
     <url>https://maven.topi.wtf/releases</url>
   </repository>
 </repositories>
@@ -67,7 +69,7 @@ dependencies {
   </dependency>
   <dependency>
       <groupId>com.github.topi314.lavasrc</groupId>
-      <artifactId>lavasrc-protocol</artifactId>
+      <artifactId>lavasrc-protocol-jvm</artifactId>
       <version>x.y.z</version>
   </dependency>
 </dependencies>
@@ -177,17 +179,18 @@ This plugin requires Lavalink `v4` or greater
 To install this plugin either download the latest release and place it into your `plugins` folder or add the following into your `application.yml`
 
 > **Note**
-> For a full `application.yml` example see [here](https://github.com/TopiSenpai/LavaSrc/blob/master/application.yml.example)
+> For a full `application.yml` example see [here](application.example.yml)
 
 Replace x.y.z with the latest version number
 ```yaml
 lavalink:
   plugins:
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:x.y.z"
-      repository: "https://maven.topi.wtf/releases"
+      repository: "https://maven.lavalink.dev/releases" # this is optional for lavalink v4.0.0-beta.5 or greater
+      snapshot: false # set to true if you want to use snapshot builds (see below)
 ```
 
-Snapshot builds are available in https://maven.topi.wtf/snapshots with the short commit hash as the version
+Snapshot builds are available in https://maven.lavalink.dev/snapshots with the short commit hash as the version
 
 ### Configuration
 
