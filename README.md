@@ -315,6 +315,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * `ymsearch:animals architects`
 * https://music.yandex.ru/album/13886032/track/71663565
 * https://music.yandex.ru/album/13886032
+* https://music.yandex.ru/track/71663565
 * https://music.yandex.ru/users/yamusic-bestsongs/playlists/701626
 * https://music.yandex.ru/artist/701626
 
