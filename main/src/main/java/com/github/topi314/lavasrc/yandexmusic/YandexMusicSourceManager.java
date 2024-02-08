@@ -180,10 +180,8 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		return new YandexMusicAudioPlaylist(playlistTitle, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
-	private List<JsonBrowser> getTracks(String trackIds) throws URISyntaxException, IOException {
-		return getJson(PUBLIC_API_BASE + "/tracks", new ArrayList<>() {{
-			add(new BasicNameValuePair("track-ids", trackIds));
-		}}).get("result").values();
+	private List<JsonBrowser> getTracks(String trackIds) throws IOException {
+		return getJson(PUBLIC_API_BASE + "/tracks?track-ids=" + URLEncoder.encode(trackIds, StandardCharsets.UTF_8)).get("result").values();
 	}
 
 	private String getTrackIds(List<JsonBrowser> tracksToParse) {
