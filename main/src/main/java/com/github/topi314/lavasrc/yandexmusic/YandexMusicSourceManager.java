@@ -93,7 +93,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		} catch (IOException | URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
-        return null;
+		return null;
 	}
 
 	private AudioItem getSearch(String query) throws IOException {
