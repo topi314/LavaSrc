@@ -90,7 +90,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				var playlistId = matcher.group("identifier2");
 				return this.getPlaylist(userId, playlistId);
 			}
-		} catch (IOException | URISyntaxException e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		return null;
