@@ -194,10 +194,6 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		return getJson(URI.create(uri));
 	}
 
-	public JsonBrowser getJson(String uri, List<NameValuePair> params) throws URISyntaxException, IOException {
-		return getJson(buildUriWithParams(uri, params));
-	}
-
 	public JsonBrowser getJson(URI uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
