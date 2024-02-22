@@ -205,10 +205,6 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
-	private URI buildUriWithParams(String uri, List<NameValuePair> params) throws URISyntaxException {
-		return new URIBuilder(uri).addParameters(params).build();
-	}
-
 	public String getDownloadStrings(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
