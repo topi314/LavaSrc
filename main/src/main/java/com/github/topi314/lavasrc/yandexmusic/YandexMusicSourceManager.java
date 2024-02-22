@@ -191,10 +191,6 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
-		return getJson(URI.create(uri));
-	}
-
-	public JsonBrowser getJson(URI uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Authorization", "OAuth " + this.accessToken);
