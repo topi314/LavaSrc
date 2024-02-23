@@ -1,0 +1,29 @@
+plugins {
+    id "dev.arbjerg.lavalink.gradle-plugin" version "1.0.15"
+}
+
+archivesBaseName = "lavasrc-plugin"
+lavalinkPlugin {
+    name = "lavasrc-plugin"
+    apiVersion = "4.0.0"
+    serverVersion = "4.0.0"
+    configurePublishing = false
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+dependencies {
+    implementation project(":main")
+    compileOnly "com.github.topi314.lavasearch:lavasearch:1.0.0"
+    implementation "com.github.topi314.lavasearch:lavasearch-plugin-api:1.0.0"
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifactId archivesBaseName
+        }
+    }
+}

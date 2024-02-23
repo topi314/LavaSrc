@@ -1,0 +1,90 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.9.0" apply false
+    id "org.jetbrains.kotlin.plugin.serialization" version "1.9.0" apply false
+}
+allprojects {
+    group = "com.github.topi314.lavasrc"
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url "https://maven.topi.wtf/releases" }
+        maven { url "https://maven.topi.wtf/snapshots" }
+        maven { url "https://maven.arbjerg.dev/releases" }
+        maven { url "https://maven.arbjerg.dev/snapshots" }
+        maven { url "https://jitpack.io" }
+        jcenter()
+    }
+}
+
+def getGitVersion() {
+    def versionStr = new ByteArrayOutputStream()
+    def result = exec {
+        standardOutput versionStr
+        errorOutput versionStr
+        ignoreExitValue true
+        commandLine "git", "describe", "--exact-match", "--tags"
+    }
+    if (result.exitValue == 0) {
+        return [versionStr.toString().trim(), false]
+    }
+
+
+    versionStr = new ByteArrayOutputStream()
+    exec {
+        standardOutput versionStr
+        errorOutput versionStr
+        commandLine "git", "rev-parse", "--short", "HEAD"
+    }
+
+    return [versionStr.toString().trim(), true]
+}
+
+var isMavenDefined = findProperty("MAVEN_USERNAME") != null && findProperty("MAVEN_PASSWORD") != null
+var isLavalinkMavenDefined = findProperty("LAVALINK_MAVEN_USERNAME") != null && findProperty("LAVALINK_MAVEN_PASSWORD") != null
+
+subprojects {
+    apply plugin: "java"
+    apply plugin: "maven-publish"
+
+    def (versionStr, isSnapshot) = getGitVersion()
+    version versionStr
+    println "Version: " + versionStr
+
+    compileJava.options.encoding = "UTF-8"
+
+    publishing {
+        repositories {
+            if (isMavenDefined) {
+                System.out.println("Publishing to Maven Repo")
+
+                def snapshots = "https://maven.topi.wtf/snapshots"
+                def releases = "https://maven.topi.wtf/releases"
+
+                maven {
+                    name = "Reposilite"
+                    url = isSnapshot ? snapshots : releases
+                    credentials {
+                        username = findProperty("MAVEN_USERNAME")
+                        password = findProperty("MAVEN_PASSWORD")
+                    }
+
+                }
+            }
+            if (isLavalinkMavenDefined && name == "plugin") {
+                System.out.println("Publishing to Lavalink Maven Repo")
+                def lavalinkSnapshots = "https://maven.lavalink.dev/snapshots"
+                def lavalinkReleases = "https://maven.lavalink.dev/releases"
+
+                maven {
+                    name = "Reposilite-Lavalink"
+                    url = isSnapshot ? lavalinkSnapshots : lavalinkReleases
+                    credentials {
+                        username = findProperty("LAVALINK_MAVEN_USERNAME")
+                        password = findProperty("LAVALINK_MAVEN_PASSWORD")
+                    }
+                }
+            }
+        }
+    }
+}
