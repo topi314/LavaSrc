@@ -160,6 +160,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		for (var track : json.get("data").values()) {
 			if (!track.get("type").text().equals("track")) {
 				continue;
+
 			}
 			tracks.add(this.parseTrack(track, preview));
 		}

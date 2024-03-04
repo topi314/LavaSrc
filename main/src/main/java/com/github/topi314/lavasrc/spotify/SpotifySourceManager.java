@@ -425,26 +425,35 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		return tracks;
 	}
 
-	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
-		return new SpotifyAudioTrack(
-			new AudioTrackInfo(
-				json.get("name").text(),
-				json.get("artists").index(0).get("name").text(),
-				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
-				json.get("id").text(),
-				false,
-				json.get("external_urls").get("spotify").text(),
-				json.get("album").get("images").index(0).get("url").text(),
-				json.get("external_ids").get("isrc").text()
-			),
-			json.get("album").get("name").text(),
-			json.get("album").get("external_urls").get("spotify").text(),
-			json.get("artists").index(0).get("external_urls").get("spotify").text(),
-			json.get("artists").index(0).get("images").index(0).get("url").text(),
-			json.get("preview_url").text(),
-			preview,
-			this
-		);
+private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
+    	var artistsArray = json.get("artists");
+    	var artistName = "";
+    	for (int i = 0; i < artistsArray.values().size(); i++) {
+        var currentArtistName = artistsArray.index(i).get("name").text();
+        artistName += (i > 0 ? ", " : "") + currentArtistName;
+    }
+
+    AudioTrackInfo trackInfo = new AudioTrackInfo(
+        json.get("name").text(),
+        artistName,
+        preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
+        json.get("id").text(),
+        false,
+        json.get("external_urls").get("spotify").text(),
+        json.get("album").get("images").index(0).get("url").text(),
+        json.get("external_ids").get("isrc").text()
+    );
+
+    return new SpotifyAudioTrack(
+        	trackInfo,
+        	json.get("album").get("name").text(),
+        	json.get("album").get("external_urls").get("spotify").text(),
+        	artistsArray.index(0).get("external_urls").get("spotify").text(),
+        	artistsArray.index(0).get("images").index(0).get("url").text(),
+        	json.get("preview_url").text(),
+        	preview,
+        	this
+    	);
 	}
 
 	@Override
