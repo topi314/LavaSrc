@@ -114,5 +114,4 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 	public AudioSourceManager getSourceManager() {
 		return this.sourceManager;
 	}
-
 }
