@@ -10,20 +10,15 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -79,8 +74,8 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 						var artistId = matcher.group("identifier");
 						return this.getArtist(artistId);
 					case "track":
-					    	var trackId = matcher.group("identifier");
-					    	return this.getTrack(trackId);
+						var trackId = matcher.group("identifier");
+						return this.getTrack(trackId);
 				}
 				return null;
 			}
@@ -155,7 +150,7 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		return new YandexMusicAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
 	}
 
-	private AudioItem getPlaylist(String userString, String id) throws IOException, URISyntaxException {
+	private AudioItem getPlaylist(String userString, String id) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id);
 		if (json.isNull() || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
@@ -186,8 +181,8 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
 	private String getTrackIds(List<JsonBrowser> tracksToParse) {
 		return tracksToParse.stream()
-				.map(node -> node.get("id").text())
-				.collect(Collectors.joining(","));
+			.map(node -> node.get("id").text())
+			.collect(Collectors.joining(","));
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
@@ -255,8 +250,8 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
 	private String extractArtists(JsonBrowser artistNode) {
 		return artistNode.values().stream()
-				.map(node -> node.get("name").text())
-				.collect(Collectors.joining(", "));
+			.map(node -> node.get("name").text())
+			.collect(Collectors.joining(", "));
 	}
 
 	private String formatCoverUri(String coverUri) {
