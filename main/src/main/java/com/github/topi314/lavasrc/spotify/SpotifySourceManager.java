@@ -358,7 +358,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			for (var value : page.get("items").values()) {
 				var track = value.get("track");
-				if (track.isNull() || track.get("is_local").asBoolean(false)) {
+				if (track.isNull()) {
 					continue;
 				}
 				tracks.add(this.parseTrack(track, preview));
@@ -426,12 +426,16 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
+		if (json.get("name").isNull()) {
+			return null;
+		}
+	
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
 				json.get("name").text(),
-				json.get("artists").index(0).get("name").text(),
+				artistName != null ? artistName : "unknown",
 				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
-				json.get("id").text(),
+				id != null ? id : "unknown",
 				false,
 				json.get("external_urls").get("spotify").text(),
 				json.get("album").get("images").index(0).get("url").text(),
