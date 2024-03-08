@@ -426,14 +426,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
-		if (json.get("name").isNull()) {
+        if (json.get("name").isNull()) {
 			return null;
 		}
+
+		var artists = json.get("artists").index(0).get("name").text();
+		var id = json.get("id").text();
 	
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
 				json.get("name").text(),
-				artistName != null ? artistName : "unknown",
+				artists != null ? artists : "unknown",
 				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
 				id != null ? id : "unknown",
 				false,
