@@ -1,5 +1,8 @@
 package com.github.topi314.lavasrc.youtube
 
+import com.github.topi314.lavalyrics.AudioLyricsManager
+import com.github.topi314.lavalyrics.lyrics.AudioLyrics
+
 import com.github.topi314.lavasearch.AudioSearchManager
 import com.github.topi314.lavasearch.result.AudioSearchResult
 import com.github.topi314.lavasearch.result.AudioText
@@ -7,12 +10,15 @@ import com.github.topi314.lavasearch.result.BasicAudioSearchResult
 import com.github.topi314.lavasearch.result.BasicAudioText
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer
+import com.github.topi314.lavasrc.youtube.innertube.requestLyrics
 import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
+import com.github.topi314.lavasrc.youtube.innertube.takeFirstSearchResult
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo
+import dev.schlaubi.lyrics.LyricsNotFoundException
 import org.apache.http.client.methods.HttpGet
 import java.net.URLEncoder
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer.NavigationEndpoint.BrowseEndpoint.Configs.Config.Type as PageType
@@ -29,9 +35,10 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
     else -> error("Unknown endpoint: $this")
 }
 
-class YoutubeSearchManager(
-    private val sourceManager: () -> YoutubeAudioSourceManager
-) : AudioSearchManager {
+class YoutubeSourceManager(
+    private val sourceManager: () -> YoutubeAudioSourceManager,
+    private val region: String?
+) : AudioSearchManager, AudioLyricsManager {
     companion object {
         const val SEARCH_PREFIX = "ytsearch:"
         const val MUSIC_SEARCH_PREFIX = "ytmsearch:"
@@ -45,6 +52,20 @@ class YoutubeSearchManager(
 
     private val httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager()
     override fun getSourceName(): String = "youtube"
+
+    override fun loadLyrics(track: AudioTrack): AudioLyrics? = try {
+        httpInterfaceManager.`interface`.use {
+            val videoId = when {
+                track is YoutubeAudioTrack -> track.info.identifier
+                track.info.isrc != null -> it.takeFirstSearchResult(track.info.isrc, region)
+                else -> it.takeFirstSearchResult("${track.info.title} - ${track.info.author}", region)
+            } ?: return@use null
+
+            it.requestLyrics(videoId)
+        }
+    } catch (e: LyricsNotFoundException) {
+        null
+    }
 
     override fun loadSearch(query: String, types: Set<AudioSearchResult.Type>): AudioSearchResult? {
         val result = httpInterfaceManager.`interface`.use {

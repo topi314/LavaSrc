@@ -30,6 +30,9 @@ public class LavaSrcTools {
 				var data = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
 				log.error("Server responded with not found to '{}': {}", request.getURI(), data);
 				return null;
+			} else if (statusCode == HttpStatus.SC_NO_CONTENT) {
+				log.error("Server responded with not content to '{}'", request.getURI());
+				return null;
 			} else if (!HttpClientTools.isSuccessWithContent(statusCode)) {
 				var data = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
 				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
