@@ -15,6 +15,7 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +26,8 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +35,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioSearchManager {
 
@@ -49,6 +53,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	private final String masterDecryptionKey;
 	private final HttpInterfaceManager httpInterfaceManager;
+	private Tokens tokens;
 
 	public DeezerAudioSourceManager(String masterDecryptionKey) {
 		if (masterDecryptionKey == null || masterDecryptionKey.isEmpty()) {
@@ -56,6 +61,43 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		}
 		this.masterDecryptionKey = masterDecryptionKey;
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+	}
+
+	private void refreshSession() throws IOException{
+		var getSessionID = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.ping&input=3&api_version=1.0&api_token=");
+		var json = LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(), getSessionID);
+
+		checkResponse(json, "Failed to get session ID: ");
+		var sessionID = json.get("results").get("SESSION").text();
+
+		var getUserToken = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.getUserData&input=3&api_version=1.0&api_token=");
+		getUserToken.setHeader("Cookie", "sid=" + sessionID);
+		json = LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(), getUserToken);
+
+		checkResponse(json, "Failed to get user token: ");
+		this.tokens = new Tokens(
+			json.get("results").get("checkForm").text(),
+			json.get("results").get("USER").get("OPTIONS").get("license_token").text(),
+			Instant.now().plus(3600, ChronoUnit.SECONDS)
+		);
+	}
+
+	public Tokens getTokens() throws IOException{
+		if (this.tokens == null || Instant.now().isAfter(this.tokens.expireAt)) {
+			this.refreshSession();
+		}
+		return this.tokens;
+	}
+
+	static void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
+		if (json == null) {
+			throw new IllegalStateException(message + "No response");
+		}
+		var errors = json.get("data").index(0).get("errors").values();
+		if (!errors.isEmpty()) {
+			var errorsStr = errors.stream().map(error -> error.get("code").text() + ": " + error.get("message").text()).collect(Collectors.joining(", "));
+			throw new IllegalStateException(message + errorsStr);
+		}
 	}
 
 	@NotNull
@@ -359,6 +401,18 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	public HttpInterface getHttpInterface() {
 		return this.httpInterfaceManager.getInterface();
+	}
+
+	public static class Tokens {
+		public String api;
+		public String license;
+		public Instant expireAt;
+
+		public Tokens(String api,String license, Instant expireAt) {
+			this.api = api;
+			this.license = license;
+			this.expireAt = expireAt;
+		}
 	}
 
 }
