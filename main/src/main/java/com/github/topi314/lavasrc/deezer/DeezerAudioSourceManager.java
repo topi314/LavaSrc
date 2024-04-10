@@ -48,14 +48,22 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
 
 	private final String masterDecryptionKey;
+	private final String arl;
 	private final HttpInterfaceManager httpInterfaceManager;
 
 	public DeezerAudioSourceManager(String masterDecryptionKey) {
+		this(masterDecryptionKey, null);
+
+	}
+
+	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl) {
 		if (masterDecryptionKey == null || masterDecryptionKey.isEmpty()) {
 			throw new IllegalArgumentException("Deezer master key must be set");
 		}
+
 		this.masterDecryptionKey = masterDecryptionKey;
-		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+		this.arl = arl != null && arl.isEmpty() ? null : arl;
+		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
 	}
 
 	@NotNull
@@ -355,6 +363,11 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	public String getMasterDecryptionKey() {
 		return this.masterDecryptionKey;
+	}
+
+	@Nullable
+	public String getArl() {
+		return this.arl;
 	}
 
 	public HttpInterface getHttpInterface() {
