@@ -53,7 +53,6 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	public DeezerAudioSourceManager(String masterDecryptionKey) {
 		this(masterDecryptionKey, null);
-
 	}
 
 	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl) {
