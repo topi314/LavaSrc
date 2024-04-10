@@ -113,7 +113,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		var trackToken = trackTokenJson.get("results").get("TRACK_TOKEN").text();
 		var getMediaURL = new HttpPost(DeezerAudioSourceManager.MEDIA_BASE + "/get_url");
 
-		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + userLicenseToken + "\",\"media\":[{\"type\":\"FULL\",\"formats\":[{\"cipher\":\"BF_CBC_STRIPE\",\"format\":\"MP3_128\"}]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
+		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + userLicenseToken + "\",\"media\":[{\"type\":\"FULL\",\"formats\":[{\"cipher\":\"BF_CBC_STRIPE\",\"format\":\"" + (tryFlac ? "FLAC" : "MP3_128") + "\"}]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
 		json = this.getJsonResponse(getMediaURL, tryFlac);
 
 		try {
