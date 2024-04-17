@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.ogg.OggAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.wav.WavAudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
@@ -54,7 +55,7 @@ public class FloweryTTSAudioTrack extends DelegatedAudioTrack {
 			AudioFormat format = AudioFormat.getByName(audioFormat);
 			log.debug("Requesting TTS URL \"{}\"", url);
 
-			try (var stream = new PersistentHttpStream(httpInterface, url, null)) {
+			try (var stream = new PersistentHttpStream(httpInterface, url, Units.CONTENT_LENGTH_UNKNOWN)) {
 				InternalAudioTrack track = format.trackFactory.apply(this.trackInfo, stream);
 				processDelegate(track, executor);
 			}
