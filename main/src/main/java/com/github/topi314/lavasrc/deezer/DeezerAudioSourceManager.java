@@ -308,9 +308,16 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var artworkUrl = json.get("picture_xl").text();
 		var author = json.get("creator").get("name").text();
 
-		var tracks = this.getJson(PUBLIC_API_BASE + "/playlist/" + id + "/tracks");
+		// This endpoint returns tracks with ISRC, unlike the other REST call
+		var tracks = this.getJson(PUBLIC_API_BASE + "/playlist/" + id + "/tracks?limit=10000");
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(tracks, preview), DeezerAudioPlaylist.Type.PLAYLIST, json.get("link").text(), artworkUrl, author, (int) json.get("nb_tracks").asLong(0));
+		return new DeezerAudioPlaylist(json.get("title").text(),
+				this.parseTracks(tracks, preview),
+				DeezerAudioPlaylist.Type.PLAYLIST,
+				json.get("link").text(),
+				artworkUrl,
+				author,
+				(int) json.get("nb_tracks").asLong(0));
 	}
 
 	private AudioItem getArtist(String id, boolean preview) throws IOException {
