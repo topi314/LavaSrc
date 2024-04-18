@@ -284,11 +284,19 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var artworkUrl = json.get("cover_xl").text();
 		var author = json.get("contributors").values().get(0).get("name").text();
 
-		for (var track : json.get("tracks").get("data").values()) {
+		var tracks = this.getJson(PUBLIC_API_BASE + "/album/" + id + "/tracks?limit=10000");
+
+		for (var track : tracks.get("data").values()) {
 			track.get("artist").put("picture_xl", json.get("artist").get("picture_xl"));
 		}
 
-		return new DeezerAudioPlaylist(json.get("title").text(), this.parseTracks(json.get("tracks"), preview), DeezerAudioPlaylist.Type.ALBUM, json.get("link").text(), artworkUrl, author, (int) json.get("nb_tracks").asLong(0));
+		return new DeezerAudioPlaylist(json.get("title").text(),
+				this.parseTracks(tracks, preview),
+				DeezerAudioPlaylist.Type.ALBUM,
+				json.get("link").text(),
+				artworkUrl,
+				author,
+				(int) json.get("nb_tracks").asLong(0));
 	}
 
 	private AudioItem getTrack(String id, boolean preview) throws IOException {
