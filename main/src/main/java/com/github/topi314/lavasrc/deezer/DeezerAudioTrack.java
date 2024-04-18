@@ -86,7 +86,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		return this.getJsonResponse(request, useArl);
 	}
 
-	private SourceWithFormat getSource(boolean tryFlac, boolean isRetry) throws URISyntaxException {
+	public SourceWithFormat getSource(boolean tryFlac, boolean isRetry) throws URISyntaxException {
 		var json = this.generateLicenceToken(tryFlac);
 		this.checkResponse(json, "Failed to get user token: ");
 
@@ -146,7 +146,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		}
 	}
 
-	private byte[] getTrackDecryptionKey() throws NoSuchAlgorithmException {
+	public byte[] getTrackDecryptionKey() throws NoSuchAlgorithmException {
 		var md5 = Hex.encodeHex(MessageDigest.getInstance("MD5").digest(this.trackInfo.identifier.getBytes()), true);
 		var master_key = this.sourceManager.getMasterDecryptionKey().getBytes();
 
@@ -188,7 +188,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		return this.sourceManager;
 	}
 
-	private static class SourceWithFormat {
+	public static class SourceWithFormat {
 		private final URI url;
 		private final String format;
 		private final long contentLength;
@@ -197,6 +197,18 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 			this.url = new URI(url);
 			this.format = format;
 			this.contentLength = contentLength;
+		}
+
+		public URI getUrl() {
+			return this.url
+		}
+
+		public String getFormat() {
+			return this.format;
+		}
+
+		public long getContentLength() {
+			return this.contentLength;
 		}
 
 		private BiFunction<AudioTrackInfo, PersistentHttpStream, InternalAudioTrack> getTrackFactory() {
