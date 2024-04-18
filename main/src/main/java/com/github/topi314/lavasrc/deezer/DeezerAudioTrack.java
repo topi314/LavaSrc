@@ -200,7 +200,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		}
 
 		public URI getUrl() {
-			return this.url
+			return this.url;
 		}
 
 		public String getFormat() {
