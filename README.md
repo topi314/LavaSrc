@@ -1,14 +1,14 @@
-[![](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fmaven.topi.wtf%2Freleases%2Fcom%2Fgithub%2FTopiSenpai%2FLavaSrc%2Flavasrc%2Fmaven-metadata.xml)](https://maven.topi.wtf/#/releases/com/github/TopiSenpai/LavaSrc/lavasrc)
+[![](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fmaven.topi.wtf%2Freleases%2Fcom%2Fgithub%2Ftopi314%2FLavaSrc%2Flavasrc%2Fmaven-metadata.xml)](https://maven.topi.wtf/#/releases/com/github/topi314/LavaSrc/lavasrc)
 
 # LavaSrc
 
-A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer) & [LavaSearch](https://github.com/topi314/LavaSearch) Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
-* [Spotify*](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results
-* [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
-* [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
+A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer), [LavaSearch](https://github.com/topi314/LavaSearch) & [LavaLyrics](https://github.com/topi314/LavaLyrics) Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
+* [Spotify*](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)
+* [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
+* [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
 * [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
 * [Flowery TTS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
-* [YouTube](https://youtube.com), [YouTubeMusic](https://music.youtube.com/), [Deezer](https://www.deezer.com), [Spotify](https://www.spotify.com) & [AppleMusic](https://www.apple.com/apple-music/) support for [LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
+* [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 
 `*tracks are searched & played via YouTube or other configurable sources`
 
@@ -87,9 +87,18 @@ To get a Spotify clientId & clientSecret you must go [here](https://developer.sp
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new SpotifySourceManager with the default providers, clientId, clientSecret, countryCode and AudioPlayerManager and register it
-playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, clientSecret, countryCode, playerManager));
+// create a new SpotifySourceManager with the default providers, clientId, clientSecret, spDc, countryCode and AudioPlayerManager and register it
+playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, clientSecret, spDc, countryCode, playerManager));
 ```
+
+<details>
+<summary>How to get sp dc cookie</summary>
+
+1. Go to https://open.spotify.com
+2. Open DevTools and go to the Application tab
+3. Copy the value of the `sp_dc` cookie
+
+</details>
 
 #### Apple Music
 ```java
@@ -196,7 +205,9 @@ Snapshot builds are available in https://maven.lavalink.dev/snapshots with the s
 
 For all supported urls and queries see [here](#supported-urls-and-queries)
 
-To get your Spotify clientId & clientSecret go [here](https://developer.spotify.com/dashboard/applications) & then copy them into your `application.yml` like the following.
+To get your Spotify clientId, clientSecret go [here](https://developer.spotify.com/dashboard/applications) & then copy them into your `application.yml` like the following.
+
+To get your Spotify spDc cookie go [here](#spotify)
 
 To get your Apple Music api token go [here](#apple-music)
 
@@ -222,6 +233,7 @@ plugins:
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
+      # spDc: "your sp dc cookie" # the sp dc cookie used for accessing the spotify lyrics api
       countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       playlistLoadLimit: 6 # The number of pages at 100 tracks each
       albumLoadLimit: 6 # The number of pages at 50 tracks each
@@ -247,6 +259,8 @@ plugins:
       silence: 0 # the silence parameter is in milliseconds. Range is 0 to 10000. The default is 0.
       speed: 1.0 # the speed parameter is a float between 0.5 and 10. The default is 1.0. (0.5 is half speed, 2.0 is double speed, etc.)
       audioFormat: "mp3" # supported formats are: mp3, ogg_opus, ogg_vorbis, aac, wav, and flac. Default format is mp3
+    youtube:
+      countryCode: "US" # the country code you want to use for searching lyrics via ISRC. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 ```
 
 ### Plugin Info
