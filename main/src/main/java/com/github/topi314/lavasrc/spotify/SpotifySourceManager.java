@@ -358,7 +358,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			for (var value : page.get("items").values()) {
 				var track = value.get("track");
-				if (track.isNull() || track.get("is_local").asBoolean(false)) {
+				if (track.isNull() || track.get("is_local").asBoolean(false) || track.get("type").text().equals("episode")) {
 					continue;
 				}
 				tracks.add(this.parseTrack(track, preview));
