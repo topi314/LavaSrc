@@ -8,11 +8,12 @@ import com.github.topi314.lavasearch.result.BasicAudioText
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer
 import com.github.topi314.lavasrc.youtube.innertube.requestMusicAutoComplete
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo
+import dev.lavalink.youtube.YoutubeAudioSourceManager
+import dev.lavalink.youtube.track.YoutubeAudioTrack
 import org.apache.http.client.methods.HttpGet
 import java.net.URLEncoder
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer.NavigationEndpoint.BrowseEndpoint.Configs.Config.Type as PageType
@@ -30,7 +31,7 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
 }
 
 class YoutubeSearchManager(
-    private val sourceManager: () -> YoutubeAudioSourceManager
+    private val playerManager: () -> AudioPlayerManager
 ) : AudioSearchManager {
     companion object {
         const val SEARCH_PREFIX = "ytsearch:"
@@ -84,7 +85,7 @@ class YoutubeSearchManager(
                             thumbnail,
                             null
                         )
-                        YoutubeAudioTrack(info, sourceManager())
+                        YoutubeAudioTrack(info, playerManager().source(YoutubeAudioSourceManager::class.java))
                     } else if (item.navigationEndpoint.browseEndpoint != null) {
                         val type =
                             item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType

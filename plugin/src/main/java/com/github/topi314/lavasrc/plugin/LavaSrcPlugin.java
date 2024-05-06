@@ -9,7 +9,6 @@ import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -22,7 +21,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private static final Logger log = LoggerFactory.getLogger(LavaSrcPlugin.class);
 
 	private AudioPlayerManager manager;
-	private YoutubeAudioSourceManager youtubeAudioSourceManager;
 	private SpotifySourceManager spotify;
 	private AppleMusicSourceManager appleMusic;
 	private DeezerAudioSourceManager deezer;
@@ -73,7 +71,21 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 		if (sourcesConfig.isYoutube()) {
-			this.youtube = new YoutubeSearchManager(() -> youtubeAudioSourceManager);
+			if (hasNewYoutubeSource()) {
+				log.info("Registering Youtube Source audio source manager...");
+				this.youtube = new YoutubeSearchManager(() -> manager);
+			} else {
+				throw new IllegalStateException("Youtube LavaSearch requires either Lavaplayer Youtube or Youtube Source plugin to be enabled.");
+			}
+		}
+	}
+
+	private boolean hasNewYoutubeSource() {
+		try {
+			Class.forName("dev.lavalink.youtube.YoutubeAudioSourceManager");
+			return true;
+		} catch (ClassNotFoundException ignored) {
+			return false;
 		}
 	}
 
@@ -100,13 +112,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.flowerytts != null) {
 			log.info("Registering Flowery TTS audio source manager...");
 			manager.registerSourceManager(this.flowerytts);
-		}
-		if (this.youtube != null) {
-			this.youtubeAudioSourceManager = manager.source(YoutubeAudioSourceManager.class);
-			if (this.youtubeAudioSourceManager == null) {
-				throw new IllegalStateException("Youtube LavaSearch requires YoutubeAudioSourceManager to be enabled.");
-			}
-
 		}
 		return manager;
 	}
