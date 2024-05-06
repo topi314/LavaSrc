@@ -22,7 +22,7 @@ private val searchPattern = """\["([\w\s]+)",\s*\d+,\s*\[(?:\d+,?\s*)+]""".toReg
 
 private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
     browseEndpoint != null -> when (browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType) {
-        PageType.MUSIC_PAGE_TYPE_ALBUM -> "https://music.youtube.com/browse/${browseEndpoint.browseId}"
+        PageType.MUSIC_PAGE_TYPE_PLAYLIST, PageType.MUSIC_PAGE_TYPE_ALBUM -> "https://music.youtube.com/browse/${browseEndpoint.browseId}"
         PageType.MUSIC_PAGE_TYPE_ARTIST -> "https://music.youtube.com/channel/${browseEndpoint.browseId}"
     }
 
@@ -105,6 +105,16 @@ class YoutubeSearchManager(
                                 "$name's Top Tracks",
                                 emptyList(),
                                 ExtendedAudioPlaylist.Type.ARTIST,
+                                url,
+                                thumbnail,
+                                artist,
+                                null
+                            )
+
+                            PageType.MUSIC_PAGE_TYPE_PLAYLIST -> ExtendedAudioPlaylist(
+                                name,
+                                emptyList(),
+                                ExtendedAudioPlaylist.Type.PLAYLIST,
                                 url,
                                 thumbnail,
                                 artist,
