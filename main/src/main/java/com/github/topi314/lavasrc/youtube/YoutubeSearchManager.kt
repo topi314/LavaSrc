@@ -74,7 +74,7 @@ class YoutubeSearchManager(
                     val url = item.navigationEndpoint.toUrl()
                     val artist = item.flexColumns.getOrNull(1)
                         ?.musicResponsiveListItemFlexColumnRenderer
-                        ?.text?.joinRuns() ?: "Unknown Author"
+                        ?.text?.runs?.getOrNull(2)?.text ?: "Unknown Author"
                     if (item.navigationEndpoint.watchEndpoint != null) {
                         val info = AudioTrackInfo(
                             item.flexColumns.first().musicResponsiveListItemFlexColumnRenderer.text.joinRuns(),
