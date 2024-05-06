@@ -39,6 +39,7 @@ class YoutubeSearchManager(
         val SEARCH_TYPES = setOf(
             AudioSearchResult.Type.ALBUM,
             AudioSearchResult.Type.ARTIST,
+            AudioSearchResult.Type.PLAYLIST,
             AudioSearchResult.Type.TRACK,
             AudioSearchResult.Type.TEXT
         )
@@ -134,7 +135,7 @@ class YoutubeSearchManager(
             items.filter<AudioTrack>(AudioSearchResult.Type.TRACK in finalTypes),
             items.filter(AudioSearchResult.Type.ALBUM in finalTypes, ExtendedAudioPlaylist.Type.ALBUM),
             items.filter(AudioSearchResult.Type.ARTIST in finalTypes, ExtendedAudioPlaylist.Type.ARTIST),
-            emptyList(),
+            items.filter(AudioSearchResult.Type.PLAYLIST in finalTypes, ExtendedAudioPlaylist.Type.PLAYLIST),
             items.filter<AudioText>(AudioSearchResult.Type.TEXT in finalTypes),
         )
     }
