@@ -230,6 +230,10 @@ plugins:
       yandexmusic: false # Enable Yandex Music source
       flowerytts: false # Enable Flowery TTS source
       youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
+    lyrics-sources:
+      spotify: false # Enable Spotify lyrics source
+      deezer: false # Enable Deezer lyrics source
+      youtube: false # Enable YouTube lyrics source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
