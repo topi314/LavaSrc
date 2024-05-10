@@ -1,9 +1,9 @@
 package com.github.topi314.lavasrc.yandexmusic;
 
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +27,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
+public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
@@ -228,6 +227,11 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 				this.formatCoverUri(coverUri),
 				null
 			),
+			json.get("albums").values().get(0).get("title").text(),
+			"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text(),
+			!json.get("artists").values().get(0).get("cover").isNull() ? ("https://" + json.get("artists").values().get(0).get("cover").get("uri").text().replace("%%", "400x400")) : null,
+			"https://music.yandex.ru/artist/" + json.get("artists").values().get(0).get("id").text(),
+			null,
 			this
 		);
 	}
@@ -259,17 +263,16 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	@Override
-	public boolean isTrackEncodable(AudioTrack track) {
-		return true;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) {
-	}
-
-	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
-		return new YandexMusicAudioTrack(trackInfo, this);
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
+		var extendedAudioTrackInfo = super.decodeTrack(input);
+		return new YandexMusicAudioTrack(trackInfo,
+				extendedAudioTrackInfo.albumName,
+				extendedAudioTrackInfo.albumUrl,
+				extendedAudioTrackInfo.artistUrl,
+				extendedAudioTrackInfo.artistArtworkUrl,
+				extendedAudioTrackInfo.previewUrl,
+				this
+		);
 	}
 
 	@Override
