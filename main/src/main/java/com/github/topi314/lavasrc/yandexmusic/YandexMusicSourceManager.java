@@ -216,6 +216,24 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		var id = json.get("id").text();
 		var artist = parseArtist(json);
 		var coverUri = json.get("coverUri").text();
+
+		String albumName = null;
+		String albumUrl = null;
+		if (!json.get("albums").values().isEmpty()) {
+			var album = json.get("albums").values().get(0);
+			albumName = album.get("title").text();
+			albumUrl = "https://music.yandex.ru/album/" + album.get("id").text();
+		}
+
+		String artistUrl = null;
+		String artistArtworkUrl = null;
+		if (!json.get("artists").values().isEmpty()) {
+			var firstArtist = json.get("artists").values().get(0);
+			artistUrl = "https://music.yandex.ru/artist/" + firstArtist.get("id").text();
+			if (!firstArtist.get("cover").isNull()) {
+				artistArtworkUrl = this.formatCoverUri(firstArtist.get("cover").get("uri").text());
+			}
+		}
 		return new YandexMusicAudioTrack(
 			new AudioTrackInfo(
 				json.get("title").text(),
@@ -227,10 +245,10 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				this.formatCoverUri(coverUri),
 				null
 			),
-			json.get("albums").values().get(0).get("title").text(),
-			"https://music.yandex.ru/album/" + json.get("albums").values().get(0).get("id").text(),
-			!json.get("artists").values().get(0).get("cover").isNull() ? ("https://" + json.get("artists").values().get(0).get("cover").get("uri").text().replace("%%", "400x400")) : null,
-			"https://music.yandex.ru/artist/" + json.get("artists").values().get(0).get("id").text(),
+			albumName,
+			albumUrl,
+			artistUrl,
+			artistArtworkUrl,
 			null,
 			this
 		);
