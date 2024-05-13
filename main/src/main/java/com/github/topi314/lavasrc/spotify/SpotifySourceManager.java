@@ -272,11 +272,12 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void requestSpToken() throws IOException {
 		var request = new HttpGet("https://open.spotify.com/get_access_token?reason=transport&productType=web_player");
+		request.addHeader("App-Platform", "WebPlayer");
 		request.addHeader("Cookie", "sp_dc=" + this.spDc);
 
 		var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 		this.spToken = json.get("accessToken").text();
-		this.spTokenExpire = Instant.now().plusMillis(json.get("accessTokenExpirationTimestampMs").asLong(0));
+		this.spTokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
 	}
 
 	public String getSpToken() throws IOException {
