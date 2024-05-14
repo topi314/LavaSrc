@@ -25,8 +25,8 @@ public class YandexMusicAudioTrack extends ExtendedAudioTrack {
 		this.sourceManager = sourceManager;
 	}
 
-	public YandexMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, YandexMusicSourceManager sourceManager) {
-		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, false);
+	public YandexMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, YandexMusicSourceManager sourceManager) {
+		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, null, false);
 		this.sourceManager = sourceManager;
 	}
 

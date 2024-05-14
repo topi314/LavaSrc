@@ -121,7 +121,15 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		}
 		var coverUri = json.get("result").get("coverUri").text();
 		var author = json.get("result").get("artists").values().get(0).get("name").text();
-		return new YandexMusicAudioPlaylist(json.get("result").get("title").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		return new YandexMusicAudioPlaylist(
+				json.get("result").get("title").text(),
+				tracks,
+				ExtendedAudioPlaylist.Type.ALBUM,
+				"https://music.yandex.ru/album/" + id,
+				this.formatCoverUri(coverUri),
+				author,
+				tracks.toArray().length
+		);
 	}
 
 	private AudioItem getTrack(String id) throws IOException {
@@ -143,10 +151,27 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			return AudioReference.NO_TRACK;
 		}
 
-		var artistJson = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
-		var coverUri = json.get("result").get("coverUri").text();
-		var author = artistJson.get("result").get("artist").get("name").text();
-		return new YandexMusicAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		var artistJsonResponse = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
+		var artistJson = artistJsonResponse.get("result").get("artist");
+		var author = artistJson.get("name").text();
+
+		String coverUri = null;
+
+		if (!artistJson.get("ogImage").isNull()) {
+			coverUri = this.formatCoverUri(artistJson.get("ogImage").text());
+		} else if (!artistJson.get("cover").isNull()) {
+			coverUri = this.formatCoverUri(artistJson.get("cover").get("uri").text());
+		}
+
+		return new YandexMusicAudioPlaylist(
+				author + "'s Top Tracks",
+				tracks,
+				ExtendedAudioPlaylist.Type.ARTIST,
+				"https://music.yandex.ru/artist/" + id,
+				coverUri,
+				author,
+				tracks.toArray().length
+		);
 	}
 
 	private AudioItem getPlaylist(String userString, String id) throws IOException {
@@ -168,10 +193,25 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		var playlistTitle = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
+		String playlistTitle;
+		if (json.get("result").get("kind").text().equals("3")) {
+			var ownerJson = json.get("result").get("owner");
+			var ownerName = ownerJson.get("name").isNull() ? ownerJson.get("login").text() : ownerJson.get("name").text();
+			playlistTitle = ownerName + "'s liked songs";
+		} else {
+			playlistTitle = json.get("result").get("title").text();
+		}
 		var coverUri = json.get("result").get("cover").get("uri").text();
 		var author = json.get("result").get("owner").get("name").text();
-		return new YandexMusicAudioPlaylist(playlistTitle, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		return new YandexMusicAudioPlaylist(
+				playlistTitle,
+				tracks,
+				ExtendedAudioPlaylist.Type.PLAYLIST,
+				"https://music.yandex.ru/users/" + userString + "/playlists/" + id,
+				this.formatCoverUri(coverUri),
+				author,
+				tracks.toArray().length
+		);
 	}
 
 	private List<JsonBrowser> getTracks(String trackIds) throws IOException {
@@ -249,7 +289,6 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			albumUrl,
 			artistUrl,
 			artistArtworkUrl,
-			null,
 			this
 		);
 	}
@@ -288,7 +327,6 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				extendedAudioTrackInfo.albumUrl,
 				extendedAudioTrackInfo.artistUrl,
 				extendedAudioTrackInfo.artistArtworkUrl,
-				extendedAudioTrackInfo.previewUrl,
 				this
 		);
 	}
