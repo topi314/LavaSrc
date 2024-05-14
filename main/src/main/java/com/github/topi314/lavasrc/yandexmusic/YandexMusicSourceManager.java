@@ -1,9 +1,9 @@
 package com.github.topi314.lavasrc.yandexmusic;
 
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +27,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigurable {
+public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
@@ -122,7 +121,15 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		}
 		var coverUri = json.get("result").get("coverUri").text();
 		var author = json.get("result").get("artists").values().get(0).get("name").text();
-		return new YandexMusicAudioPlaylist(json.get("result").get("title").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		return new YandexMusicAudioPlaylist(
+				json.get("result").get("title").text(),
+				tracks,
+				ExtendedAudioPlaylist.Type.ALBUM,
+				"https://music.yandex.ru/album/" + id,
+				this.formatCoverUri(coverUri),
+				author,
+				tracks.toArray().length
+		);
 	}
 
 	private AudioItem getTrack(String id) throws IOException {
@@ -144,10 +151,27 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 			return AudioReference.NO_TRACK;
 		}
 
-		var artistJson = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
-		var coverUri = json.get("result").get("coverUri").text();
-		var author = artistJson.get("result").get("artist").get("name").text();
-		return new YandexMusicAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		var artistJsonResponse = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
+		var artistJson = artistJsonResponse.get("result").get("artist");
+		var author = artistJson.get("name").text();
+
+		String coverUri = null;
+
+		if (!artistJson.get("ogImage").isNull()) {
+			coverUri = this.formatCoverUri(artistJson.get("ogImage").text());
+		} else if (!artistJson.get("cover").isNull()) {
+			coverUri = this.formatCoverUri(artistJson.get("cover").get("uri").text());
+		}
+
+		return new YandexMusicAudioPlaylist(
+				author + "'s Top Tracks",
+				tracks,
+				ExtendedAudioPlaylist.Type.ARTIST,
+				"https://music.yandex.ru/artist/" + id,
+				coverUri,
+				author,
+				tracks.toArray().length
+		);
 	}
 
 	private AudioItem getPlaylist(String userString, String id) throws IOException {
@@ -169,10 +193,25 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		var playlistTitle = json.get("result").get("kind").text().equals("3") ? "Liked songs" : json.get("result").get("title").text();
+		String playlistTitle;
+		if (json.get("result").get("kind").text().equals("3")) {
+			var ownerJson = json.get("result").get("owner");
+			var ownerName = ownerJson.get("name").isNull() ? ownerJson.get("login").text() : ownerJson.get("name").text();
+			playlistTitle = ownerName + "'s liked songs";
+		} else {
+			playlistTitle = json.get("result").get("title").text();
+		}
 		var coverUri = json.get("result").get("cover").get("uri").text();
 		var author = json.get("result").get("owner").get("name").text();
-		return new YandexMusicAudioPlaylist(playlistTitle, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("result").get("url").text(), this.formatCoverUri(coverUri), author);
+		return new YandexMusicAudioPlaylist(
+				playlistTitle,
+				tracks,
+				ExtendedAudioPlaylist.Type.PLAYLIST,
+				"https://music.yandex.ru/users/" + userString + "/playlists/" + id,
+				this.formatCoverUri(coverUri),
+				author,
+				tracks.toArray().length
+		);
 	}
 
 	private List<JsonBrowser> getTracks(String trackIds) throws IOException {
@@ -181,8 +220,8 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
 	private String getTrackIds(List<JsonBrowser> tracksToParse) {
 		return tracksToParse.stream()
-			.map(node -> node.get("id").text())
-			.collect(Collectors.joining(","));
+				.map(node -> node.get("id").text())
+				.collect(Collectors.joining(","));
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
@@ -217,18 +256,40 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 		var id = json.get("id").text();
 		var artist = parseArtist(json);
 		var coverUri = json.get("coverUri").text();
+
+		String albumName = null;
+		String albumUrl = null;
+		if (!json.get("albums").values().isEmpty()) {
+			var album = json.get("albums").values().get(0);
+			albumName = album.get("title").text();
+			albumUrl = "https://music.yandex.ru/album/" + album.get("id").text();
+		}
+
+		String artistUrl = null;
+		String artistArtworkUrl = null;
+		if (!json.get("artists").values().isEmpty()) {
+			var firstArtist = json.get("artists").values().get(0);
+			artistUrl = "https://music.yandex.ru/artist/" + firstArtist.get("id").text();
+			if (!firstArtist.get("cover").isNull()) {
+				artistArtworkUrl = this.formatCoverUri(firstArtist.get("cover").get("uri").text());
+			}
+		}
 		return new YandexMusicAudioTrack(
-			new AudioTrackInfo(
-				json.get("title").text(),
-				artist,
-				json.get("durationMs").as(Long.class),
-				id,
-				false,
-				"https://music.yandex.ru/track/" + id,
-				this.formatCoverUri(coverUri),
-				null
-			),
-			this
+				new AudioTrackInfo(
+						json.get("title").text(),
+						artist,
+						json.get("durationMs").as(Long.class),
+						id,
+						false,
+						"https://music.yandex.ru/track/" + id,
+						this.formatCoverUri(coverUri),
+						null
+				),
+				albumName,
+				albumUrl,
+				artistUrl,
+				artistArtworkUrl,
+				this
 		);
 	}
 
@@ -250,8 +311,8 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 
 	private String extractArtists(JsonBrowser artistNode) {
 		return artistNode.values().stream()
-			.map(node -> node.get("name").text())
-			.collect(Collectors.joining(", "));
+				.map(node -> node.get("name").text())
+				.collect(Collectors.joining(", "));
 	}
 
 	private String formatCoverUri(String coverUri) {
@@ -259,17 +320,15 @@ public class YandexMusicSourceManager implements AudioSourceManager, HttpConfigu
 	}
 
 	@Override
-	public boolean isTrackEncodable(AudioTrack track) {
-		return true;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) {
-	}
-
-	@Override
-	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
-		return new YandexMusicAudioTrack(trackInfo, this);
+	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
+		var extendedAudioTrackInfo = super.decodeTrack(input);
+		return new YandexMusicAudioTrack(trackInfo,
+				extendedAudioTrackInfo.albumName,
+				extendedAudioTrackInfo.albumUrl,
+				extendedAudioTrackInfo.artistUrl,
+				extendedAudioTrackInfo.artistArtworkUrl,
+				this
+		);
 	}
 
 	@Override
