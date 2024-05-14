@@ -128,7 +128,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				"https://music.yandex.ru/album/" + id,
 				this.formatCoverUri(coverUri),
 				author,
-				tracks.toArray().length
+				tracks.size()
 		);
 	}
 
