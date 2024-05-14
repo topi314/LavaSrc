@@ -15,6 +15,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
 
 public class YandexMusicAudioTrack extends ExtendedAudioTrack {
 
@@ -56,10 +57,16 @@ public class YandexMusicAudioTrack extends ExtendedAudioTrack {
 			throw new IllegalStateException("No download URL found for track " + id);
 		}
 
-		var downloadInfoLink = json.get("result").values().get(0).get("downloadInfoUrl").text();
-		var downloadInfo = this.sourceManager.getDownloadStrings(downloadInfoLink);
-		if (downloadInfo == null) {
-			throw new IllegalStateException("No download URL found for track " + id);
+		var mp3ItemUrl = json.get("result")
+				.values()
+				.stream()
+				.filter(c -> c.get("codec").text().equals("mp3"))
+				.max(Comparator.comparingLong(b -> b.get("bitrateInKbps").asLong(0)))
+				.map(d -> d.get("downloadInfoUrl").text())
+				.orElseThrow(() -> new IllegalStateException("No download Mp3 item URL found for track " + id));
+		var downloadInfo = this.sourceManager.getDownloadStrings(mp3ItemUrl);
+		if (downloadInfo.isEmpty()) {
+			throw new IllegalStateException("No downloadInfo found for track " + id);
 		}
 
 		var doc = Jsoup.parse(downloadInfo, "", Parser.xmlParser());
