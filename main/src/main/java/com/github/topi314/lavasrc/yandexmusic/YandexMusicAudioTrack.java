@@ -1,11 +1,11 @@
 package com.github.topi314.lavasrc.yandexmusic;
 
+import com.github.topi314.lavasrc.ExtendedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.jsoup.Jsoup;
 import org.jsoup.parser.Parser;
@@ -16,12 +16,17 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class YandexMusicAudioTrack extends DelegatedAudioTrack {
+public class YandexMusicAudioTrack extends ExtendedAudioTrack {
 
 	private final YandexMusicSourceManager sourceManager;
 
 	public YandexMusicAudioTrack(AudioTrackInfo trackInfo, YandexMusicSourceManager sourceManager) {
-		super(trackInfo);
+		super(trackInfo, null, null, null, null, null, false);
+		this.sourceManager = sourceManager;
+	}
+
+	public YandexMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, YandexMusicSourceManager sourceManager) {
+		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, null, false);
 		this.sourceManager = sourceManager;
 	}
 
