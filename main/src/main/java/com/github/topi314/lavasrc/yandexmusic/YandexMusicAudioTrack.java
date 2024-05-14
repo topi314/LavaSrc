@@ -58,11 +58,11 @@ public class YandexMusicAudioTrack extends DelegatedAudioTrack {
 				.filter(c -> c.get("codec").text().equals("mp3"))
 				.max(Comparator.comparingLong(b -> b.get("bitrateInKbps").asLong(0)))
 				.map(d -> d.get("downloadInfoUrl").text())
-				.orElse(null);
-		if (mp3ItemUrl == null) {
-			throw new IllegalStateException("No download Mp3 item URL found for track " + id);
-		}
+				.orElseThrow(() -> new IllegalStateException("No download Mp3 item URL found for track " + id));
 		var downloadInfo = this.sourceManager.getDownloadStrings(mp3ItemUrl);
+		if (downloadInfo.isEmpty()) {
+			throw new IllegalStateException("No downloadInfo found for track " + id);
+		}
 
 		var doc = Jsoup.parse(downloadInfo, "", Parser.xmlParser());
 		var host = doc.select("host").text();
