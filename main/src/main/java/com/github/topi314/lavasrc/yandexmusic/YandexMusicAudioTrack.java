@@ -56,7 +56,7 @@ public class YandexMusicAudioTrack extends DelegatedAudioTrack {
 				.values()
 				.stream()
 				.filter(c -> c.get("codec").text().equals("mp3"))
-				.max(Comparator.comparingInt(b -> b.get("bitrateInKbps").as(Integer.class)))
+				.max(Comparator.comparingLong(b -> b.get("bitrateInKbps").asLong(0)))
 				.map(d -> d.get("downloadInfoUrl").text())
 				.orElse(null);
 		if (mp3ItemUrl == null) {
