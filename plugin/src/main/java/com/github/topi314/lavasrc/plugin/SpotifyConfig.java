@@ -10,9 +10,9 @@ public class SpotifyConfig {
 	private String clientId;
 	private String clientSecret;
 	private String spDc;
-	private String countryCode;
-	private int playlistLoadLimit;
-	private int albumLoadLimit;
+	private String countryCode = "US";
+	private int playlistLoadLimit = 6;
+	private int albumLoadLimit = 6;
 
 	public String getClientId() {
 		return this.clientId;

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class YouTubeConfig {
 
-    private String countryCode;
+    private String countryCode = "US";
 
     public String getCountryCode() {
         return countryCode;

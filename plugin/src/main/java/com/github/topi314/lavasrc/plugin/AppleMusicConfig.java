@@ -13,8 +13,8 @@ public class AppleMusicConfig {
 	private String keyID;
 
 	private String mediaAPIToken;
-	private int playlistLoadLimit;
-	private int albumLoadLimit;
+	private int playlistLoadLimit = 6;
+	private int albumLoadLimit = 6;
 
 	public String getCountryCode() {
 		return this.countryCode;
