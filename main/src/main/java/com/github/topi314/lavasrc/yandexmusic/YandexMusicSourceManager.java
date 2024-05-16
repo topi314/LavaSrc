@@ -135,7 +135,15 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			return AudioReference.NO_TRACK;
 		}
 		var trackInfo = json.get("result").get("track");
-		return new BasicAudioPlaylist("Yandex Music Recommendations For Track: " + trackInfo.get("title").text(), tracks, null, true);
+		return new YandexMusicAudioPlaylist(
+				"Yandex Music Recommendations For Track: " + trackInfo.get("title").text(),
+				tracks,
+				ExtendedAudioPlaylist.Type.RECOMMENDATIONS,
+				null,
+				null,
+				null,
+				tracks.size()
+		);
 	}
 
 	private AudioItem getSearch(String query) throws IOException {
@@ -214,7 +222,11 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private AudioItem getPlaylist(String userString, String id, String domainEnd) throws IOException {
-		var json = this.getJson(PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id + "?page-size=" + PLAYLIST_MAX_PAGE_ITEMS * playlistLoadLimit);
+		var json = this.getJson(
+				PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id
+						+ "?page-size=" + PLAYLIST_MAX_PAGE_ITEMS * playlistLoadLimit
+						+ "&rich-tracks=true"
+		);
 		if (json.isNull() || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -242,16 +254,6 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		);
 	}
 
-	private List<JsonBrowser> getTracks(String trackIds) throws IOException {
-		return getJson(PUBLIC_API_BASE + "/tracks?track-ids=" + URLEncoder.encode(trackIds, StandardCharsets.UTF_8)).get("result").values();
-	}
-
-	private String getTrackIds(List<JsonBrowser> tracksToParse) {
-		return tracksToParse.stream()
-				.map(node -> node.get("id").text())
-				.collect(Collectors.joining(","));
-	}
-
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
@@ -266,12 +268,8 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		return HttpClientTools.fetchResponseLines(this.httpInterfaceManager.getInterface(), request, "downloadinfo-xml-page")[0];
 	}
 
-	private List<AudioTrack> parseTracks(JsonBrowser json, String domainEnd) throws IOException {
+	private List<AudioTrack> parseTracks(JsonBrowser json, String domainEnd) {
 		var tracksToParse = json.values();
-		if (!json.values().get(0).get("albumId").isNull()) {
-			tracksToParse = getTracks(getTrackIds(tracksToParse));
-		}
-
 		var tracks = new ArrayList<AudioTrack>();
 		for (var track : tracksToParse) {
 			var parsedTrack = track.get("track").isNull() ? this.parseTrack(track, domainEnd) : this.parseTrack(track.get("track"), domainEnd);
