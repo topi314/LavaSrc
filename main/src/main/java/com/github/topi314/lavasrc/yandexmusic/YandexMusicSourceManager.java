@@ -268,8 +268,8 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, String domainEnd) throws IOException {
 		var tracksToParse = json.values();
-		if (json.values().get(0).get("available").isNull()) {
-			 tracksToParse = getTracks(getTrackIds(tracksToParse));
+		if (!json.values().get(0).get("albumId").isNull()) {
+			tracksToParse = getTracks(getTrackIds(tracksToParse));
 		}
 
 		var tracks = new ArrayList<AudioTrack>();
