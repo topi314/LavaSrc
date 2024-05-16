@@ -257,6 +257,9 @@ plugins:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
+      playlistLoadLimit: 1 # The number of pages at 100 tracks each
+      albumLoadLimit: 1 # The number of pages at 50 tracks each
+      artistLoadLimit: 1 # The number of pages at 10 tracks each
     flowerytts:
       voice: "default voice" # (case-sensitive) get default voice from here https://api.flowery.pw/v1/tts/voices
       translate: false # whether to translate the text to the native language of voice
@@ -334,6 +337,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 
 ### Yandex Music
 * `ymsearch:animals architects`
+* `ymrec:71663565` (`ymrec:identifier`, you can get the identifier from Lavalink's "info.identifier" response to Yandex music loadtracks)
 * https://music.yandex.ru/album/13886032/track/71663565
 * https://music.yandex.ru/album/13886032
 * https://music.yandex.ru/track/71663565

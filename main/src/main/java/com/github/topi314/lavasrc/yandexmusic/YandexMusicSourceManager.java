@@ -28,16 +28,23 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
-	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
-	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(ru|com)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
+	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
+	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
+	public static final String RECOMMENDATIONS_PREFIX = "ymrec:";
 	public static final String PUBLIC_API_BASE = "https://api.music.yandex.net";
+	public static final int ARTIST_MAX_PAGE_ITEMS = 10;
+	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
+	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 
 	private static final Logger log = LoggerFactory.getLogger(YandexMusicSourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager;
 
 	private final String accessToken;
+	private int artistLoadLimit;
+	private int albumLoadLimit;
+	private int playlistLoadLimit;
 
 	public YandexMusicSourceManager(String accessToken) {
 		if (accessToken == null || accessToken.isEmpty()) {
@@ -45,6 +52,16 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		}
 		this.accessToken = accessToken;
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+	}
+
+	public void setArtistLoadLimit(int artistLimit) {
+		this.artistLoadLimit = artistLimit;
+	}
+	public void setAlbumLoadLimit(int albumLimit) {
+		this.albumLoadLimit = albumLimit;
+	}
+	public void setPlaylistLoadLimit(int playlistLimit) {
+		this.playlistLoadLimit = playlistLimit;
 	}
 
 	@Override
@@ -59,22 +76,27 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()));
 			}
 
+			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
+				return this.getRecommendations(reference.identifier.substring(RECOMMENDATIONS_PREFIX.length()));
+			}
+
 			var matcher = URL_PATTERN.matcher(reference.identifier);
 			if (matcher.find()) {
+                var domainEnd = matcher.group("domain");
 				switch (matcher.group("type1")) {
 					case "album":
 						if (matcher.group("type2") != null) {
 							var trackId = matcher.group("identifier2");
-							return this.getTrack(trackId);
+							return this.getTrack(trackId, domainEnd);
 						}
 						var albumId = matcher.group("identifier");
-						return this.getAlbum(albumId);
+						return this.getAlbum(albumId, domainEnd);
 					case "artist":
 						var artistId = matcher.group("identifier");
-						return this.getArtist(artistId);
+						return this.getArtist(artistId, domainEnd);
 					case "track":
 						var trackId = matcher.group("identifier");
-						return this.getTrack(trackId);
+						return this.getTrack(trackId, domainEnd);
 				}
 				return null;
 			}
@@ -82,7 +104,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			if (matcher.find()) {
 				var userId = matcher.group("identifier");
 				var playlistId = matcher.group("identifier2");
-				return this.getPlaylist(userId, playlistId);
+				return this.getPlaylist(userId, playlistId, matcher.group("domain"));
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -90,27 +112,61 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		return null;
 	}
 
+	private static boolean canBeLong(String str) {
+		try {
+			Long.parseLong(str);
+			return true;
+		} catch(NumberFormatException e) {
+			return false;
+		}
+	}
+
+	private AudioItem getRecommendations(String identifier) throws IOException {
+		if (!canBeLong(identifier)) {
+			throw new IllegalArgumentException("The yandex music track identifier must be a number");
+		}
+
+		var json = this.getJson(PUBLIC_API_BASE + "/tracks/"+identifier+"/similar");
+		if (json.isNull() || json.get("result").isNull() || json.get("result").get("similarTracks").values().isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+		var tracks = this.parseTracks(json.get("result").get("similarTracks"), "com");
+		if (tracks.isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+		var trackInfo = json.get("result").get("track");
+		return new YandexMusicAudioPlaylist(
+				"Yandex Music Recommendations For Track: " + trackInfo.get("title").text(),
+				tracks,
+				ExtendedAudioPlaylist.Type.RECOMMENDATIONS,
+				null,
+				null,
+				null,
+				tracks.size()
+		);
+	}
+
 	private AudioItem getSearch(String query) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/search?text=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track&page=0");
 		if (json.isNull() || json.get("result").get("tracks").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
-		var tracks = this.parseTracks(json.get("result").get("tracks").get("results"));
+		var tracks = this.parseTracks(json.get("result").get("tracks").get("results"), "com");
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 		return new BasicAudioPlaylist("Yandex Music Search: " + query, tracks, null, true);
 	}
 
-	private AudioItem getAlbum(String id) throws IOException {
-		var json = this.getJson(PUBLIC_API_BASE + "/albums/" + id + "/with-tracks");
+	private AudioItem getAlbum(String id, String domainEnd) throws IOException {
+		var json = this.getJson(PUBLIC_API_BASE + "/albums/" + id + "/with-tracks?page-size=" + ALBUM_MAX_PAGE_ITEMS * albumLoadLimit);
 		if (json.isNull() || json.get("result").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = new ArrayList<AudioTrack>();
 		for (var volume : json.get("result").get("volumes").values()) {
 			for (var track : volume.values()) {
-				var parsedTrack = this.parseTrack(track);
+				var parsedTrack = this.parseTrack(track, domainEnd);
 				if (parsedTrack != null) {
 					tracks.add(parsedTrack);
 				}
@@ -119,34 +175,33 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		var coverUri = json.get("result").get("coverUri").text();
 		var author = json.get("result").get("artists").values().get(0).get("name").text();
 		return new YandexMusicAudioPlaylist(
 				json.get("result").get("title").text(),
 				tracks,
 				ExtendedAudioPlaylist.Type.ALBUM,
-				"https://music.yandex.ru/album/" + id,
-				this.formatCoverUri(coverUri),
+				"https://music.yandex." + domainEnd + "/album/" + id,
+				this.parseCoverUri(json.get("result")),
 				author,
 				tracks.size()
 		);
 	}
 
-	private AudioItem getTrack(String id) throws IOException {
+	private AudioItem getTrack(String id, String domainEnd) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/tracks/" + id);
 		if (json.isNull() || json.get("result").values().get(0).get("available").text().equals("false")) {
 			return AudioReference.NO_TRACK;
 		}
-		return this.parseTrack(json.get("result").values().get(0));
+		return this.parseTrack(json.get("result").values().get(0), domainEnd);
 	}
 
-	private AudioItem getArtist(String id) throws IOException {
-		var json = this.getJson(PUBLIC_API_BASE + "/artists/" + id + "/tracks?page-size=10");
+	private AudioItem getArtist(String id, String domainEnd) throws IOException {
+		var json = this.getJson(PUBLIC_API_BASE + "/artists/" + id + "/tracks?page-size=" + ARTIST_MAX_PAGE_ITEMS * artistLoadLimit);
 		if (json.isNull() || json.get("result").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 
-		var tracks = this.parseTracks(json.get("result").get("tracks"));
+		var tracks = this.parseTracks(json.get("result").get("tracks"), domainEnd);
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -155,41 +210,27 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		var artistJson = artistJsonResponse.get("result").get("artist");
 		var author = artistJson.get("name").text();
 
-		String coverUri = null;
-
-		if (!artistJson.get("ogImage").isNull()) {
-			coverUri = this.formatCoverUri(artistJson.get("ogImage").text());
-		} else if (!artistJson.get("cover").isNull()) {
-			coverUri = this.formatCoverUri(artistJson.get("cover").get("uri").text());
-		}
-
 		return new YandexMusicAudioPlaylist(
 				author + "'s Top Tracks",
 				tracks,
 				ExtendedAudioPlaylist.Type.ARTIST,
 				"https://music.yandex.ru/artist/" + id,
-				coverUri,
+				parseCoverUri(artistJson),
 				author,
 				tracks.size()
 		);
 	}
 
-	private AudioItem getPlaylist(String userString, String id) throws IOException {
-		var json = this.getJson(PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id);
+	private AudioItem getPlaylist(String userString, String id, String domainEnd) throws IOException {
+		var json = this.getJson(
+				PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id
+						+ "?page-size=" + PLAYLIST_MAX_PAGE_ITEMS * playlistLoadLimit
+						+ "&rich-tracks=true"
+		);
 		if (json.isNull() || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		var tracks = new ArrayList<AudioTrack>();
-		var tracksToParse = json.get("result").get("tracks").values();
-		if (tracksToParse.get(0).get("track").isNull()) {
-			tracksToParse = getTracks(getTrackIds(tracksToParse));
-		}
-		for (var track : tracksToParse) {
-			var parsedTrack = track.get("track").isNull() ? this.parseTrack(track) : this.parseTrack(track.get("track"));
-			if (parsedTrack != null) {
-				tracks.add(parsedTrack);
-			}
-		}
+		var tracks = this.parseTracks(json.get("result").get("tracks"), domainEnd);
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -201,27 +242,16 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		} else {
 			playlistTitle = json.get("result").get("title").text();
 		}
-		var coverUri = json.get("result").get("cover").get("uri").text();
 		var author = json.get("result").get("owner").get("name").text();
 		return new YandexMusicAudioPlaylist(
 				playlistTitle,
 				tracks,
 				ExtendedAudioPlaylist.Type.PLAYLIST,
-				"https://music.yandex.ru/users/" + userString + "/playlists/" + id,
-				this.formatCoverUri(coverUri),
+				"https://music.yandex." + domainEnd + "/users/" + userString + "/playlists/" + id,
+				this.parseCoverUri(json.get("result")),
 				author,
 				tracks.size()
 		);
-	}
-
-	private List<JsonBrowser> getTracks(String trackIds) throws IOException {
-		return getJson(PUBLIC_API_BASE + "/tracks?track-ids=" + URLEncoder.encode(trackIds, StandardCharsets.UTF_8)).get("result").values();
-	}
-
-	private String getTrackIds(List<JsonBrowser> tracksToParse) {
-		return tracksToParse.stream()
-				.map(node -> node.get("id").text())
-				.collect(Collectors.joining(","));
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
@@ -238,10 +268,11 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		return HttpClientTools.fetchResponseLines(this.httpInterfaceManager.getInterface(), request, "downloadinfo-xml-page")[0];
 	}
 
-	private List<AudioTrack> parseTracks(JsonBrowser json) {
+	private List<AudioTrack> parseTracks(JsonBrowser json, String domainEnd) {
+		var tracksToParse = json.values();
 		var tracks = new ArrayList<AudioTrack>();
-		for (var track : json.values()) {
-			var parsedTrack = this.parseTrack(track);
+		for (var track : tracksToParse) {
+			var parsedTrack = track.get("track").isNull() ? this.parseTrack(track, domainEnd) : this.parseTrack(track.get("track"), domainEnd);
 			if (parsedTrack != null) {
 				tracks.add(parsedTrack);
 			}
@@ -249,30 +280,27 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		return tracks;
 	}
 
-	private AudioTrack parseTrack(JsonBrowser json) {
+	private AudioTrack parseTrack(JsonBrowser json, String domainEnd) {
 		if (!json.get("available").asBoolean(false)) {
 			return null;
 		}
 		var id = json.get("id").text();
 		var artist = parseArtist(json);
-		var coverUri = json.get("coverUri").text();
 
 		String albumName = null;
 		String albumUrl = null;
 		if (!json.get("albums").values().isEmpty()) {
 			var album = json.get("albums").values().get(0);
 			albumName = album.get("title").text();
-			albumUrl = "https://music.yandex.ru/album/" + album.get("id").text();
+			albumUrl = "https://music.yandex." + domainEnd + "/album/" + album.get("id").text();
 		}
 
 		String artistUrl = null;
 		String artistArtworkUrl = null;
 		if (!json.get("artists").values().isEmpty()) {
 			var firstArtist = json.get("artists").values().get(0);
-			artistUrl = "https://music.yandex.ru/artist/" + firstArtist.get("id").text();
-			if (!firstArtist.get("cover").isNull()) {
-				artistArtworkUrl = this.formatCoverUri(firstArtist.get("cover").get("uri").text());
-			}
+			artistUrl = "https://music.yandex." + domainEnd + "/artist/" + firstArtist.get("id").text();
+			artistArtworkUrl = parseCoverUri(firstArtist);
 		}
 		return new YandexMusicAudioTrack(
 				new AudioTrackInfo(
@@ -281,8 +309,8 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 						json.get("durationMs").as(Long.class),
 						id,
 						false,
-						"https://music.yandex.ru/track/" + id,
-						this.formatCoverUri(coverUri),
+						"https://music.yandex." + domainEnd + "/track/" + id,
+						this.parseCoverUri(json),
 						null
 				),
 				albumName,
@@ -313,6 +341,26 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		return artistNode.values().stream()
 				.map(node -> node.get("name").text())
 				.collect(Collectors.joining(", "));
+	}
+
+	private String parseCoverUri(JsonBrowser objectJson) {
+		if (!objectJson.get("ogImage").isNull()) {
+			return formatCoverUri(objectJson.get("ogImage").text());
+		}
+		if (!objectJson.get("coverUri").isNull()) {
+			return formatCoverUri(objectJson.get("coverUri").text());
+		}
+
+		var coverJson = objectJson.get("cover");
+		if (!coverJson.isNull()) {
+			if (!coverJson.get("uri").isNull()) {
+				return formatCoverUri(coverJson.get("uri").text());
+			} else if (!coverJson.get("itemsUri").values().isEmpty()) {
+				return formatCoverUri(coverJson.get("itemsUri").values().get(0).text());
+			}
+		}
+
+		return null;
 	}
 
 	private String formatCoverUri(String coverUri) {
