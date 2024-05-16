@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 public class YandexMusicConfig {
 
 	private String accessToken;
-	private int playlistLoadLimit;
-	private int albumLoadLimit;
-	private int artistLoadLimit;
+	private int playlistLoadLimit = 1;
+	private int albumLoadLimit = 1;
+	private int artistLoadLimit = 1;
 
 	public String getAccessToken() {
 		return this.accessToken;
