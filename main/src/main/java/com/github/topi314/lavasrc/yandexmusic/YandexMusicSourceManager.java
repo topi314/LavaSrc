@@ -21,11 +21,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.DataInput;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -116,12 +113,13 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
         if (yandexIdentifier != null) {
             try {
                 var lyricsJson = findLyrics(yandexIdentifier);
-
                 if (lyricsJson != null && !lyricsJson.isNull() && !lyricsJson.get("result").isNull()) {
-                    URL downloadUrl = new URL(lyricsJson.get("result").get("downloadUrl").text());
-                    return this.parseLyrics(downloadUrl, track);
+                    return this.parseLyrics(
+							lyricsJson.get("result").get("downloadUrl").text(),
+							track,
+							lyricsJson.get("result").get("major").isNull() ? null : lyricsJson.get("result").get("major").get("name").text()
+					);
                 }
-                return new BasicAudioLyrics("yandexmusic", "MusixMatch", null, null);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -130,17 +128,16 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
     }
 
     @NotNull
-    private BasicAudioLyrics parseLyrics(URL downloadUrl, AudioTrack track) throws IOException {
+	private BasicAudioLyrics parseLyrics(String downloadUrl, AudioTrack track, String provider) throws IOException {
         var lyrics = new ArrayList<AudioLyrics.Line>();
-        var reader = new BufferedReader(new InputStreamReader(downloadUrl.openStream()));
+		var lines = this.getDownloadStrings(downloadUrl, "downloadinfo-text-page");
         var allText = new StringBuilder();
-        var lines = reader.lines().toArray();
 
         for (int i = 0; i < lines.length; i++) {
-            var lyricsLine = this.extractLine(lines[i].toString());
+            var lyricsLine = this.extractLine(lines[i]);
             if (lyricsLine != null && !lyricsLine.getLine().isEmpty()) {
-                Duration nextTimestamp = (i + 1 < lines.length)
-                        ? Optional.ofNullable(this.extractLine(lines[i + 1].toString()))
+                var nextTimestamp = (i + 1 < lines.length)
+                        ? Optional.ofNullable(this.extractLine(lines[i + 1]))
                         .map(AudioLyrics.Line::getTimestamp)
                         .orElse(Duration.ofMillis(track.getDuration()))
                         : Duration.ofMillis(track.getDuration());
@@ -156,10 +153,9 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
             }
         }
 
-        reader.close();
         return new BasicAudioLyrics(
                 "yandexmusic",
-                "MusixMatch",
+                provider,
                 allText.toString(),
                 lyrics
         );
@@ -377,11 +373,11 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
-	public String getDownloadStrings(String uri) throws IOException {
+	public String[] getDownloadStrings(String uri, String name) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Authorization", "OAuth " + this.accessToken);
-		return HttpClientTools.fetchResponseLines(this.httpInterfaceManager.getInterface(), request, "downloadinfo-xml-page")[0];
+		return HttpClientTools.fetchResponseLines(this.httpInterfaceManager.getInterface(), request, name);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, String domainEnd) {
