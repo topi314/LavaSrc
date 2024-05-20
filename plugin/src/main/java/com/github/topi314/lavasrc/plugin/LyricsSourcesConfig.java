@@ -11,6 +11,7 @@ public class LyricsSourcesConfig {
 	private boolean spotify = false;
 	private boolean deezer = false;
 	private boolean youtube = false;
+	private boolean yandexMusic = false;
 
 	public boolean isSpotify() {
 		return this.spotify;
@@ -34,5 +35,13 @@ public class LyricsSourcesConfig {
 
 	public void setYoutube(boolean youtube) {
 		this.youtube = youtube;
+	}
+
+	public boolean isYandexMusic() {
+		return this.yandexMusic;
+	}
+
+	public void setYandexMusic(boolean youtube) {
+		this.yandexMusic = youtube;
 	}
 }

@@ -1,5 +1,8 @@
 package com.github.topi314.lavasrc.yandexmusic;
 
+import com.github.topi314.lavalyrics.AudioLyricsManager;
+import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
+import com.github.topi314.lavalyrics.lyrics.BasicAudioLyrics;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
 import com.github.topi314.lavasrc.LavaSrcTools;
@@ -13,23 +16,31 @@ import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.DataInput;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
+public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioLyricsManager {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
+	public static final Pattern EXTRACT_LYRICS_STROKE = Pattern.compile("\\[(?<min>\\d{2}):(?<sec>\\d{2})\\.(?<mil>\\d{2})] ?(?<text>.+)?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "ymrec:";
 	public static final String PUBLIC_API_BASE = "https://api.music.yandex.net";
@@ -64,9 +75,113 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		this.playlistLoadLimit = playlistLimit;
 	}
 
+	@NotNull
 	@Override
 	public String getSourceName() {
 		return "yandexmusic";
+	}
+
+    private JsonBrowser findLyrics(String identifier) throws IOException {
+        var sign = YandexMusicSign.create(identifier);
+        return this.getJson(
+                PUBLIC_API_BASE + "/tracks/" + identifier + "/lyrics"
+                        + "?format=LRC"
+                        + "&timeStamp=" + sign.timestamp
+                        + "&sign=" + sign.value
+        );
+    }
+
+    @Override
+    public @Nullable AudioLyrics loadLyrics(@NotNull AudioTrack track) throws IllegalStateException {
+		if (accessToken == null || accessToken.isEmpty()) {
+			throw new IllegalArgumentException("Yandex Music accessToken must be set");
+		}
+
+        String yandexIdentifier = null;
+        if (track.getSourceManager() instanceof YandexMusicSourceManager) {
+            yandexIdentifier = track.getIdentifier();
+        } else {
+            try {
+                AudioItem item = this.getSearch(track.getInfo().title + " " + track.getInfo().author);
+                if (item != AudioReference.NO_TRACK) {
+                    var playlist = (BasicAudioPlaylist) item;
+                    if (!playlist.getTracks().isEmpty()) {
+                        yandexIdentifier = playlist.getTracks().get(0).getIdentifier();
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (yandexIdentifier != null) {
+            try {
+                var lyricsJson = findLyrics(yandexIdentifier);
+
+                if (lyricsJson != null && !lyricsJson.isNull() && !lyricsJson.get("result").isNull()) {
+                    URL downloadUrl = new URL(lyricsJson.get("result").get("downloadUrl").text());
+                    return this.parseLyrics(downloadUrl, track);
+                }
+                return new BasicAudioLyrics("yandexmusic", "MusixMatch", null, null);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return null;
+    }
+
+    @NotNull
+    private BasicAudioLyrics parseLyrics(URL downloadUrl, AudioTrack track) throws IOException {
+        System.out.println(downloadUrl);
+        var lyrics = new ArrayList<AudioLyrics.Line>();
+        var reader = new BufferedReader(new InputStreamReader(downloadUrl.openStream()));
+		var allText = new StringBuilder();
+		var lines = reader.lines().toArray();
+
+		for (int i = 0; i < lines.length; i++) {
+			var lyricsLine = this.extractLine(lines[i].toString());
+			if (lyricsLine != null && !lyricsLine.getLine().isEmpty()) {
+				Duration nextTimestamp = (i + 1 < lines.length)
+						? Optional.ofNullable(this.extractLine(lines[i + 1].toString()))
+						.map(AudioLyrics.Line::getTimestamp)
+						.orElse(Duration.ofMillis(track.getDuration()))
+						: Duration.ofMillis(track.getDuration());
+
+				allText.append(lyricsLine.getLine()).append("\n");
+				lyrics.add(new BasicAudioLyrics.BasicLine(
+						lyricsLine.getTimestamp(),
+						Duration.ofMillis(Math.max(
+								nextTimestamp.toMillis() - lyricsLine.getTimestamp().toMillis(), 0
+						)),
+						lyricsLine.getLine()
+				));
+			}
+		}
+
+        reader.close();
+        return new BasicAudioLyrics(
+				"yandexmusic",
+				"MusixMatch",
+				allText.toString(),
+				lyrics
+		);
+    }
+
+	@Nullable
+	private BasicAudioLyrics.BasicLine extractLine(String line) {
+		var matcher = EXTRACT_LYRICS_STROKE.matcher(line);
+		if (matcher.find()) {
+			var timestampMillis = (
+					(Integer.parseInt(matcher.group("min")) * 60 * 1000)
+							+ (Integer.parseInt(matcher.group("sec")) * 1000)
+							+ (Integer.parseInt(matcher.group("mil")) * 10)
+			);
+			return new BasicAudioLyrics.BasicLine(
+					Duration.ofMillis(timestampMillis),
+					Duration.ofMillis(0),
+					(matcher.group("text") == null) ? "" : matcher.group("text")
+			);
+		}
+		return null;
 	}
 
 	@Override
@@ -258,6 +373,8 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Authorization", "OAuth " + this.accessToken);
+		request.setHeader("User-Agent", "Yandex-Music-API");
+		request.setHeader("X-Yandex-Music-Client", "YandexMusicAndroid/24023621");
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 

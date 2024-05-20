@@ -169,6 +169,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering YouTube lyrics manager...");
 			manager.registerLyricsManager(this.youtube);
 		}
+		if (this.yandexMusic != null && this.lyricsSourcesConfig.isYandexMusic()) {
+			log.info("Registering Yandex Music lyrics manager");
+			manager.registerLyricsManager(this.yandexMusic);
+		}
 		return manager;
 	}
 }

@@ -6,7 +6,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Spotify*](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)
 * [Apple Music*](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
-* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
+* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
 * [Flowery TTS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 
