@@ -115,10 +115,10 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
                 var lyricsJson = findLyrics(yandexIdentifier);
                 if (lyricsJson != null && !lyricsJson.isNull() && !lyricsJson.get("result").isNull()) {
                     return this.parseLyrics(
-							lyricsJson.get("result").get("downloadUrl").text(),
-							track,
-							lyricsJson.get("result").get("major").isNull() ? null : lyricsJson.get("result").get("major").get("name").text()
-					);
+                            lyricsJson.get("result").get("downloadUrl").text(),
+                            track,
+                            lyricsJson.get("result").get("major").isNull() ? null : lyricsJson.get("result").get("major").get("name").text()
+                    );
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
