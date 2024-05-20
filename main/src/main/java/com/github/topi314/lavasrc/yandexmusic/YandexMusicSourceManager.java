@@ -93,9 +93,9 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
     @Override
     public @Nullable AudioLyrics loadLyrics(@NotNull AudioTrack track) throws IllegalStateException {
-		if (accessToken == null || accessToken.isEmpty()) {
-			throw new IllegalArgumentException("Yandex Music accessToken must be set");
-		}
+        if (accessToken == null || accessToken.isEmpty()) {
+            throw new IllegalArgumentException("Yandex Music accessToken must be set");
+        }
 
         String yandexIdentifier = null;
         if (track.getSourceManager() instanceof YandexMusicSourceManager) {
@@ -131,58 +131,57 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
     @NotNull
     private BasicAudioLyrics parseLyrics(URL downloadUrl, AudioTrack track) throws IOException {
-        System.out.println(downloadUrl);
         var lyrics = new ArrayList<AudioLyrics.Line>();
         var reader = new BufferedReader(new InputStreamReader(downloadUrl.openStream()));
-		var allText = new StringBuilder();
-		var lines = reader.lines().toArray();
+        var allText = new StringBuilder();
+        var lines = reader.lines().toArray();
 
-		for (int i = 0; i < lines.length; i++) {
-			var lyricsLine = this.extractLine(lines[i].toString());
-			if (lyricsLine != null && !lyricsLine.getLine().isEmpty()) {
-				Duration nextTimestamp = (i + 1 < lines.length)
-						? Optional.ofNullable(this.extractLine(lines[i + 1].toString()))
-						.map(AudioLyrics.Line::getTimestamp)
-						.orElse(Duration.ofMillis(track.getDuration()))
-						: Duration.ofMillis(track.getDuration());
+        for (int i = 0; i < lines.length; i++) {
+            var lyricsLine = this.extractLine(lines[i].toString());
+            if (lyricsLine != null && !lyricsLine.getLine().isEmpty()) {
+                Duration nextTimestamp = (i + 1 < lines.length)
+                        ? Optional.ofNullable(this.extractLine(lines[i + 1].toString()))
+                        .map(AudioLyrics.Line::getTimestamp)
+                        .orElse(Duration.ofMillis(track.getDuration()))
+                        : Duration.ofMillis(track.getDuration());
 
-				allText.append(lyricsLine.getLine()).append("\n");
-				lyrics.add(new BasicAudioLyrics.BasicLine(
-						lyricsLine.getTimestamp(),
-						Duration.ofMillis(Math.max(
-								nextTimestamp.toMillis() - lyricsLine.getTimestamp().toMillis(), 0
-						)),
-						lyricsLine.getLine()
-				));
-			}
-		}
+                allText.append(lyricsLine.getLine()).append("\n");
+                lyrics.add(new BasicAudioLyrics.BasicLine(
+                        lyricsLine.getTimestamp(),
+                        Duration.ofMillis(Math.max(
+                                nextTimestamp.toMillis() - lyricsLine.getTimestamp().toMillis(), 0
+                        )),
+                        lyricsLine.getLine()
+                ));
+            }
+        }
 
         reader.close();
         return new BasicAudioLyrics(
-				"yandexmusic",
-				"MusixMatch",
-				allText.toString(),
-				lyrics
-		);
+                "yandexmusic",
+                "MusixMatch",
+                allText.toString(),
+                lyrics
+        );
     }
 
-	@Nullable
-	private BasicAudioLyrics.BasicLine extractLine(String line) {
-		var matcher = EXTRACT_LYRICS_STROKE.matcher(line);
-		if (matcher.find()) {
-			var timestampMillis = (
-					(Integer.parseInt(matcher.group("min")) * 60 * 1000)
-							+ (Integer.parseInt(matcher.group("sec")) * 1000)
-							+ (Integer.parseInt(matcher.group("mil")) * 10)
-			);
-			return new BasicAudioLyrics.BasicLine(
-					Duration.ofMillis(timestampMillis),
-					Duration.ofMillis(0),
-					(matcher.group("text") == null) ? "" : matcher.group("text")
-			);
-		}
-		return null;
-	}
+    @Nullable
+    private BasicAudioLyrics.BasicLine extractLine(String line) {
+        var matcher = EXTRACT_LYRICS_STROKE.matcher(line);
+        if (matcher.find()) {
+            var timestampMillis = (
+                    (Integer.parseInt(matcher.group("min")) * 60 * 1000)
+                            + (Integer.parseInt(matcher.group("sec")) * 1000)
+                            + (Integer.parseInt(matcher.group("mil")) * 10)
+            );
+            return new BasicAudioLyrics.BasicLine(
+                    Duration.ofMillis(timestampMillis),
+                    Duration.ofMillis(0),
+                    (matcher.group("text") == null) ? "" : matcher.group("text")
+            );
+        }
+        return null;
+    }
 
 	@Override
 	public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
