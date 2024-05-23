@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -432,7 +433,8 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview, String artistArtwork) {
 		var attributes = json.get("attributes");
-		var trackUrl = attributes.get("url").text();
+		// sometimes apple music returns a url which is partially url encoded (only the album name part)
+		var trackUrl = URLDecoder.decode(attributes.get("url").text(), StandardCharsets.UTF_8);
 		var artistUrl = json.get("artistUrl").text();
 		if (artistUrl != null && (artistUrl.isEmpty() || artistUrl.startsWith("https://music.apple.com/WebObjects/MZStore.woa/wa/viewCollaboration"))) {
 			artistUrl = null;
