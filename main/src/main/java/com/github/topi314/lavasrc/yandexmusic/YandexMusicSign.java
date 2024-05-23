@@ -9,33 +9,30 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class YandexMusicSign {
-    public static final String ANDROID_SIGN_KEY = "p93jhgh689SBReK6ghtw62";
-    public String value;
-    public Number timestamp;
+	private static final String ANDROID_SIGN_KEY = "p93jhgh689SBReK6ghtw62";
 
-    public YandexMusicSign(String value, Number timestamp) {
-        this.value = value;
-        this.timestamp = timestamp;
-    }
+	public String value;
+	public long timestamp;
 
-    public static YandexMusicSign create(String trackId) {
-        try {
-            Number timestamp = System.currentTimeMillis() / 1000;
-            String message = trackId + timestamp;
+	public YandexMusicSign(String value, long timestamp) {
+		this.value = value;
+		this.timestamp = timestamp;
+	}
 
-            Mac hmac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(
-                    ANDROID_SIGN_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256"
-            );
-            hmac.init(secretKey);
-            String sign = Base64.getEncoder().encodeToString(hmac.doFinal(message.getBytes(StandardCharsets.UTF_8)));
+	public static YandexMusicSign create(String trackId) {
+		try {
+			var timestamp = System.currentTimeMillis() / 1000;
+			var message = trackId + timestamp;
 
-            return new YandexMusicSign(
-                    URLEncoder.encode(sign, StandardCharsets.UTF_8),
-                    timestamp
-            );
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException(e);
-        }
-    }
+			Mac hmac = Mac.getInstance("HmacSHA256");
+			SecretKeySpec secretKey = new SecretKeySpec(ANDROID_SIGN_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+			hmac.init(secretKey);
+
+			var sign = Base64.getEncoder().encodeToString(hmac.doFinal(message.getBytes(StandardCharsets.UTF_8)));
+
+			return new YandexMusicSign(URLEncoder.encode(sign, StandardCharsets.UTF_8), timestamp);
+		} catch (NoSuchAlgorithmException | InvalidKeyException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }
