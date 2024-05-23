@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -137,22 +136,24 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 		for (int i = 0; i < lines.length; i++) {
 			var lyricsLine = this.extractLine(lines[i]);
-			if (lyricsLine != null && !lyricsLine.getLine().isEmpty()) {
-				var nextTimestamp = (i + 1 < lines.length)
-					? Optional.ofNullable(this.extractLine(lines[i + 1]))
-					.map(AudioLyrics.Line::getTimestamp)
-					.orElse(Duration.ofMillis(track.getDuration()))
-					: Duration.ofMillis(track.getDuration());
-
-				allText.append(lyricsLine.getLine()).append("\n");
-				lyrics.add(new BasicAudioLyrics.BasicLine(
-					lyricsLine.getTimestamp(),
-					Duration.ofMillis(Math.max(
-						nextTimestamp.toMillis() - lyricsLine.getTimestamp().toMillis(), 0
-					)),
-					lyricsLine.getLine()
-				));
+			if (lyricsLine == null || lyricsLine.getLine().isEmpty()) {
+				continue;
 			}
+
+			Duration nextTimestamp;
+			if (i + 1 < lines.length) {
+				var line = this.extractLine(lines[i + 1]);
+				nextTimestamp = line != null ? line.getTimestamp() : Duration.ofMillis(track.getDuration());
+			} else {
+				nextTimestamp = Duration.ofMillis(track.getDuration());
+			}
+
+			allText.append(lyricsLine.getLine()).append("\n");
+			lyrics.add(new BasicAudioLyrics.BasicLine(
+				lyricsLine.getTimestamp(),
+				Duration.ofMillis(Math.max(nextTimestamp.toMillis() - lyricsLine.getTimestamp().toMillis(), 0)),
+				lyricsLine.getLine()
+			));
 		}
 
 		return new BasicAudioLyrics(
