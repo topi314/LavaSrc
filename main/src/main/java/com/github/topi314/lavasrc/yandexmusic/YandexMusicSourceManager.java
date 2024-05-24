@@ -247,9 +247,8 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		if (tracks.isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-		var trackInfo = json.get("result").get("track");
 		return new YandexMusicAudioPlaylist(
-			"Yandex Music Recommendations For Track: " + trackInfo.get("title").text(),
+			"Yandex Music Recommendations",
 			tracks,
 			ExtendedAudioPlaylist.Type.RECOMMENDATIONS,
 			null,
@@ -327,7 +326,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			author + "'s Top Tracks",
 			tracks,
 			ExtendedAudioPlaylist.Type.ARTIST,
-			"https://music.yandex.ru/artist/" + id,
+			"https://music.yandex." + domainEnd + "/artist/" + id,
 			parseCoverUri(artistJson),
 			author,
 			tracks.size()
