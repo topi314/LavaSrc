@@ -360,7 +360,10 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			}
 		}
 
-		var tracks = this.parseTracks(json.get("tracks"), false);
+		var tracks = new ArrayList<AudioTrack>();
+		if (types.contains(AudioSearchResult.Type.TRACK)) {
+			tracks.addAll(this.parseTracks(json.get("tracks"), false));
+		}
 
 		return new BasicAudioSearchResult(tracks, albums, artists, playlists, new ArrayList<>());
 	}
