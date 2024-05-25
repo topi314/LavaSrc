@@ -91,7 +91,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				log.info("Registering Youtube Source audio source manager...");
 				this.youtube = new YoutubeSearchManager(() -> manager, youTubeConfig.getCountryCode());
 			} else {
-				throw new IllegalStateException("Youtube LavaSearch requires either Lavaplayer Youtube or Youtube Source plugin to be enabled.");
+				throw new IllegalStateException("Youtube LavaSearch requires the new Youtube Source plugin to be enabled.");
 			}
 		}
 	}
