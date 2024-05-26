@@ -182,6 +182,10 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	@Override
 	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> setOfTypes) {
+		if (accessToken == null || accessToken.isEmpty()) {
+			throw new IllegalArgumentException("Yandex Music accessToken must be set");
+		}
+
 		try {
 			if (query.startsWith(SEARCH_PREFIX)) {
 				return this.getSearchResult(query.substring(SEARCH_PREFIX.length()), setOfTypes);
