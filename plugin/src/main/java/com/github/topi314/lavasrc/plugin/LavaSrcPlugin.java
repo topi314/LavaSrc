@@ -59,7 +59,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (sourcesConfig.isDeezer() || lyricsSourcesConfig.isDeezer()) {
 			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey());
 		}
-		if (sourcesConfig.isYandexMusic()) {
+		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
 			if (yandexMusicConfig.getPlaylistLoadLimit() > 0) {
 				yandexMusic.setPlaylistLoadLimit(yandexMusicConfig.getPlaylistLoadLimit());
