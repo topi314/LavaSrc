@@ -93,7 +93,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				+ "&page=0"
 		);
 		if (setOfTypes.contains(AudioSearchResult.Type.TEXT)) {
-			throw new IllegalArgumentException("text is not a valid search type for Yandex Music");
+			log.warn("text is not a valid search type for Yandex Music");
 		}
 		if (setOfTypes.isEmpty()) {
 			setOfTypes = SEARCH_TYPES;
