@@ -304,9 +304,6 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private AudioSearchResult getAutocomplete(String query, Set<AudioSearchResult.Type> types) throws IOException {
-		if (types.contains(AudioSearchResult.Type.TEXT)) {
-			log.warn("text is not a valid search type for Deezer");
-		}
 		if (types.isEmpty()) {
 			types = SEARCH_TYPES;
 		}

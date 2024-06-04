@@ -311,9 +311,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	private AudioSearchResult getAutocomplete(String query, Set<AudioSearchResult.Type> types) throws IOException {
-		if (types.contains(AudioSearchResult.Type.TEXT)) {
-			log.warn("text is not a valid search type for Spotify");
-		}
 		if (types.isEmpty()) {
 			types = SEARCH_TYPES;
 		}
