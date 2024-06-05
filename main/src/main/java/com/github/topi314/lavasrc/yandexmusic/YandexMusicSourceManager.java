@@ -209,31 +209,9 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			throw new IllegalArgumentException("Yandex Music accessToken must be set");
 		}
 
-		String yandexIdentifier = null;
 		if (track.getSourceManager() instanceof YandexMusicSourceManager) {
-			yandexIdentifier = track.getIdentifier();
-		} else {
 			try {
-				AudioItem item = this.getSearch(track.getInfo().title + " " + track.getInfo().author);
-				if (item != AudioReference.NO_TRACK) {
-					var playlist = (BasicAudioPlaylist) item;
-					if (playlist.getTracks().isEmpty()) {
-						return null;
-					}
-					for (var searchedTrack : playlist.getTracks()) {
-						if (track.getDuration() - 1000 < searchedTrack.getInfo().length && searchedTrack.getInfo().length < track.getDuration() + 1000) {
-							yandexIdentifier = searchedTrack.getIdentifier();
-							break;
-						}
-					}
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		if (yandexIdentifier != null) {
-			try {
-				var lyricsJson = findLyrics(yandexIdentifier);
+				var lyricsJson = findLyrics(track.getIdentifier());
 				if (lyricsJson != null && !lyricsJson.isNull() && !lyricsJson.get("result").isNull()) {
 					return this.parseLyrics(
 						lyricsJson.get("result").get("downloadUrl").text(),
