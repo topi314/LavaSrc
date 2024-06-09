@@ -18,12 +18,9 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -57,14 +54,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-	private final String clientId;
-	private final String clientSecret;
+	private final SpotifyTokenTracker tokenTracker;
 	private final String spDc;
 	private final String countryCode;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
-	private String token;
-	private Instant tokenExpire;
 
 	private String spToken;
 	private Instant spTokenExpire;
@@ -88,16 +82,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public SpotifySourceManager(String clientId, String clientSecret, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 
-		if (clientId == null || clientId.isEmpty()) {
-			throw new IllegalArgumentException("Spotify client id must be set");
-		}
-		this.clientId = clientId;
-
-		if (clientSecret == null || clientSecret.isEmpty()) {
-			throw new IllegalArgumentException("Spotify secret must be set");
-		}
-		this.clientSecret = clientSecret;
-
+		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret);
 		this.spDc = spDc;
 
 		if (countryCode == null || countryCode.isEmpty()) {
@@ -287,26 +272,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		return this.spToken;
 	}
 
-	public void requestToken() throws IOException {
-		var request = new HttpPost("https://accounts.spotify.com/api/token");
-		request.addHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((this.clientId + ":" + this.clientSecret).getBytes(StandardCharsets.UTF_8)));
-		request.setEntity(new UrlEncodedFormEntity(List.of(new BasicNameValuePair("grant_type", "client_credentials")), StandardCharsets.UTF_8));
-
-		var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
-		this.token = json.get("access_token").text();
-		this.tokenExpire = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
-	}
-
-	public String getToken() throws IOException {
-		if (this.token == null || this.tokenExpire == null || this.tokenExpire.isBefore(Instant.now())) {
-			this.requestToken();
-		}
-		return this.token;
-	}
-
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
-		request.addHeader("Authorization", "Bearer " + this.getToken());
+		request.addHeader("Authorization", "Bearer " + this.tokenTracker.getAccessToken());
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
 
