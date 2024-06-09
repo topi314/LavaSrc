@@ -59,7 +59,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (sourcesConfig.isDeezer() || lyricsSourcesConfig.isDeezer()) {
 			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey());
 		}
-		if (sourcesConfig.isYandexMusic()) {
+		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
 			if (yandexMusicConfig.getPlaylistLoadLimit() > 0) {
 				yandexMusic.setPlaylistLoadLimit(yandexMusicConfig.getPlaylistLoadLimit());
@@ -150,6 +150,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.youtube != null && this.sourcesConfig.isYoutube()) {
 			log.info("Registering Youtube search manager...");
 			manager.registerSearchManager(this.youtube);
+		}
+		if (this.yandexMusic != null && this.sourcesConfig.isYandexMusic()) {
+			log.info("Registering Yandex Music search manager...");
+            manager.registerSearchManager(this.yandexMusic);
 		}
 		return manager;
 	}

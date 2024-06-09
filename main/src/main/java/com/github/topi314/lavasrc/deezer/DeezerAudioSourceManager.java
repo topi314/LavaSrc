@@ -304,9 +304,6 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private AudioSearchResult getAutocomplete(String query, Set<AudioSearchResult.Type> types) throws IOException {
-		if (types.contains(AudioSearchResult.Type.TEXT)) {
-			throw new IllegalArgumentException("text is not a valid search type for Deezer");
-		}
 		if (types.isEmpty()) {
 			types = SEARCH_TYPES;
 		}
@@ -360,7 +357,10 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			}
 		}
 
-		var tracks = this.parseTracks(json.get("tracks"), false);
+		var tracks = new ArrayList<AudioTrack>();
+		if (types.contains(AudioSearchResult.Type.TRACK)) {
+			tracks.addAll(this.parseTracks(json.get("tracks"), false));
+		}
 
 		return new BasicAudioSearchResult(tracks, albums, artists, playlists, new ArrayList<>());
 	}

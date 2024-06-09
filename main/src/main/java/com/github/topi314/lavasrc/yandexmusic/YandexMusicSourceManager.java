@@ -3,6 +3,9 @@ package com.github.topi314.lavasrc.yandexmusic;
 import com.github.topi314.lavalyrics.AudioLyricsManager;
 import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
 import com.github.topi314.lavalyrics.lyrics.BasicAudioLyrics;
+import com.github.topi314.lavasearch.AudioSearchManager;
+import com.github.topi314.lavasearch.result.AudioSearchResult;
+import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
 import com.github.topi314.lavasrc.LavaSrcTools;
@@ -27,13 +30,15 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioLyricsManager {
+public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioLyricsManager, AudioSearchManager {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
 	public static final Pattern EXTRACT_LYRICS_STROKE = Pattern.compile("\\[(?<min>\\d{2}):(?<sec>\\d{2})\\.(?<mil>\\d{2})] ?(?<text>.+)?");
@@ -43,6 +48,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 	public static final int ARTIST_MAX_PAGE_ITEMS = 10;
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 100;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
+	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST);
 
 	private static final Logger log = LoggerFactory.getLogger(YandexMusicSourceManager.class);
 
@@ -79,6 +85,114 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		return "yandexmusic";
 	}
 
+	private AudioSearchResult getSearchResult(String query, Set<AudioSearchResult.Type> setOfTypes) throws IOException {
+		var json = this.getJson(
+			PUBLIC_API_BASE + "/search"
+				+ "?text=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
+				+ "&type=all"
+				+ "&page=0"
+		);
+		if (setOfTypes.isEmpty()) {
+			setOfTypes = SEARCH_TYPES;
+		}
+
+		var resultJson = json.get("result");
+		if (json.isNull() || resultJson.isNull()) {
+			return AudioSearchResult.EMPTY;
+		}
+
+		var albums = new ArrayList<AudioPlaylist>();
+		var artists = new ArrayList<AudioPlaylist>();
+		var playlists = new ArrayList<AudioPlaylist>();
+		var tracks = new ArrayList<AudioTrack>();
+
+		if (setOfTypes.contains(AudioSearchResult.Type.ALBUM)) {
+			for (var albumsJson : resultJson.get("albums").get("results").values()) {
+				if (!albumsJson.get("available").asBoolean(false)) {
+					continue;
+				}
+
+				albums.add(new YandexMusicAudioPlaylist(
+					albumsJson.get("title").text(),
+					tracks,
+					ExtendedAudioPlaylist.Type.ALBUM,
+					"https://music.yandex.com/album/" + albumsJson.get("id").text(),
+					this.parseCoverUri(albumsJson),
+					this.parseArtist(albumsJson),
+					(int) albumsJson.get("trackCount").asLong(0)
+				));
+			}
+		}
+
+		if (setOfTypes.contains(AudioSearchResult.Type.ARTIST)) {
+			for (var artistJson : resultJson.get("artists").get("results").values()) {
+				if (!artistJson.get("available").asBoolean(false)) {
+					continue;
+				}
+
+				var authorName = artistJson.get("name").text();
+				artists.add(new YandexMusicAudioPlaylist(
+					authorName + "'s Top Tracks",
+					Collections.emptyList(),
+					YandexMusicAudioPlaylist.Type.ARTIST,
+					"https://music.yandex.com/artist/" + artistJson.get("id").text(),
+					this.parseCoverUri(artistJson),
+					authorName,
+					artistJson.get("counts").isNull() ? null : ((int) artistJson.get("counts").get("tracks").asLong(0))
+				));
+			}
+		}
+
+		if (setOfTypes.contains(AudioSearchResult.Type.PLAYLIST) && !resultJson.get("playlists").get("results").isNull()) {
+			for (var playlistJson : resultJson.get("playlists").get("results").values()) {
+				if (!playlistJson.get("available").asBoolean(false)) {
+					continue;
+				}
+
+				var name = "";
+				if (!playlistJson.get("owner").isNull()) {
+					if (!playlistJson.get("owner").get("name").isNull()) {
+						name = playlistJson.get("owner").get("name").text();
+					} else {
+						name = playlistJson.get("owner").get("login").text();
+					}
+				}
+
+				playlists.add(new YandexMusicAudioPlaylist(
+					name,
+					Collections.emptyList(),
+					YandexMusicAudioPlaylist.Type.PLAYLIST,
+					"https://music.yandex.com/users/" + playlistJson.get("owner").get("login").text() + "/playlists/" + playlistJson.get("kind").text(),
+					this.parseCoverUri(playlistJson),
+					playlistJson.get("owner").get("name").text(),
+					(int) playlistJson.get("trackCount").asLong(0)
+				));
+			}
+		}
+
+		if (setOfTypes.contains(AudioSearchResult.Type.TRACK) && !resultJson.get("tracks").get("results").isNull()) {
+			tracks.addAll(this.parseTracks(resultJson.get("tracks").get("results"), "com"));
+		}
+
+		return new BasicAudioSearchResult(tracks, albums, artists, playlists, new ArrayList<>());
+	}
+
+	@Override
+	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> setOfTypes) {
+		if (accessToken == null || accessToken.isEmpty()) {
+			throw new IllegalArgumentException("Yandex Music accessToken must be set");
+		}
+
+		try {
+			if (query.startsWith(SEARCH_PREFIX)) {
+				return this.getSearchResult(query.substring(SEARCH_PREFIX.length()), setOfTypes);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return null;
+	}
+
 	private JsonBrowser findLyrics(String identifier) throws IOException {
 		var sign = YandexMusicSign.create(identifier);
 		return this.getJson(
@@ -95,25 +209,9 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			throw new IllegalArgumentException("Yandex Music accessToken must be set");
 		}
 
-		String yandexIdentifier = null;
 		if (track.getSourceManager() instanceof YandexMusicSourceManager) {
-			yandexIdentifier = track.getIdentifier();
-		} else {
 			try {
-				AudioItem item = this.getSearch(track.getInfo().title + " " + track.getInfo().author);
-				if (item != AudioReference.NO_TRACK) {
-					var playlist = (BasicAudioPlaylist) item;
-					if (!playlist.getTracks().isEmpty()) {
-						yandexIdentifier = playlist.getTracks().get(0).getIdentifier();
-					}
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		if (yandexIdentifier != null) {
-			try {
-				var lyricsJson = findLyrics(yandexIdentifier);
+				var lyricsJson = findLyrics(track.getIdentifier());
 				if (lyricsJson != null && !lyricsJson.isNull() && !lyricsJson.get("result").isNull()) {
 					return this.parseLyrics(
 						lyricsJson.get("result").get("downloadUrl").text(),
