@@ -453,7 +453,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			attributes.get("albumName").text(),
 			// Apple doesn't give us the album url, however the track url is
 			// /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
-			trackUrl.substring(0, Math.max(trackUrl.indexOf('?'), 0)),
+			trackUrl.indexOf('?') == -1 ? null : null,
 			artistUrl,
 			artistArtwork,
 			attributes.get("previews").index(0).get("hlsUrl").text(),
