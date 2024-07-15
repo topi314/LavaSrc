@@ -347,7 +347,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://music.yandex.ru/artist/701626
 
 ### Flowery TTS
-You can ready about all the available options [here](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get),
+You can ready about all the available options [here](https://flowery.pw/docs),
 a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
 
 * `ftts://hello%20world`
