@@ -59,6 +59,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private final String countryCode;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
+	private boolean localFiles;
 
 	private String spToken;
 	private Instant spTokenExpire;
@@ -97,6 +98,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setAlbumPageLimit(int albumPageLimit) {
 		this.albumPageLimit = albumPageLimit;
+	}
+
+	public void setLocalFiles(boolean localFiles) {
+		this.localFiles = localFiles;
 	}
 
 	@NotNull
@@ -422,10 +427,12 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			for (var value : page.get("items").values()) {
 				var track = value.get("track");
-				if (track.isNull() || track.get("is_local").asBoolean(false) || track.get("type").text().equals("episode")) {
+				if(track.isNull() ||
+					(this.localFiles ? track.get("type").text().equals("episode") :
+						track.get("is_local").asBoolean(false) || track.get("type").text().equals("episode"))) {
 					continue;
 				}
-				tracks.add(this.parseTrack(track, preview));
+				tracks.add(this.parseTrack(track, preview, this.localFiles));
 			}
 
 		}
@@ -467,13 +474,13 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			json.get("artists").index(0).put("images", artistJson.get("images"));
 		}
 
-		return this.parseTrack(json, preview);
+		return this.parseTrack(json, preview, this.localFiles);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var value : json.get("tracks").values()) {
-			tracks.add(this.parseTrack(value, preview));
+			tracks.add(this.parseTrack(value, preview, this.localFiles));
 		}
 		return tracks;
 	}
@@ -484,18 +491,26 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			if (value.get("is_local").asBoolean(false)) {
 				continue;
 			}
-			tracks.add(this.parseTrack(value, preview));
+			tracks.add(this.parseTrack(value, preview, this.localFiles));
 		}
 		return tracks;
 	}
 
-	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
+	private AudioTrack parseTrack(JsonBrowser json, boolean preview, boolean thisLocalFiles) {
+		if(thisLocalFiles && json.get("name").isNull()) {
+			return null;
+		}
+
+		String name = json.get("name").text();
+		String artist = thisLocalFiles ? (json.get("artists").index(0).get("name").text() != null ? json.get("artists").index(0).get("name").text() : "unknown") : json.get("artists").index(0).get("name").text();
+		String id = thisLocalFiles ? (json.get("id").text() != null ? json.get("id").text() : "unknown") : json.get("id").text();
+
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
-				json.get("name").text(),
-				json.get("artists").index(0).get("name").text(),
+				name,
+				artist,
 				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
-				json.get("id").text(),
+				id,
 				false,
 				json.get("external_urls").get("spotify").text(),
 				json.get("album").get("images").index(0).get("url").text(),

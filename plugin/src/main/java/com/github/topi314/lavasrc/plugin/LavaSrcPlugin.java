@@ -46,6 +46,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (spotifyConfig.getAlbumLoadLimit() > 0) {
 				this.spotify.setAlbumPageLimit(spotifyConfig.getAlbumLoadLimit());
 			}
+			if(spotifyConfig.isLocalFiles()) {
+				this.spotify.setLocalFiles(spotifyConfig.isLocalFiles());
+			}
 		}
 		if (sourcesConfig.isAppleMusic()) {
 			this.appleMusic = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager);
@@ -153,7 +156,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (this.yandexMusic != null && this.sourcesConfig.isYandexMusic()) {
 			log.info("Registering Yandex Music search manager...");
-            manager.registerSearchManager(this.yandexMusic);
+			manager.registerSearchManager(this.yandexMusic);
 		}
 		return manager;
 	}
