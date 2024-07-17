@@ -29,4 +29,8 @@ public class SpotifyAudioTrack extends MirroringAudioTrack {
 		return new SpotifyAudioTrack(this.trackInfo, (SpotifySourceManager) this.sourceManager);
 	}
 
+	public boolean isLocal() {
+        return this.trackInfo.identifier.equals("local");
+    }
+
 }

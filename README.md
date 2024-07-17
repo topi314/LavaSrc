@@ -243,6 +243,7 @@ plugins:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       playlistLoadLimit: 6 # The number of pages at 100 tracks each
       albumLoadLimit: 6 # The number of pages at 50 tracks each
+      localFiles: false # Enable local files support with Spotify playlists.
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       mediaAPIToken: "your apple music api token" # apple music api token
@@ -318,6 +319,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
 * https://open.spotify.com/playlist/7HAO9R9v203gkaPAgknOMp
 * https://open.spotify.com/artist/3ZztVuWxHzNpl0THurTFCv
+* Local files (URI and ISRC are null, and ID is set to "local" for all local files)
 
 (including new regional links like https://open.spotify.com/intl-de/track/0eG08cBeKk0mzykKjw4hcQ)
 

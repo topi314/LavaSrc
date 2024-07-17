@@ -502,8 +502,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		}
 
 		String name = json.get("name").text();
-		String artist = thisLocalFiles ? (json.get("artists").index(0).get("name").text() != null ? json.get("artists").index(0).get("name").text() : "unknown") : json.get("artists").index(0).get("name").text();
-		String id = thisLocalFiles ? (json.get("id").text() != null ? json.get("id").text() : "unknown") : json.get("id").text();
+		String artist = thisLocalFiles ? (json.get("artists").index(0).get("name").text() != null ? json.get("artists").index(0).get("name").text() : "local") : json.get("artists").index(0).get("name").text();
+		String id = thisLocalFiles ? (json.get("id").text() != null ? json.get("id").text() : "local") : json.get("id").text();
 
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
