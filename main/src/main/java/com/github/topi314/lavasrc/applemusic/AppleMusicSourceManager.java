@@ -439,6 +439,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		if (artistUrl != null && (artistUrl.isEmpty() || artistUrl.startsWith("https://music.apple.com/WebObjects/MZStore.woa/wa/viewCollaboration"))) {
 			artistUrl = null;
 		}
+		var paramIndex = trackUrl.indexOf('?');
 		return new AppleMusicAudioTrack(
 			new AudioTrackInfo(
 				attributes.get("name").text(),
@@ -453,7 +454,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			attributes.get("albumName").text(),
 			// Apple doesn't give us the album url, however the track url is
 			// /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
-			trackUrl.indexOf('?') == -1 ? null : trackUrl
+			paramIndex == -1 ? null : trackUrl.substring(0, paramIndex), 
 			artistUrl,
 			artistArtwork,
 			attributes.get("previews").index(0).get("hlsUrl").text(),
