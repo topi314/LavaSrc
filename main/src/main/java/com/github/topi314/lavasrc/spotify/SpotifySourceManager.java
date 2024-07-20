@@ -427,12 +427,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			for (var value : page.get("items").values()) {
 				var track = value.get("track");
-				if(track.isNull() ||
-					(this.localFiles ? track.get("type").text().equals("episode") :
-						track.get("is_local").asBoolean(false) || track.get("type").text().equals("episode"))) {
+				if (track.isNull() || track.get("type").text().equals("episode") || (!this.localFiles && track.get("is_local").asBoolean(false))) {
 					continue;
 				}
-				tracks.add(this.parseTrack(track, preview, this.localFiles));
+
+				tracks.add(this.parseTrack(track, preview));
 			}
 
 		}
@@ -474,13 +473,13 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			json.get("artists").index(0).put("images", artistJson.get("images"));
 		}
 
-		return this.parseTrack(json, preview, this.localFiles);
+		return this.parseTrack(json, preview);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) {
 		var tracks = new ArrayList<AudioTrack>();
 		for (var value : json.get("tracks").values()) {
-			tracks.add(this.parseTrack(value, preview, this.localFiles));
+			tracks.add(this.parseTrack(value, preview));
 		}
 		return tracks;
 	}
@@ -491,19 +490,19 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			if (value.get("is_local").asBoolean(false)) {
 				continue;
 			}
-			tracks.add(this.parseTrack(value, preview, this.localFiles));
+			tracks.add(this.parseTrack(value, preview));
 		}
 		return tracks;
 	}
 
-	private AudioTrack parseTrack(JsonBrowser json, boolean preview, boolean thisLocalFiles) {
-		if(thisLocalFiles && json.get("name").isNull()) {
+	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
+		if(json.get("name").isNull()) {
 			return null;
 		}
 
 		String name = json.get("name").text();
-		String artist = thisLocalFiles ? (json.get("artists").index(0).get("name").text() != null ? json.get("artists").index(0).get("name").text() : "local") : json.get("artists").index(0).get("name").text();
-		String id = thisLocalFiles ? (json.get("id").text() != null ? json.get("id").text() : "local") : json.get("id").text();
+		String artist = Optional.ofNullable(json.get("artists").index(0).get("name").text()).orElse("local");
+		String id = Optional.ofNullable(json.get("id").text()).orElse("local");
 
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
