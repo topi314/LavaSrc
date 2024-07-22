@@ -171,9 +171,24 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new DeezerSourceManager with the master decryption key and register it
 
-var deezer = new DeezerSourceManager("...");
+var deezer = new DeezerSourceManager("the master decryption key", "your arl", formats);
 playerManager.registerSourceManager(deezer);
 ```
+
+<details>
+<summary>How to get deezer master decryption key</summary>
+
+Use google.
+
+</details>
+
+<details>
+<summary>How to get deezer arl cookie</summary>
+
+Use google to find a guide on how to get the arl cookie. It's not that hard.
+
+</details>
+
 
 #### LavaLyrics
 <details>
@@ -312,6 +327,8 @@ To get your Spotify spDc cookie go [here](#spotify)
 
 To get your Apple Music api token go [here](#apple-music)
 
+To get your Deezer arl cookie go [here](#deezer)
+
 To get your Yandex Music access token go [here](#yandex-music)
 
 (YES `plugins` IS AT ROOT IN THE YAML)
@@ -358,6 +375,8 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
+      arl: "your deezer arl" # the arl cookie used for accessing the deezer api
+      formats: [ "FLAC", "MP3_320", "MP3_256", "MP3_128", "MP3_64", "AAC_64" ] # the formats you want to use for the deezer tracks. "FLAC", "MP3_320", "MP3_256" & "AAC_64" are only available for premium users and require a valid arl
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
       playlistLoadLimit: 1 # The number of pages at 100 tracks each
