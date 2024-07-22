@@ -59,6 +59,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private final String countryCode;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
+	private boolean localFiles;
 
 	private String spToken;
 	private Instant spTokenExpire;
@@ -97,6 +98,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setAlbumPageLimit(int albumPageLimit) {
 		this.albumPageLimit = albumPageLimit;
+	}
+
+	public void setLocalFiles(boolean localFiles) {
+		this.localFiles = localFiles;
 	}
 
 	@NotNull
@@ -422,9 +427,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			for (var value : page.get("items").values()) {
 				var track = value.get("track");
-				if (track.isNull() || track.get("is_local").asBoolean(false) || track.get("type").text().equals("episode")) {
+				if (track.isNull() || track.get("type").text().equals("episode") || (!this.localFiles && track.get("is_local").asBoolean(false))) {
 					continue;
 				}
+
 				tracks.add(this.parseTrack(track, preview));
 			}
 
@@ -493,9 +499,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
 				json.get("name").text(),
-				json.get("artists").index(0).get("name").text(),
+				json.get("artists").index(0).get("name").text().isEmpty() ? "Unknown" : json.get("artists").index(0).get("name").text(),
 				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
-				json.get("id").text(),
+				json.get("id").text() != null ? json.get("id").text() : "local",
 				false,
 				json.get("external_urls").get("spotify").text(),
 				json.get("album").get("images").index(0).get("url").text(),
