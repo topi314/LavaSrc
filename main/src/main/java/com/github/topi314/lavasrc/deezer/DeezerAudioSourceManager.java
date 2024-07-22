@@ -57,6 +57,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	private final String masterDecryptionKey;
 	private final String arl;
+	private final DeezerAudioTrack.TrackFormat[] formats;
 	private final HttpInterfaceManager httpInterfaceManager;
 	private Tokens tokens;
 
@@ -65,13 +66,29 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl) {
+		this(masterDecryptionKey, arl, null);
+	}
+
+	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl, @Nullable DeezerAudioTrack.TrackFormat[] formats) {
 		if (masterDecryptionKey == null || masterDecryptionKey.isEmpty()) {
 			throw new IllegalArgumentException("Deezer master key must be set");
 		}
 
 		this.masterDecryptionKey = masterDecryptionKey;
 		this.arl = arl != null && arl.isEmpty() ? null : arl;
+		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+	}
+
+	static void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
+		if (json == null) {
+			throw new IllegalStateException(message + "No response");
+		}
+		var errors = json.get("data").index(0).get("errors").values();
+		if (!errors.isEmpty()) {
+			var errorsStr = errors.stream().map(error -> error.get("code").text() + ": " + error.get("message").text()).collect(Collectors.joining(", "));
+			throw new IllegalStateException(message + errorsStr);
+		}
 	}
 
 	private void refreshSession() throws IOException {
@@ -98,17 +115,6 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			this.refreshSession();
 		}
 		return this.tokens;
-	}
-
-	static void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
-		if (json == null) {
-			throw new IllegalStateException(message + "No response");
-		}
-		var errors = json.get("data").index(0).get("errors").values();
-		if (!errors.isEmpty()) {
-			var errorsStr = errors.stream().map(error -> error.get("code").text() + ": " + error.get("message").text()).collect(Collectors.joining(", "));
-			throw new IllegalStateException(message + errorsStr);
-		}
 	}
 
 	@NotNull
@@ -405,12 +411,12 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		return new DeezerAudioPlaylist(json.get("title").text(),
-				this.parseTracks(tracks, preview),
-				DeezerAudioPlaylist.Type.ALBUM,
-				json.get("link").text(),
-				artworkUrl,
-				author,
-				(int) json.get("nb_tracks").asLong(0));
+			this.parseTracks(tracks, preview),
+			DeezerAudioPlaylist.Type.ALBUM,
+			json.get("link").text(),
+			artworkUrl,
+			author,
+			(int) json.get("nb_tracks").asLong(0));
 	}
 
 	private AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -434,12 +440,12 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var tracks = this.getJson(PUBLIC_API_BASE + "/playlist/" + id + "/tracks?limit=10000");
 
 		return new DeezerAudioPlaylist(json.get("title").text(),
-				this.parseTracks(tracks, preview),
-				DeezerAudioPlaylist.Type.PLAYLIST,
-				json.get("link").text(),
-				artworkUrl,
-				author,
-				(int) json.get("nb_tracks").asLong(0));
+			this.parseTracks(tracks, preview),
+			DeezerAudioPlaylist.Type.PLAYLIST,
+			json.get("link").text(),
+			artworkUrl,
+			author,
+			(int) json.get("nb_tracks").asLong(0));
 	}
 
 	private AudioItem getArtist(String id, boolean preview) throws IOException {
@@ -489,6 +495,10 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	@Nullable
 	public String getArl() {
 		return this.arl;
+	}
+
+	public DeezerAudioTrack.TrackFormat[] getFormats() {
+		return this.formats;
 	}
 
 	public HttpInterface getHttpInterface() {
