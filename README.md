@@ -10,6 +10,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
 * [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch)(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
+* [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results
 * [Flowery TTS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 
@@ -169,6 +170,28 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 playerManager.registerSourceManager(new YandexMusicSourceManager("...");
 ```
 
+#### Vk Music
+
+<details>
+<summary>How to get need user token</summary>
+
+## WARNING!
+### Carefully, this token can be used to access your personal data. Use a newly created account specifically for LavaSrc
+
+1. Go to the authorization page [Marusya application](https://oauth.vk.com/authorize?client_id=6463690&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1)
+2. Authorize through your vk account. 
+3. A link like this `https://oauth.vk.com/blank.html#access_token=$$$$$&expires_in=0&user_id=$$$$$@email=$$$$$@gmail.com`
+4. Copy your token and paste it into your config! Enjoy captcha-free vk music!
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new VkMusicSourceManager with the user token and register it
+playerManager.registerSourceManager(new VkMusicSourceManager("...");
+```
+
 #### Flowery Text-to-Speech
 
 Get list of all voices and languages supported [here](https://api.flowery.pw/v1/tts/voices)
@@ -214,6 +237,8 @@ To get your Apple Music api token go [here](#apple-music)
 
 To get your Yandex Music access token go [here](#yandex-music)
 
+To get your Vk Music user token go [here](#vk-music)
+
 (YES `plugins` IS AT ROOT IN THE YAML)
 ```yaml
 plugins:
@@ -229,6 +254,7 @@ plugins:
       applemusic: false # Enable Apple Music source
       deezer: false # Enable Deezer source
       yandexmusic: false # Enable Yandex Music source
+      vkmusic: false # Enable Vk Music source
       flowerytts: false # Enable Flowery TTS source
       youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
     lyrics-sources:
@@ -263,6 +289,8 @@ plugins:
       playlistLoadLimit: 1 # The number of pages at 100 tracks each
       albumLoadLimit: 1 # The number of pages at 50 tracks each
       artistLoadLimit: 1 # The number of pages at 10 tracks each
+    vkmusic:
+        userToken: "your user token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc#vk-music
     flowerytts:
       voice: "default voice" # (case-sensitive) get default voice from here https://api.flowery.pw/v1/tts/voices
       translate: false # whether to translate the text to the native language of voice
@@ -346,6 +374,21 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://music.yandex.ru/track/71663565
 * https://music.yandex.ru/users/yamusic-bestsongs/playlists/701626
 * https://music.yandex.ru/artist/701626
+
+### Vk Music
+* `vkmusic:animals architects`
+* https://vk.com/audio-2001015907_104015907
+* https://vk.ru/artist/shadxwbxrn
+* https://vk.com/audios700949584?q=phonk%20playlist&z=audio_playlist-219343251_152_389941c481d1375ac0
+* https://vk.com/audios700949584?q=phonk%20playlist&z=audio_playlist-219343251_152
+* https://vk.com/music/playlist/-219343251_152_389941c481d1375ac0
+* https://vk.ru/music/playlist/-219343251_152
+* https://vk.com/music/album/-2000228258_15228258_cafcb9e95f552acbb6?act=album
+* https://vk.com/music/album/-2000228258_15228258_cafcb9e95f552acbb6
+* https://vk.ru/music/album/-2000228258_15228258?act=album
+* https://vk.com/music/album/-2000228258_15228258
+* https://vk.com/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493%2Fbe3494d46d310b0d0d
+* https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
 
 ### Flowery TTS
 You can ready about all the available options [here](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get),

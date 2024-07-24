@@ -9,6 +9,7 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
+import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -30,10 +31,11 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private AppleMusicSourceManager appleMusic;
 	private DeezerAudioSourceManager deezer;
 	private YandexMusicSourceManager yandexMusic;
+	private VkMusicSourceManager vkMusic;
 	private FloweryTTSSourceManager flowerytts;
 	private YoutubeSearchManager youtube;
 
-	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig, YouTubeConfig youTubeConfig) {
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, VkMusicConfig vkMusicConfig, FloweryTTSConfig floweryTTSConfig, YouTubeConfig youTubeConfig) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
@@ -73,6 +75,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (yandexMusicConfig.getArtistLoadLimit() > 0) {
 				yandexMusic.setArtistLoadLimit(yandexMusicConfig.getArtistLoadLimit());
 			}
+		}
+		if (sourcesConfig.isVkMusic()) {
+			this.vkMusic = new VkMusicSourceManager(vkMusicConfig.getUserToken());
 		}
 		if (sourcesConfig.isFloweryTTS()) {
 			this.flowerytts = new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
@@ -127,6 +132,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.yandexMusic != null) {
 			log.info("Registering Yandex Music audio source manager...");
 			manager.registerSourceManager(this.yandexMusic);
+		}
+		if (this.vkMusic != null) {
+			log.info("Registering Vk Music audio source manager...");
+			manager.registerSourceManager(this.vkMusic);
 		}
 		if (this.flowerytts != null) {
 			log.info("Registering Flowery TTS audio source manager...");

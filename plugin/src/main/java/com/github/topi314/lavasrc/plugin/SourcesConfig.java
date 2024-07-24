@@ -12,6 +12,7 @@ public class SourcesConfig {
 	private boolean appleMusic = false;
 	private boolean deezer = false;
 	private boolean yandexMusic = false;
+	private boolean vkMusic = false;
 	private boolean floweryTTS = false;
 	private boolean youtube = false;
 
@@ -45,6 +46,14 @@ public class SourcesConfig {
 
 	public void setYandexMusic(boolean yandexMusic) {
 		this.yandexMusic = yandexMusic;
+	}
+
+	public boolean isVkMusic() {
+		return this.vkMusic;
+	}
+
+	public void setVkMusic(boolean vkMusic) {
+		this.vkMusic = vkMusic;
 	}
 
 	public boolean isFloweryTTS() {
