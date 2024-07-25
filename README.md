@@ -291,6 +291,9 @@ plugins:
       artistLoadLimit: 1 # The number of pages at 10 tracks each
     vkmusic:
         userToken: "your user token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc#vk-music
+        playlistLoadLimit: 1 # The number of pages at 50 tracks each
+        artistLoadLimit: 1 # The number of pages at 10 tracks each
+        recommendationsLoadLimit: 10 # Number of tracks
     flowerytts:
       voice: "default voice" # (case-sensitive) get default voice from here https://api.flowery.pw/v1/tts/voices
       translate: false # whether to translate the text to the native language of voice
