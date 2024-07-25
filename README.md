@@ -175,8 +175,8 @@ playerManager.registerSourceManager(new YandexMusicSourceManager("...");
 <details>
 <summary>How to get need user token</summary>
 
-## WARNING!
-### Carefully, this token can be used to access your personal data. Use a newly created account specifically for LavaSrc
+### WARNING!
+#### Carefully, this token can be used to access your personal data. Use a newly created account specifically for LavaSrc. This source is designed mainly for the RU region, 80% of songs in other regions will not be played.
 
 1. Go to the authorization page [Marusya application](https://oauth.vk.com/authorize?client_id=6463690&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1)
 2. Authorize through your vk account. 
