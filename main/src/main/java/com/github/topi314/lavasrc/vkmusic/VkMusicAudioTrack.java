@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -33,8 +34,9 @@ public class VkMusicAudioTrack extends ExtendedAudioTrack {
 		}
 	}
 
-	public URI getMp3TrackUri() throws URISyntaxException {
-		return new URI(this.trackInfo.identifier.substring("vkplay:".length()));
+	public URI getMp3TrackUri() throws URISyntaxException, IOException {
+		var json = this.sourceManager.getJson("audio.getById", "&audios=" + this.trackInfo.identifier);
+		return new URI(json.get("response").values().get(0).get("url").text());
 	}
 
 	@Override

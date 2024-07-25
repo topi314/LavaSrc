@@ -377,6 +377,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 
 ### Vk Music
 * `vkmusic:animals architects`
+* `vkrec:-2001015907_104015907` (`vkrec:{TRACK_ID}`)
 * https://vk.com/audio-2001015907_104015907
 * https://vk.ru/artist/shadxwbxrn
 * https://vk.com/audios700949584?q=phonk%20playlist&z=audio_playlist-219343251_152_389941c481d1375ac0

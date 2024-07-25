@@ -29,11 +29,12 @@ import java.util.regex.Pattern;
 
 public class VkMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
 	private static final Pattern VK_PLAYLIST_HEADER_REGEX = Pattern.compile("z=audio_playlist(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
-	private static final Pattern VK_PLAYLIST_TYPE_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/music/(?<type>playlist|album)/(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
+	private static final Pattern VK_PLAYLIST_TYPE_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/music/(playlist|album)/(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
 	private static final Pattern VK_TRACK_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/audio(?<id>-?\\d+)_(?<artistId>-?\\d+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
 	private static final Pattern VK_ARTIST_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/artist/(?<artistId>[^/?#]+)");
 
 	public static final String SEARCH_PREFIX = "vksearch:";
+	public static final String RECOMMENDATIONS_PREFIX = "vkrec:";
 	public static final String PUBLIC_API_BASE = "https://api.vk.com/method/";
 	public static final String API_VERSION = "5.199";
 
@@ -42,6 +43,9 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 	private final HttpInterfaceManager httpInterfaceManager;
 
 	private final String userToken;
+	private int artistLoadLimit;
+	private int playlistLoadLimit;
+	private int recommendationsLoadLimit;
 
 	public VkMusicSourceManager(String userToken) {
 		if (userToken == null || userToken.isEmpty()) {
@@ -50,6 +54,18 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		this.userToken = userToken;
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	}
+
+	public void setArtistLoadLimit(int artistLimit) {
+		this.artistLoadLimit = artistLimit;
+	}
+
+	public void setPlaylistLoadLimit(int playlistLimit) {
+		this.playlistLoadLimit = playlistLimit;
+	}
+
+	public void setRecommendationsLoadLimit(int recommendationsLimit) {
+        this.recommendationsLoadLimit = recommendationsLimit;
+    }
 
 	@Override
 	public String getSourceName() {
@@ -62,6 +78,9 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 			if (reference.identifier.startsWith(SEARCH_PREFIX)) {
 				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()));
 			}
+			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
+				return this.getRecommendations(reference.identifier.substring(RECOMMENDATIONS_PREFIX.length()));
+			}
 
 			var uri = URLDecoder.decode(reference.identifier, StandardCharsets.UTF_8);
 
@@ -71,33 +90,19 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 					return this.getPlaylist(
 						playlistFromHeader.group("owner"),
 						playlistFromHeader.group("id"),
-						playlistFromHeader.group("accessKey"),
-						ExtendedAudioPlaylist.Type.PLAYLIST
+						playlistFromHeader.group("accessKey")
 					);
 				}
 			}
 
 			var playlistMatcher = VK_PLAYLIST_TYPE_REGEX.matcher(uri);
 			if (playlistMatcher.find()) {
-				switch (playlistMatcher.group("type")) {
-					case "album":
-						if (playlistMatcher.group("owner") != null && playlistMatcher.group("id") != null) {
-							return this.getPlaylist(
-								playlistMatcher.group("owner"),
-								playlistMatcher.group("id"),
-								playlistMatcher.group("accessKey"),
-								ExtendedAudioPlaylist.Type.ALBUM
-							);
-						}
-					case "playlist":
-						if (playlistMatcher.group("owner") != null && playlistMatcher.group("id") != null) {
-							return this.getPlaylist(
-								playlistMatcher.group("owner"),
-								playlistMatcher.group("id"),
-								playlistMatcher.group("accessKey"),
-								ExtendedAudioPlaylist.Type.PLAYLIST
-							);
-						}
+				if (playlistMatcher.group("owner") != null && playlistMatcher.group("id") != null) {
+					return this.getPlaylist(
+						playlistMatcher.group("owner"),
+						playlistMatcher.group("id"),
+						playlistMatcher.group("accessKey")
+					);
 				}
 			}
 
@@ -116,6 +121,27 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		return null;
 	}
 
+	private AudioItem getRecommendations(String audioId) throws IOException {
+		var json = this.getJson("audio.getRecommendations",  "&target_audio=" + audioId + "&count=" + this.recommendationsLoadLimit);
+		if (json.isNull() || json.get("response").isNull()) {
+			return AudioReference.NO_TRACK;
+		}
+		var tracks = this.parseTracks(json.get("response").get("items"));
+		if (tracks.isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+
+		return new VkMusicAudioPlaylist(
+			"Vk Music Recommendations",
+			tracks,
+			ExtendedAudioPlaylist.Type.RECOMMENDATIONS,
+			null,
+			null,
+			null,
+			tracks.size()
+		);
+	}
+
 	private AudioItem getSearch(String query) throws IOException {
 		var json = this.getJson("audio.search", "&q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&sort=2");
 
@@ -130,13 +156,12 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		return new BasicAudioPlaylist("Vk Music Search: " + query, tracks, null, true);
 	}
 
-	private AudioItem getPlaylist(String owner_id, String playlist_id, String accessKey, ExtendedAudioPlaylist.Type type) throws IOException {
+	private AudioItem getPlaylist(String owner_id, String playlist_id, String accessKey) throws IOException {
 		var query = "&owner_id=" + owner_id;
 		if (accessKey != null) {
-			query += "&access_key" + accessKey;
+			query += "&access_key=" + accessKey;
 		}
-
-		var json = this.getJson("audio.get", query + "&album_id=" + playlist_id);
+		var json = this.getJson("audio.get", query + "&album_id=" + playlist_id + "&count=" + playlistLoadLimit * 50);
 
 		if (
 			json.isNull()
@@ -169,13 +194,19 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 			}
 		}
 
+		var type = ExtendedAudioPlaylist.Type.PLAYLIST;
+		if (playlistJson.get("type").as(Long.class) == 1) {
+			type = ExtendedAudioPlaylist.Type.ALBUM;
+		}
+
 		return new VkMusicAudioPlaylist(
 			title,
 			tracks,
 			type,
 			"https://vk.com/music/playlist/" + owner_id + "_" + playlist_id,
 			coverUri,
-			null
+			null,
+			tracks.size()
 		);
 	}
 
@@ -188,7 +219,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 	}
 
 	private AudioItem getArtist(String id) throws IOException {
-		var json = this.getJson("audio.getAudiosByArtist", "&artist_id=" + id);
+		var json = this.getJson("audio.getAudiosByArtist", "&artist_id=" + id + "&count" + artistLoadLimit * 20);
 		if (json.isNull() || json.get("response").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -212,7 +243,8 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 			ExtendedAudioPlaylist.Type.ARTIST,
 			"https://vk.com/artist/" + artistJson.get("domain").text(),
 			null,
-			author
+			author,
+			tracks.size()
 		);
 	}
 
@@ -221,8 +253,6 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		if (!this.userToken.isEmpty()) {
 			uri += "&access_token=" + this.userToken;
 		}
-
-		System.out.println(uri);
 
 		var request = new HttpGet(uri);
 		request.setHeader("Content-Type", "application/json");
@@ -272,7 +302,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 					json.get("title").text(),
 					json.get("artist").text(),
 					json.get("duration").as(Long.class) * 1000,
-					"vkplay:" + json.get("url").text(),
+					audioId,
 					false,
 					"https://vk.com/audio" + audioId,
 					coverUri,

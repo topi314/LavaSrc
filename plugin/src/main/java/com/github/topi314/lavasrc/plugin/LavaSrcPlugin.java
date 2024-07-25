@@ -78,6 +78,15 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (sourcesConfig.isVkMusic()) {
 			this.vkMusic = new VkMusicSourceManager(vkMusicConfig.getUserToken());
+			if (vkMusicConfig.getPlaylistLoadLimit() > 0) {
+				vkMusic.setPlaylistLoadLimit(vkMusicConfig.getPlaylistLoadLimit());
+			}
+			if (vkMusicConfig.getArtistLoadLimit() > 0) {
+                vkMusic.setArtistLoadLimit(vkMusicConfig.getArtistLoadLimit());
+            }
+			if (vkMusicConfig.getRecommendationLoadLimit() > 0) {
+                vkMusic.setRecommendationsLoadLimit(vkMusicConfig.getRecommendationLoadLimit());
+            }
 		}
 		if (sourcesConfig.isFloweryTTS()) {
 			this.flowerytts = new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
