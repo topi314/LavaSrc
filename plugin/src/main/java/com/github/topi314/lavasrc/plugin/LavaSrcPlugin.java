@@ -176,6 +176,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Yandex Music search manager...");
 			manager.registerSearchManager(this.yandexMusic);
 		}
+		if (this.vkMusic != null && this.sourcesConfig.isVkMusic()) {
+			log.info("Registering VK Music search manager...");
+            manager.registerSearchManager(this.vkMusic);
+		}
 		return manager;
 	}
 
@@ -197,6 +201,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.yandexMusic != null && this.lyricsSourcesConfig.isYandexMusic()) {
 			log.info("Registering Yandex Music lyrics manager");
 			manager.registerLyricsManager(this.yandexMusic);
+		}
+		if (this.vkMusic != null && this.lyricsSourcesConfig.isVkMusic()) {
+			log.info("Registering VK Music lyrics manager...");
+            manager.registerLyricsManager(this.vkMusic);
 		}
 		return manager;
 	}
