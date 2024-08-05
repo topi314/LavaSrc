@@ -89,8 +89,35 @@ To get a Spotify clientId & clientSecret you must go [here](https://developer.sp
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new SpotifySourceManager with the default providers, clientId, clientSecret, spDc, countryCode and AudioPlayerManager and register it
-playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, clientSecret, spDc, countryCode, playerManager));
+var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode, () -> playerManager, DefaultMirroringAudioTrackResolver);
+playerManager.registerSourceManager(spotify);
 ```
+
+<details>
+<summary id="#lavalyrics-spotify">LavaLyrics</summary>
+
+```java
+// register lyrics manager
+LyricsManager lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(spotify);
+```
+
+</details>
+
+<details>
+<summary id="#lavasearch-spotify">LavaSearch</summary>
+
+```java
+// register search manager
+SearchManager searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(spotify);
+```
+
+</details>
 
 <details>
 <summary>How to get sp dc cookie</summary>
@@ -106,8 +133,22 @@ playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, cli
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
-playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager));
+var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager);
+playerManager.registerSourceManager(appleMusic);
 ```
+
+<details>
+<summary id="#lavasearch-apple">LavaSearch</summary>
+
+```java
+// register search manager
+SearchManager searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(appleMusic);
+```
+
+</details>
 
 <details>
 <summary>How to get media api token without Apple developer account</summary>
@@ -128,8 +169,36 @@ follow [this guide](https://developer.apple.com/help/account/configure-app-capab
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new DeezerSourceManager with the master decryption key and register it
-playerManager.registerSourceManager(new DeezerSourceManager("...");
+
+var deezer = new DeezerSourceManager("...");
+playerManager.registerSourceManager(deezer);
 ```
+
+<details>
+<summary id="#lavalyrics-deezer">LavaLyrics</summary>
+
+```java
+// register lyrics manager
+LyricsManager lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(deezer);
+```
+
+</details>
+
+<details>
+<summary id="#lavasearch-deezer">LavaSearch</summary>
+
+```java
+// register search manager
+SearchManager searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(deezer);
+```
+
+</details>
 
 #### Yandex Music
 
@@ -166,8 +235,36 @@ Else you will only have access to podcasts.
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new YandexMusicSourceManager with the access token and register it
-playerManager.registerSourceManager(new YandexMusicSourceManager("...");
+var yandex = new YandexMusicSourceManager("...");
+
+playerManager.registerSourceManager(yandex);
 ```
+
+<details>
+<summary id="#lavalyrics-yandex">LavaLyrics</summary>
+
+```java
+// register lyrics manager
+LyricsManager lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(yandex);
+```
+
+</details>
+
+<details>
+<summary id="#lavasearch-yandex">LavaSearch</summary>
+
+```java
+// register search manager
+SearchManager searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(yandex);
+```
+
+</details>
 
 #### Flowery Text-to-Speech
 
