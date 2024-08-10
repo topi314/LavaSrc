@@ -205,7 +205,9 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		var text = new StringBuilder();
 		var lines = new ArrayList<AudioLyrics.Line>();
 		for (var line : json.get("response").get("lyrics").get("text").values()) {
-			text.append(line.text()).append(", ");
+			if (!line.text().isEmpty()) {
+				text.append(line.text()).append(". ");
+			}
 			lines.add(new BasicAudioLyrics.BasicLine(
 				Duration.ZERO,
 				Duration.ZERO,
@@ -215,7 +217,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 		return new BasicAudioLyrics(
 			this.getSourceName(),
-			"Unknown",
+			"LyricFind",
 			text.toString(),
 			lines
 		);
