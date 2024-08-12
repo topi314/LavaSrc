@@ -19,6 +19,7 @@ plugins:
       deezer: false # Enable Deezer lyrics source
       youtube: false # Enable YouTube lyrics source
       yandexmusic: false # Enable Yandex Music lyrics source
+      vkmusic: false # Enable Vk Music lyrics source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
