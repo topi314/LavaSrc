@@ -188,7 +188,16 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 		if (track.getSourceManager() instanceof VkMusicSourceManager) {
 			try {
-				return getLyrics(track);
+				var json = this.getJson("audio.getLyrics", "&audio_id=" + track.getIdentifier());
+				if (!json.get("error").isNull() || !json.get("response").isNull() && !json.get("response").get("lyrics").isNull()) {
+					return null;
+				}
+
+				if (!json.get("response").get("lyrics").get("timestamps").values().isEmpty()) {
+					return this.parseTimestampsLyrics(json.get("response").get("lyrics").get("timestamps").values());
+				} else if (!json.get("response").get("lyrics").get("text").values().isEmpty()) {
+					return this.parseTextLyrics(json.get("response").get("lyrics").get("text").values());
+				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -196,32 +205,48 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		return null;
 	}
 
-	private AudioLyrics getLyrics(@NotNull AudioTrack track) throws IOException {
-		var json = this.getJson("audio.getLyrics", "&audio_id=" + track.getIdentifier());
-		if (!json.get("error").isNull() && !json.get("response").isNull() && !json.get("response").get("lyrics").isNull()) {
-			return null;
-		}
-
-		var text = new StringBuilder();
-		var lines = new ArrayList<AudioLyrics.Line>();
-		for (var line : json.get("response").get("lyrics").get("text").values()) {
-			if (!line.text().isEmpty()) {
-				text.append(line.text()).append(". ");
-			}
-			lines.add(new BasicAudioLyrics.BasicLine(
-				Duration.ZERO,
-				Duration.ZERO,
-				line.text()
-			));
-		}
+	private BasicAudioLyrics parseTimestampsLyrics(@NotNull List<JsonBrowser> lines) {
+		var strokes = new ArrayList<AudioLyrics.Line>();
+		var text = lines.stream().map(line -> {
+			strokes.add(
+				new BasicAudioLyrics.BasicLine(
+					Duration.ofMillis(line.get("begin").as(Long.class)),
+					Duration.ofMillis(line.get("end").as(Long.class) - line.get("begin").as(Long.class)),
+					line.get("line").text()
+				)
+			);
+			return line.get("line").text();
+		}).collect(Collectors.joining(" "));
 
 		return new BasicAudioLyrics(
 			this.getSourceName(),
 			"LyricFind",
-			text.toString(),
-			lines
+			text,
+			strokes
 		);
 	}
+
+	private BasicAudioLyrics parseTextLyrics(@NotNull List<JsonBrowser> lines) {
+		var strokes = new ArrayList<AudioLyrics.Line>();
+		var text = lines.stream()
+			.filter(line -> !line.text().isEmpty())
+			.map(line -> {
+				strokes.add(new BasicAudioLyrics.BasicLine(
+					Duration.ZERO,
+					Duration.ZERO,
+					line.text()
+				));
+				return line.text();
+			}).collect(Collectors.joining(" "));
+
+		return new BasicAudioLyrics(
+			this.getSourceName(),
+			"LyricFind",
+			text,
+			strokes
+		);
+	}
+
 
 	@Override
 	public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
@@ -421,6 +446,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		if (!this.userToken.isEmpty()) {
 			uri += "&access_token=" + this.userToken;
 		}
+		System.out.println(uri);
 
 		var request = new HttpGet(uri);
 		request.setHeader("Content-Type", "application/json");
