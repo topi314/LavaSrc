@@ -446,7 +446,6 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		if (!this.userToken.isEmpty()) {
 			uri += "&access_token=" + this.userToken;
 		}
-		System.out.println(uri);
 
 		var request = new HttpGet(uri);
 		request.setHeader("Content-Type", "application/json");
