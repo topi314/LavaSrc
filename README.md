@@ -98,8 +98,8 @@ playerManager.registerSourceManager(spotify);
 <summary>Click to expand</summary>
 
 ```java
-// register lyrics manager
-LyricsManager lyricsManager = new LyricsManager();
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
 
 // register source
 lyricsManager.registerLyricsManager(spotify);
@@ -111,8 +111,8 @@ lyricsManager.registerLyricsManager(spotify);
 <summary>Click to expand</summary>
 
 ```java
-// register search manager
-SearchManager searchManager = new SearchManager();
+// create new search manager
+var searchManager = new SearchManager();
 
 // register source
 searchManager.registerSearchManager(spotify);
@@ -143,8 +143,8 @@ playerManager.registerSourceManager(appleMusic);
 <summary>Click to expand</summary>
 
 ```java
-// register search manager
-SearchManager searchManager = new SearchManager();
+// create new search manager
+var searchManager = new SearchManager();
 
 // register source
 searchManager.registerSearchManager(appleMusic);
@@ -180,8 +180,8 @@ playerManager.registerSourceManager(deezer);
 <summary>Click to expand</summary>
 
 ```java
-// register lyrics manager
-LyricsManager lyricsManager = new LyricsManager();
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
 
 // register source
 lyricsManager.registerLyricsManager(deezer);
@@ -193,8 +193,8 @@ lyricsManager.registerLyricsManager(deezer);
 <summary>Click to expand</summary>
 
 ```java
-// register search manager
-SearchManager searchManager = new SearchManager();
+// create new search manager
+var searchManager = new SearchManager();
 
 // register source
 searchManager.registerSearchManager(deezer);
@@ -246,8 +246,8 @@ playerManager.registerSourceManager(yandex);
 <summary>Click to expand</summary>
 
 ```java
-// register lyrics manager
-LyricsManager lyricsManager = new LyricsManager();
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
 
 // register source
 lyricsManager.registerLyricsManager(yandex);
@@ -259,8 +259,8 @@ lyricsManager.registerLyricsManager(yandex);
 <summary>Click to expand</summary>
 
 ```java
-// register search manager
-SearchManager searchManager = new SearchManager();
+// create new search manager
+var searchManager = new SearchManager();
 
 // register source
 searchManager.registerSearchManager(yandex);
