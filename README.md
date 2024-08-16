@@ -93,8 +93,9 @@ var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode
 playerManager.registerSourceManager(spotify);
 ```
 
+#### LavaLyrics
 <details>
-<summary id="#lavalyrics-spotify">LavaLyrics</summary>
+<summary>Click to expand</summary>
 
 ```java
 // register lyrics manager
@@ -103,11 +104,11 @@ LyricsManager lyricsManager = new LyricsManager();
 // register source
 lyricsManager.registerLyricsManager(spotify);
 ```
-
 </details>
 
+#### LavaSearch
 <details>
-<summary id="#lavasearch-spotify">LavaSearch</summary>
+<summary>Click to expand</summary>
 
 ```java
 // register search manager
@@ -137,8 +138,9 @@ var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerM
 playerManager.registerSourceManager(appleMusic);
 ```
 
+#### LavaSearch
 <details>
-<summary id="#lavasearch-apple">LavaSearch</summary>
+<summary>Click to expand</summary>
 
 ```java
 // register search manager
@@ -147,7 +149,6 @@ SearchManager searchManager = new SearchManager();
 // register source
 searchManager.registerSearchManager(appleMusic);
 ```
-
 </details>
 
 <details>
@@ -174,8 +175,9 @@ var deezer = new DeezerSourceManager("...");
 playerManager.registerSourceManager(deezer);
 ```
 
+#### LavaLyrics
 <details>
-<summary id="#lavalyrics-deezer">LavaLyrics</summary>
+<summary>Click to expand</summary>
 
 ```java
 // register lyrics manager
@@ -184,11 +186,11 @@ LyricsManager lyricsManager = new LyricsManager();
 // register source
 lyricsManager.registerLyricsManager(deezer);
 ```
-
 </details>
 
+#### LavaSearch
 <details>
-<summary id="#lavasearch-deezer">LavaSearch</summary>
+<summary>Click to expand</summary>
 
 ```java
 // register search manager
@@ -197,7 +199,6 @@ SearchManager searchManager = new SearchManager();
 // register source
 searchManager.registerSearchManager(deezer);
 ```
-
 </details>
 
 #### Yandex Music
@@ -240,8 +241,9 @@ var yandex = new YandexMusicSourceManager("...");
 playerManager.registerSourceManager(yandex);
 ```
 
+#### LavaLyrics
 <details>
-<summary id="#lavalyrics-yandex">LavaLyrics</summary>
+<summary>Click to expand</summary>
 
 ```java
 // register lyrics manager
@@ -250,11 +252,11 @@ LyricsManager lyricsManager = new LyricsManager();
 // register source
 lyricsManager.registerLyricsManager(yandex);
 ```
-
 </details>
 
+#### LavaSearch
 <details>
-<summary id="#lavasearch-yandex">LavaSearch</summary>
+<summary>Click to expand</summary>
 
 ```java
 // register search manager
@@ -263,7 +265,6 @@ SearchManager searchManager = new SearchManager();
 // register source
 searchManager.registerSearchManager(yandex);
 ```
-
 </details>
 
 #### Flowery Text-to-Speech
