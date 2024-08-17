@@ -35,7 +35,7 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 	private static final float SPEED_MIN = 0.5f;
 	private static final float SPEED_MAX = 10;
 
-	private final String voice = "";
+	private String voice = null;
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	private boolean translate = false;
 	private int silence = 0;
@@ -43,8 +43,7 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 	private String audioFormat = "mp3";
 
 	public FloweryTTSSourceManager() {
-
-    }
+	}
 
 	public FloweryTTSSourceManager(String voice) {
 		if (voice == null || voice.isEmpty()) {
