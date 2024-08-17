@@ -10,7 +10,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
 * [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch)(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
-* [Flowery TTS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
+* [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 
 > [!IMPORTANT]
@@ -274,7 +274,9 @@ Get list of all voices and languages supported [here](https://api.flowery.pw/v1/
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new FloweryTTSSourceManager with a valid voice and register it
+// create a new FloweryTTSSourceManager 
+playerManager.registerSourceManager(new FloweryTTSSourceManager());
+// create a new FloweryTTSSourceManager with a default voice
 playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
 ```
 
@@ -446,9 +448,8 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://music.yandex.ru/artist/701626
 
 ### Flowery TTS
-You can ready about all the available options [here](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get),
-a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
+You can read about all the available options [here](https://flowery.pw/docs), a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
 
 * `ftts://hello%20world`
-* `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0`
+* `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0&voice=09924826-684f-51e9-825b-cf85aed2b2cf`
 ---

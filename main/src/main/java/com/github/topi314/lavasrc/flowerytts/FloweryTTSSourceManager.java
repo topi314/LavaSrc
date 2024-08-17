@@ -29,23 +29,31 @@ public class FloweryTTSSourceManager implements AudioSourceManager, HttpConfigur
 
 	public static final String TTS_PREFIX = "ftts://";
 	private static final Logger log = LoggerFactory.getLogger(FloweryTTSSourceManager.class);
-	private static final int CHAR_MAX = 2000;
+	private static final int CHAR_MAX = 2048;
 	private static final int SILENCE_MIN = 0;
 	private static final int SILENCE_MAX = 10000;
 	private static final float SPEED_MIN = 0.5f;
 	private static final float SPEED_MAX = 10;
 
-	private final String voice;
+	private final String voice = "";
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	private boolean translate = false;
 	private int silence = 0;
 	private float speed = 1;
 	private String audioFormat = "mp3";
 
+	public FloweryTTSSourceManager() {
+
+    }
+
 	public FloweryTTSSourceManager(String voice) {
 		if (voice == null || voice.isEmpty()) {
 			throw new IllegalArgumentException("Default voice must be set");
 		}
+		this.voice = voice;
+	}
+
+	public void setVoice(String voice) {
 		this.voice = voice;
 	}
 

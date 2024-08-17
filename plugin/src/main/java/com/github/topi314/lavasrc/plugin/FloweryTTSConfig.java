@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FloweryTTSConfig {
 
-	private String voice = "Aad";
+	private String voice = "";
 	private boolean translate;
 	private int silence;
 	private float speed = 1.0F;
