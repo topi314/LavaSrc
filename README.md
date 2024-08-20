@@ -10,7 +10,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)(Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)(Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
 * [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch)(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
-* [Flowery TTS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
+* [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 * [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch)
 
@@ -78,20 +78,11 @@ dependencies {
 ```
 </details>
 
-### Usage
+---
 
-For all supported urls and queries see [here](#supported-urls-and-queries)
-
-#### Spotify
+### Spotify
 
 To get a Spotify clientId & clientSecret you must go [here](https://developer.spotify.com/dashboard) and create a new application.
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new SpotifySourceManager with the default providers, clientId, clientSecret, spDc, countryCode and AudioPlayerManager and register it
-playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, clientSecret, spDc, countryCode, playerManager));
-```
 
 <details>
 <summary>How to get sp dc cookie</summary>
@@ -102,13 +93,46 @@ playerManager.registerSourceManager(new SpotifySourceManager(null, clientId, cli
 
 </details>
 
-#### Apple Music
+
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
-playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager));
+// create a new SpotifySourceManager with the default providers, clientId, clientSecret, spDc, countryCode and AudioPlayerManager and register it
+// spDc is only needed if you want to use it with LavaLyrics
+var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode, () -> playerManager, DefaultMirroringAudioTrackResolver);
+playerManager.registerSourceManager(spotify);
 ```
+
+#### LavaLyrics
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(spotify);
+```
+</details>
+
+#### LavaSearch
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(spotify);
+```
+
+</details>
+
+---
+
+### Apple Music
 
 <details>
 <summary>How to get media api token without Apple developer account</summary>
@@ -123,16 +147,84 @@ playerManager.registerSourceManager(new AppleMusicSourceManager(null, mediaAPITo
 Alternatively, you can
 follow [this guide](https://developer.apple.com/help/account/configure-app-capabilities/create-a-media-identifier-and-private-key/)
 
-#### Deezer
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
+var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager);
+playerManager.registerSourceManager(appleMusic);
+```
+
+#### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(appleMusic);
+```
+</details>
+
+---
+
+### Deezer
+
+<details>
+<summary>How to get deezer master decryption key</summary>
+
+Use Google.
+
+</details>
+
+<details>
+<summary>How to get deezer arl cookie</summary>
+
+Use Google to find a guide on how to get the arl cookie. It's not that hard.
+
+</details>
 
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new DeezerSourceManager with the master decryption key and register it
-playerManager.registerSourceManager(new DeezerSourceManager("...");
+
+var deezer = new DeezerSourceManager("the master decryption key", "your arl", formats);
+playerManager.registerSourceManager(deezer);
 ```
 
-#### Yandex Music
+#### LavaLyrics
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(deezer);
+```
+</details>
+
+#### LavaSearch
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(deezer);
+```
+</details>
+
+---
+
+### Yandex Music
 
 <details>
 <summary>How to get access token</summary>
@@ -146,7 +238,7 @@ playerManager.registerSourceManager(new DeezerSourceManager("...");
 
 Token expires in 1 year. You can get a new one by repeating the steps above.
 
-## Important information
+#### Important information
 Yandex Music is very location-dependent. You should either have a premium subscription or be located in one of the following countries:
 - Azerbaijan
 - Armenia
@@ -167,17 +259,49 @@ Else you will only have access to podcasts.
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new YandexMusicSourceManager with the access token and register it
-playerManager.registerSourceManager(new YandexMusicSourceManager("...");
+var yandex = new YandexMusicSourceManager("...");
+
+playerManager.registerSourceManager(yandex);
 ```
 
-#### Flowery Text-to-Speech
+#### LavaLyrics
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(yandex);
+```
+</details>
+
+#### LavaSearch
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(yandex);
+```
+</details>
+
+---
+
+### Flowery Text-to-Speech
 
 Get list of all voices and languages supported [here](https://api.flowery.pw/v1/tts/voices)
 
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new FloweryTTSSourceManager with a valid voice and register it
+// create a new FloweryTTSSourceManager 
+playerManager.registerSourceManager(new FloweryTTSSourceManager());
+// create a new FloweryTTSSourceManager with a default voice
 playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
 ```
 
@@ -263,6 +387,8 @@ To get your Spotify spDc cookie go [here](#spotify)
 
 To get your Apple Music api token go [here](#apple-music)
 
+To get your Deezer arl cookie go [here](#deezer)
+
 To get your Yandex Music access token go [here](#yandex-music)
 
 To get your Vk Music user token go [here](#vk-music)
@@ -298,6 +424,7 @@ plugins:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       playlistLoadLimit: 6 # The number of pages at 100 tracks each
       albumLoadLimit: 6 # The number of pages at 50 tracks each
+      resolveArtistsInSearch: true # Whether to resolve artists in track search results (can be slow)
       localFiles: false # Enable local files support with Spotify playlists. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
@@ -313,6 +440,8 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
+      # arl: "your deezer arl" # the arl cookie used for accessing the deezer api this is optional but required for formats above MP3_128
+      formats: [ "FLAC", "MP3_320", "MP3_256", "MP3_128", "MP3_64", "AAC_64" ] # the formats you want to use for the deezer tracks. "FLAC", "MP3_320", "MP3_256" & "AAC_64" are only available for premium users and require a valid arl
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
       playlistLoadLimit: 1 # The number of pages at 100 tracks each
@@ -424,9 +553,8 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
 
 ### Flowery TTS
-You can ready about all the available options [here](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get),
-a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
+You can read about all the available options [here](https://flowery.pw/docs), a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
 
 * `ftts://hello%20world`
-* `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0`
+* `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0&voice=09924826-684f-51e9-825b-cf85aed2b2cf`
 ---

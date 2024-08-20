@@ -8,7 +8,10 @@ import com.sedmelluq.discord.lavaplayer.container.wav.WavAudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
-import com.sedmelluq.discord.lavaplayer.track.*;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -48,6 +51,9 @@ public class FloweryTTSAudioTrack extends DelegatedAudioTrack {
 
 			for (var entry : config.entrySet()) {
 				var value = queryParams.getOrDefault(entry.getKey(), entry.getValue());
+				if (value == null) {
+					continue;
+				}
 				apiUri.addParameter(entry.getKey(), value);
 			}
 

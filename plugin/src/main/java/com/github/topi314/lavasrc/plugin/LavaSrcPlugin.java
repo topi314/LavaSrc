@@ -48,6 +48,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (spotifyConfig.getAlbumLoadLimit() > 0) {
 				this.spotify.setAlbumPageLimit(spotifyConfig.getAlbumLoadLimit());
 			}
+			if (!spotifyConfig.isResolveArtistsInSearch()) {
+				this.spotify.setResolveArtistsInSearch(spotifyConfig.isResolveArtistsInSearch());
+			}
 			if(spotifyConfig.isLocalFiles()) {
 				this.spotify.setLocalFiles(spotifyConfig.isLocalFiles());
 			}
@@ -62,7 +65,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 		if (sourcesConfig.isDeezer() || lyricsSourcesConfig.isDeezer()) {
-			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey());
+			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats());
 		}
 		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());

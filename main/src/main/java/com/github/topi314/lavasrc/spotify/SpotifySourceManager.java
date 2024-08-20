@@ -32,7 +32,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -60,6 +63,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
 	private boolean localFiles;
+	private boolean resolveArtistsInSearch = true;
 
 	private String spToken;
 	private Instant spTokenExpire;
@@ -102,6 +106,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setLocalFiles(boolean localFiles) {
 		this.localFiles = localFiles;
+	}
+
+	public void setResolveArtistsInSearch(boolean resolveArtistsInSearch) {
+		this.resolveArtistsInSearch = resolveArtistsInSearch;
 	}
 
 	@NotNull
@@ -343,13 +351,15 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		var artistIds = json.get("tracks").get("items").values().stream().map(track -> track.get("artists").index(0).get("id").text()).collect(Collectors.joining(","));
-		var artistJson = this.getJson(API_BASE + "artists?ids=" + artistIds);
-		if (artistJson != null) {
-			for (var artist : artistJson.get("artists").values()) {
-				for (var track : json.get("tracks").get("items").values()) {
-					if (track.get("artists").index(0).get("id").text().equals(artist.get("id").text())) {
-						track.get("artists").index(0).put("images", artist.get("images"));
+		if (this.resolveArtistsInSearch) {
+			var artistIds = json.get("tracks").get("items").values().stream().map(track -> track.get("artists").index(0).get("id").text()).collect(Collectors.joining(","));
+			var artistJson = this.getJson(API_BASE + "artists?ids=" + artistIds);
+			if (artistJson != null) {
+				for (var artist : artistJson.get("artists").values()) {
+					for (var track : json.get("tracks").get("items").values()) {
+						if (track.get("artists").index(0).get("id").text().equals(artist.get("id").text())) {
+							track.get("artists").index(0).put("images", artist.get("images"));
+						}
 					}
 				}
 			}

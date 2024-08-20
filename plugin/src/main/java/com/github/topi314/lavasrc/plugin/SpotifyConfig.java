@@ -13,6 +13,7 @@ public class SpotifyConfig {
 	private String countryCode = "US";
 	private int playlistLoadLimit = 6;
 	private int albumLoadLimit = 6;
+	private boolean resolveArtistsInSearch = true;
 	private boolean localFiles = false;
 
 	public String getClientId() {
@@ -61,6 +62,14 @@ public class SpotifyConfig {
 
 	public void setAlbumLoadLimit(int albumLoadLimit) {
 		this.albumLoadLimit = albumLoadLimit;
+	}
+
+	public boolean isResolveArtistsInSearch() {
+		return this.resolveArtistsInSearch;
+	}
+
+	public void setResolveArtistsInSearch(boolean resolveArtistsInSearch) {
+		this.resolveArtistsInSearch = resolveArtistsInSearch;
 	}
 
 	public boolean isLocalFiles() {
