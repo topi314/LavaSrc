@@ -307,7 +307,7 @@ playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
 
 ---
 
-#### Vk Music
+### Vk Music
 
 <details>
 <summary>How to get need user token</summary>
