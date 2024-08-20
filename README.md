@@ -85,15 +85,26 @@ For all supported urls and queries see [here](#supported-urls-and-queries)
 
 To get a Spotify clientId & clientSecret you must go [here](https://developer.spotify.com/dashboard) and create a new application.
 
+<details>
+<summary>How to get sp dc cookie</summary>
+
+1. Go to https://open.spotify.com
+2. Open DevTools and go to the Application tab
+3. Copy the value of the `sp_dc` cookie
+
+</details>
+
+
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new SpotifySourceManager with the default providers, clientId, clientSecret, spDc, countryCode and AudioPlayerManager and register it
+// spDc is only needed if you want to use it with LavaLyrics
 var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode, () -> playerManager, DefaultMirroringAudioTrackResolver);
 playerManager.registerSourceManager(spotify);
 ```
 
-#### LavaLyrics
+##### LavaLyrics
 <details>
 <summary>Click to expand</summary>
 
@@ -106,7 +117,7 @@ lyricsManager.registerLyricsManager(spotify);
 ```
 </details>
 
-#### LavaSearch
+##### LavaSearch
 <details>
 <summary>Click to expand</summary>
 
@@ -120,36 +131,9 @@ searchManager.registerSearchManager(spotify);
 
 </details>
 
-<details>
-<summary>How to get sp dc cookie</summary>
-
-1. Go to https://open.spotify.com
-2. Open DevTools and go to the Application tab
-3. Copy the value of the `sp_dc` cookie
-
-</details>
+---
 
 #### Apple Music
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
-var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager);
-playerManager.registerSourceManager(appleMusic);
-```
-
-#### LavaSearch
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new search manager
-var searchManager = new SearchManager();
-
-// register source
-searchManager.registerSearchManager(appleMusic);
-```
-</details>
 
 <details>
 <summary>How to get media api token without Apple developer account</summary>
@@ -164,7 +148,45 @@ searchManager.registerSearchManager(appleMusic);
 Alternatively, you can
 follow [this guide](https://developer.apple.com/help/account/configure-app-capabilities/create-a-media-identifier-and-private-key/)
 
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
+var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager);
+playerManager.registerSourceManager(appleMusic);
+```
+
+##### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(appleMusic);
+```
+</details>
+
+---
+
 #### Deezer
+
+<details>
+<summary>How to get deezer master decryption key</summary>
+
+Use Google.
+
+</details>
+
+<details>
+<summary>How to get deezer arl cookie</summary>
+
+Use Google to find a guide on how to get the arl cookie. It's not that hard.
+
+</details>
 
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
@@ -175,22 +197,7 @@ var deezer = new DeezerSourceManager("the master decryption key", "your arl", fo
 playerManager.registerSourceManager(deezer);
 ```
 
-<details>
-<summary>How to get deezer master decryption key</summary>
-
-Use google.
-
-</details>
-
-<details>
-<summary>How to get deezer arl cookie</summary>
-
-Use google to find a guide on how to get the arl cookie. It's not that hard.
-
-</details>
-
-
-#### LavaLyrics
+##### LavaLyrics
 <details>
 <summary>Click to expand</summary>
 
@@ -203,7 +210,7 @@ lyricsManager.registerLyricsManager(deezer);
 ```
 </details>
 
-#### LavaSearch
+##### LavaSearch
 <details>
 <summary>Click to expand</summary>
 
@@ -215,6 +222,8 @@ var searchManager = new SearchManager();
 searchManager.registerSearchManager(deezer);
 ```
 </details>
+
+---
 
 #### Yandex Music
 
@@ -256,7 +265,7 @@ var yandex = new YandexMusicSourceManager("...");
 playerManager.registerSourceManager(yandex);
 ```
 
-#### LavaLyrics
+##### LavaLyrics
 <details>
 <summary>Click to expand</summary>
 
@@ -269,7 +278,7 @@ lyricsManager.registerLyricsManager(yandex);
 ```
 </details>
 
-#### LavaSearch
+##### LavaSearch
 <details>
 <summary>Click to expand</summary>
 
@@ -281,6 +290,8 @@ var searchManager = new SearchManager();
 searchManager.registerSearchManager(yandex);
 ```
 </details>
+
+---
 
 #### Flowery Text-to-Speech
 
@@ -375,7 +386,7 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
-      arl: "your deezer arl" # the arl cookie used for accessing the deezer api
+      # arl: "your deezer arl" # the arl cookie used for accessing the deezer api this is optional but required for formats above MP3_128
       formats: [ "FLAC", "MP3_320", "MP3_256", "MP3_128", "MP3_64", "AAC_64" ] # the formats you want to use for the deezer tracks. "FLAC", "MP3_320", "MP3_256" & "AAC_64" are only available for premium users and require a valid arl
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
