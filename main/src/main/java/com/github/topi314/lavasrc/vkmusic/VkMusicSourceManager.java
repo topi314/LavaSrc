@@ -77,6 +77,10 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		this.recommendationsLoadLimit = recommendationsLimit;
 	}
 
+	public String getUserToken() {
+		return userToken;
+	}
+
 	@NotNull
 	@Override
 	public String getSourceName() {
@@ -102,10 +106,6 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 	}
 
 	private AudioSearchResult getSearchResult(@NotNull String query, @NotNull Set<AudioSearchResult.Type> types) throws IOException {
-		if (userToken == null || userToken.isEmpty()) {
-			throw new IllegalArgumentException("Vk Music user token must be set");
-		}
-
 		var albums = new ArrayList<AudioPlaylist>();
 		var artists = new ArrayList<AudioPlaylist>();
 		var playlists = new ArrayList<AudioPlaylist>();
@@ -182,10 +182,6 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 	@Override
 	public @Nullable AudioLyrics loadLyrics(@NotNull AudioTrack track) {
-		if (userToken == null || userToken.isEmpty()) {
-			throw new IllegalArgumentException("Vk Music user token must be set");
-		}
-
 		if (track.getSourceManager() instanceof VkMusicSourceManager) {
 			try {
 				var json = this.getJson("audio.getLyrics", "&audio_id=" + track.getIdentifier());
@@ -250,10 +246,13 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 	@Override
 	public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
-		if (userToken == null || userToken.isEmpty()) {
-			throw new IllegalArgumentException("Vk Music user token must be set");
-		}
 		try {
+			if (reference.identifier.startsWith(SEARCH_PREFIX)) {
+				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()));
+			}
+			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
+				return this.getRecommendations(reference.identifier.substring(RECOMMENDATIONS_PREFIX.length()));
+			}
 			var uri = URLDecoder.decode(reference.identifier, StandardCharsets.UTF_8);
 
 			var playlistFromHeader = VK_PLAYLIST_HEADER_REGEX.matcher(uri);
@@ -286,13 +285,6 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 			var artistMatcher = VK_ARTIST_REGEX.matcher(uri);
 			if (artistMatcher.find()) {
 				return this.getArtist(artistMatcher.group("artistId"));
-			}
-
-			if (reference.identifier.startsWith(SEARCH_PREFIX)) {
-				return this.getSearch(reference.identifier.substring(SEARCH_PREFIX.length()));
-			}
-			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
-				return this.getRecommendations(reference.identifier.substring(RECOMMENDATIONS_PREFIX.length()));
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);

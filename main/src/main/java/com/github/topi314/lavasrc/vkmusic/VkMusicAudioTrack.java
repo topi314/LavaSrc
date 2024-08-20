@@ -35,7 +35,23 @@ public class VkMusicAudioTrack extends ExtendedAudioTrack {
 	}
 
 	public URI getMp3TrackUri() throws URISyntaxException, IOException {
-		var json = this.sourceManager.getJson("audio.getById", "&audios=" + this.trackInfo.identifier);
+		var token = sourceManager.getUserToken();
+		var id = this.trackInfo.identifier;
+
+		if (token == null || token.isEmpty()) {
+			throw new IllegalArgumentException("Vk Music user token must be set");
+		}
+
+		var json = this.sourceManager.getJson("audio.getById", "&audios=" + id)
+			.get("response");
+		if (
+			json.isNull()
+				|| json.values().isEmpty()
+				|| json.values().get(0).get("url").isNull()
+		) {
+			throw new IllegalStateException("No download url found for track " + id);
+		}
+
 		return new URI(json.get("response").values().get(0).get("url").text());
 	}
 
