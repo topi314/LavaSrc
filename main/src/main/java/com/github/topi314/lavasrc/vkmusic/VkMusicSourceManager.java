@@ -89,9 +89,6 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 	@Override
 	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> types) {
-		if (userToken == null || userToken.isEmpty()) {
-			throw new IllegalArgumentException("Vk Music userToken must be set");
-		}
 		if (types.isEmpty()) {
 			types = SEARCH_TYPES;
 		}
