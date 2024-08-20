@@ -77,11 +77,9 @@ dependencies {
 ```
 </details>
 
-### Usage
+---
 
-For all supported urls and queries see [here](#supported-urls-and-queries)
-
-#### Spotify
+### Spotify
 
 To get a Spotify clientId & clientSecret you must go [here](https://developer.spotify.com/dashboard) and create a new application.
 
@@ -104,7 +102,7 @@ var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode
 playerManager.registerSourceManager(spotify);
 ```
 
-##### LavaLyrics
+#### LavaLyrics
 <details>
 <summary>Click to expand</summary>
 
@@ -117,7 +115,7 @@ lyricsManager.registerLyricsManager(spotify);
 ```
 </details>
 
-##### LavaSearch
+#### LavaSearch
 <details>
 <summary>Click to expand</summary>
 
@@ -133,7 +131,7 @@ searchManager.registerSearchManager(spotify);
 
 ---
 
-#### Apple Music
+### Apple Music
 
 <details>
 <summary>How to get media api token without Apple developer account</summary>
@@ -156,7 +154,7 @@ var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerM
 playerManager.registerSourceManager(appleMusic);
 ```
 
-##### LavaSearch
+#### LavaSearch
 
 <details>
 <summary>Click to expand</summary>
@@ -172,7 +170,7 @@ searchManager.registerSearchManager(appleMusic);
 
 ---
 
-#### Deezer
+### Deezer
 
 <details>
 <summary>How to get deezer master decryption key</summary>
@@ -197,7 +195,7 @@ var deezer = new DeezerSourceManager("the master decryption key", "your arl", fo
 playerManager.registerSourceManager(deezer);
 ```
 
-##### LavaLyrics
+#### LavaLyrics
 <details>
 <summary>Click to expand</summary>
 
@@ -210,7 +208,7 @@ lyricsManager.registerLyricsManager(deezer);
 ```
 </details>
 
-##### LavaSearch
+#### LavaSearch
 <details>
 <summary>Click to expand</summary>
 
@@ -225,7 +223,7 @@ searchManager.registerSearchManager(deezer);
 
 ---
 
-#### Yandex Music
+### Yandex Music
 
 <details>
 <summary>How to get access token</summary>
@@ -239,7 +237,7 @@ searchManager.registerSearchManager(deezer);
 
 Token expires in 1 year. You can get a new one by repeating the steps above.
 
-## Important information
+#### Important information
 Yandex Music is very location-dependent. You should either have a premium subscription or be located in one of the following countries:
 - Azerbaijan
 - Armenia
@@ -265,7 +263,7 @@ var yandex = new YandexMusicSourceManager("...");
 playerManager.registerSourceManager(yandex);
 ```
 
-##### LavaLyrics
+#### LavaLyrics
 <details>
 <summary>Click to expand</summary>
 
@@ -278,7 +276,7 @@ lyricsManager.registerLyricsManager(yandex);
 ```
 </details>
 
-##### LavaSearch
+#### LavaSearch
 <details>
 <summary>Click to expand</summary>
 
@@ -293,7 +291,7 @@ searchManager.registerSearchManager(yandex);
 
 ---
 
-#### Flowery Text-to-Speech
+### Flowery Text-to-Speech
 
 Get list of all voices and languages supported [here](https://api.flowery.pw/v1/tts/voices)
 
