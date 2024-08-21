@@ -52,7 +52,7 @@ public class VkMusicAudioTrack extends ExtendedAudioTrack {
 			throw new IllegalStateException("No download url found for track " + id);
 		}
 
-		return new URI(json.get("response").values().get(0).get("url").text());
+		return new URI(json.values().get(0).get("url").text());
 	}
 
 	@Override
