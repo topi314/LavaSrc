@@ -22,4 +22,5 @@ public class LavaSrcConfig {
 	public void setProviders(String[] providers) {
 		this.providers = providers;
 	}
+
 }
