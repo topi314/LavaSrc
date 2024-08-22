@@ -29,7 +29,7 @@ public abstract class MirroringAudioTrack extends ExtendedAudioTrack {
 
 	@Override
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
-		if (this.isPreview) {
+		if (this.isPreview && this.sourceManager.disablePreview == false) {
 			if (this.previewUrl == null) {
 				throw new FriendlyException("No preview url found", FriendlyException.Severity.COMMON, new IllegalArgumentException());
 			}
