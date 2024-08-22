@@ -23,4 +23,14 @@ public class LavaSrcConfig {
 		this.providers = providers;
 	}
 
+	private Boolean disablePreview = false;
+
+	public Boolean getDisablePreview() {
+		return this.disablePreview;
+	}
+
+	public void setDisablePreview(Boolean disablePreview) {
+		this.disablePreview = disablePreview;
+	}
+
 }
