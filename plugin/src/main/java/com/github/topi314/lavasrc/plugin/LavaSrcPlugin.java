@@ -39,7 +39,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
 
 		if (sourcesConfig.isSpotify() || lyricsSourcesConfig.isSpotify()) {
-			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), unused -> manager, new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()));
+			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), unused -> manager, new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()), pluginConfig.getDisablePreview());
 			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
 				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
 			}
@@ -54,7 +54,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 		if (sourcesConfig.isAppleMusic()) {
-			this.appleMusic = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager);
+			this.appleMusic = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager, pluginConfig.getDisablePreview());
 			if (appleMusicConfig.getPlaylistLoadLimit() > 0) {
 				appleMusic.setPlaylistPageLimit(appleMusicConfig.getPlaylistLoadLimit());
 			}
