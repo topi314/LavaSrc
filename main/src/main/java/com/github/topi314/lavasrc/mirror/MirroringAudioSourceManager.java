@@ -22,18 +22,16 @@ public abstract class MirroringAudioSourceManager extends ExtendedAudioSourceMan
 	private static final Logger log = LoggerFactory.getLogger(MirroringAudioSourceManager.class);
 	protected final Function<Void, AudioPlayerManager> audioPlayerManager;
 	protected final MirroringAudioTrackResolver resolver;
-	protected final Boolean disablePreview;
 
 	protected final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
 	protected MirroringAudioSourceManager(AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver resolver) {
-		this(unused -> audioPlayerManager, resolver, false);
+		this(unused -> audioPlayerManager, resolver);
 	}
 
-	protected MirroringAudioSourceManager(Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver resolver, Boolean disablePreview) {
+	protected MirroringAudioSourceManager(Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver resolver) {
 		this.audioPlayerManager = audioPlayerManager;
 		this.resolver = resolver;
-		this.disablePreview = disablePreview;
 	}
 
 	@Override
