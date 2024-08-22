@@ -181,7 +181,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			));
 		}
 
-		return new BasicAudioLyrics("spotify", "MusixMatch", null, lyrics);
+		return new BasicAudioLyrics("spotify", json.get("lyrics").get("providerDisplayName").textOrDefault("MusixMatch"), null, lyrics);
 	}
 
 	@Override
