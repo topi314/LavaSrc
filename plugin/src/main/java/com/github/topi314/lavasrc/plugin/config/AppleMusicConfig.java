@@ -1,4 +1,4 @@
-package com.github.topi314.lavasrc.plugin;
+package com.github.topi314.lavasrc.plugin.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

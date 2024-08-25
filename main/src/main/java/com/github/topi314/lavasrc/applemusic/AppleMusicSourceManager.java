@@ -54,7 +54,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private final String countryCode;
 	private int playlistPageLimit;
 	private int albumPageLimit;
-	private final String token;
+	private String token;
 	private String origin;
 	private Instant tokenExpire;
 
@@ -96,6 +96,15 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	public void setAlbumPageLimit(int albumPageLimit) {
 		this.albumPageLimit = albumPageLimit;
+	}
+
+	public void setMediaAPIToken(String mediaAPIToken) {
+		this.token = mediaAPIToken;
+		try {
+			this.parseTokenData();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@NotNull

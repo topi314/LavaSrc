@@ -19,343 +19,11 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 
 ## Summary
 
-* [Lavaplayer Usage](#lavaplayer-usage)
 * [Lavalink Usage](#lavalink-usage)
+  * [Configuration](#configuration)
+  * [Update Settings at Runtime](#update-settings-at-runtime)
+* [Lavaplayer Usage](#lavaplayer-usage)
 * [Supported URLs and Queries](#supported-urls-and-queries)
-
-## Lavaplayer Usage
-
-Replace x.y.z with the latest version number
-
-Snapshot builds are available in https://maven.topi.wtf/snapshots with the short commit hash as the version
-
-### Using in Gradle:
-
-<details>
-<summary>Gradle</summary>
-
-### 
-```gradle
-repositories {
-  maven {
-    url "https://maven.topi.wtf/releases"
-  }
-}
-
-dependencies {
-  implementation "com.github.topi314.lavasrc:lavasrc:x.y.z"
-  implementation "com.github.topi314.lavasrc:lavasrc-protocol:x.y.z"
-}
-```
-</details>
-
-### Using in Maven:
-
-<details>
-<summary>Maven</summary>
-
-```xml
-<repositories>
-  <repository>
-    <id>TopiWTF-releases</id>
-    <name>Topis Maven Repo</name>
-    <url>https://maven.topi.wtf/releases</url>
-  </repository>
-</repositories>
-
-<dependencies>
-  <dependency>
-    <groupId>com.github.topi314.lavasrc</groupId>
-    <artifactId>lavasrc</artifactId>
-    <version>x.y.z</version>
-  </dependency>
-  <dependency>
-      <groupId>com.github.topi314.lavasrc</groupId>
-      <artifactId>lavasrc-protocol-jvm</artifactId>
-      <version>x.y.z</version>
-  </dependency>
-</dependencies>
-```
-</details>
-
----
-
-### Spotify
-
-To get a Spotify clientId & clientSecret you must go [here](https://developer.spotify.com/dashboard) and create a new application.
-
-<details>
-<summary>How to get sp dc cookie</summary>
-
-1. Go to https://open.spotify.com
-2. Open DevTools and go to the Application tab
-3. Copy the value of the `sp_dc` cookie
-
-</details>
-
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new SpotifySourceManager with the default providers, clientId, clientSecret, spDc, countryCode and AudioPlayerManager and register it
-// spDc is only needed if you want to use it with LavaLyrics
-var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode, () -> playerManager, DefaultMirroringAudioTrackResolver);
-playerManager.registerSourceManager(spotify);
-```
-
-#### LavaLyrics
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new lyrics manager
-var lyricsManager = new LyricsManager();
-
-// register source
-lyricsManager.registerLyricsManager(spotify);
-```
-</details>
-
-#### LavaSearch
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new search manager
-var searchManager = new SearchManager();
-
-// register source
-searchManager.registerSearchManager(spotify);
-```
-
-</details>
-
----
-
-### Apple Music
-
-<details>
-<summary>How to get media api token without Apple developer account</summary>
-
-1. Go to https://music.apple.com
-2. Open DevTools and go to the Debugger tab
-3. Search with this regex `"(?<token>(ey[\w-]+)\.([\w-]+)\.([\w-]+))"` in all `index-*.js` files
-4. Copy the token from the source code
-
-</details>
-
-Alternatively, you can
-follow [this guide](https://developer.apple.com/help/account/configure-app-capabilities/create-a-media-identifier-and-private-key/)
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
-var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager);
-playerManager.registerSourceManager(appleMusic);
-```
-
-#### LavaSearch
-
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new search manager
-var searchManager = new SearchManager();
-
-// register source
-searchManager.registerSearchManager(appleMusic);
-```
-</details>
-
----
-
-### Deezer
-
-<details>
-<summary>How to get deezer master decryption key</summary>
-
-Use Google.
-
-</details>
-
-<details>
-<summary>How to get deezer arl cookie</summary>
-
-Use Google to find a guide on how to get the arl cookie. It's not that hard.
-
-</details>
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new DeezerSourceManager with the master decryption key and register it
-
-var deezer = new DeezerSourceManager("the master decryption key", "your arl", formats);
-playerManager.registerSourceManager(deezer);
-```
-
-#### LavaLyrics
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new lyrics manager
-var lyricsManager = new LyricsManager();
-
-// register source
-lyricsManager.registerLyricsManager(deezer);
-```
-</details>
-
-#### LavaSearch
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new search manager
-var searchManager = new SearchManager();
-
-// register source
-searchManager.registerSearchManager(deezer);
-```
-</details>
-
----
-
-### Yandex Music
-
-<details>
-<summary>How to get access token</summary>
-
-1. (Optional) Open DevTools in your browser and on the Network tab enable trotlining.
-2. Go to https://oauth.yandex.ru/authorize?response_type=token&client_id=23cabbbdc6cd418abb4b39c32c41195d
-3. Authorize and grant access
-4. The browser will redirect to the address like `https://music.yandex.ru/#access_token=AQAAAAAYc***&token_type=bearer&expires_in=31535645`.
-   Very quickly there will be a redirect to another page, so you need to have time to copy the link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
-5. Your accessToken, what is after `access_token`.
-
-Token expires in 1 year. You can get a new one by repeating the steps above.
-
-#### Important information
-Yandex Music is very location-dependent. You should either have a premium subscription or be located in one of the following countries:
-- Azerbaijan
-- Armenia
-- Belarus
-- Georgia
-- Kazakhstan
-- Kyrgyzstan
-- Moldova
-- Russia
-- Tajikistan
-- Turkmenistan
-- Uzbekistan
-
-Else you will only have access to podcasts.
-</details>
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new YandexMusicSourceManager with the access token and register it
-var yandex = new YandexMusicSourceManager("...");
-
-playerManager.registerSourceManager(yandex);
-```
-
-#### LavaLyrics
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new lyrics manager
-var lyricsManager = new LyricsManager();
-
-// register source
-lyricsManager.registerLyricsManager(yandex);
-```
-</details>
-
-#### LavaSearch
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new search manager
-var searchManager = new SearchManager();
-
-// register source
-searchManager.registerSearchManager(yandex);
-```
-</details>
-
----
-
-### Flowery Text-to-Speech
-
-Get list of all voices and languages supported [here](https://api.flowery.pw/v1/tts/voices)
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new FloweryTTSSourceManager 
-playerManager.registerSourceManager(new FloweryTTSSourceManager());
-// create a new FloweryTTSSourceManager with a default voice
-playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
-```
-
----
-
-### Vk Music
-
-<details>
-<summary>How to get user token</summary>
-
-### WARNING!
-#### Carefully, this token can be used to access your personal data. Use a newly created account specifically for LavaSrc. This source is designed mainly for the RU region, 80% of songs in other regions will not be played.
-
-1. Go to the authorization page [Marusya application](https://oauth.vk.com/authorize?client_id=6463690&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1)
-2. Authorize through your vk account.
-3. A link like this `https://oauth.vk.com/blank.html#access_token=$$$$$&expires_in=0&user_id=$$$$$@email=$$$$$@gmail.com`
-4. Copy your token and paste it into your config! Enjoy captcha-free vk music!
-
-</details>
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new VkMusicSourceManager with the user token and register it
-playerManager.registerSourceManager(new VkMusicSourceManager("...");
-```
-
-#### LavaLyrics
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new lyrics manager
-var lyricsManager = new LyricsManager();
-
-// register source
-lyricsManager.registerLyricsManager(vkmusic);
-```
-</details>
-
-#### LavaSearch
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new search manager
-var searchManager = new SearchManager();
-
-// register source
-searchManager.registerSearchManager(vkmusic);
-```
-</details>
-
----
 
 ## Lavalink Usage
 
@@ -363,10 +31,11 @@ This plugin requires Lavalink `v4` or greater
 
 To install this plugin either download the latest release and place it into your `plugins` folder or add the following into your `application.yml`
 
-> **Note**
+> [!Note]
 > For a full `application.yml` example see [here](application.example.yml)
 
 Replace x.y.z with the latest version number
+
 ```yaml
 lavalink:
   plugins:
@@ -393,7 +62,9 @@ To get your Yandex Music access token go [here](#yandex-music)
 
 To get your Vk Music user token go [here](#vk-music)
 
-(YES `plugins` IS AT ROOT IN THE YAML)
+> [!WARNING]
+> YES `plugins` IS AT ROOT IN THE YAML
+
 ```yaml
 plugins:
   lavasrc:
@@ -477,6 +148,31 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 | previewUrl       | ?string | The url of the preview         |
 | isPreview        | bool    | Whether the track is a preview |
 
+<details>
+<summary>Example Payload</summary>
+
+```json
+{
+    "encoded": "...",
+    "info": {
+        ...
+    },
+    "pluginInfo": {
+        "albumName": "...",
+        "albumArtUrl": "...",
+        "artistUrl": "...",
+        "artistArtworkUrl": "...",
+        "previewUrl": "...",
+        "isPreview": false
+    },
+    "userData": {
+        ...
+    }
+}
+```
+
+</details>
+
 #### Playlist
 
 | Field       | Type                             | Description                                |
@@ -487,20 +183,500 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 | author      | ?string                          | The author of the playlist                 |
 | totalTracks | ?int                             | The total number of tracks in the playlist |
 
+<details>
+<summary>Example Payload</summary>
+
+```json
+{
+    "info": {
+        ...
+    },
+    "pluginInfo": {
+        "type": "playlist",
+        "url": "...",
+        "artworkUrl": "...",
+        "author": "...",
+        "totalTracks": 10
+    },
+    "tracks": [
+        ...
+    ]
+}
+```
+
+</details>
+
 #### Playlist Types
 
-| Type            | Description                                |
-|-----------------|--------------------------------------------|
-| album           | The playlist is an album                   |
-| playlist        | The playlist is a playlist                 |
-| artist          | The playlist is an artist                  |
-| recommendations | The playlist is a recommendations playlist |
+| Type              | Description                                |
+|-------------------|--------------------------------------------|
+| `album`           | The playlist is an album                   |
+| `playlist`        | The playlist is a playlist                 |
+| `artist`          | The playlist is an artist                  |
+| `recommendations` | The playlist is a recommendations playlist |
+
+---
+
+### Update Settings at Runtime
+
+Sometimes you may want to update the settings at runtime without restarting Lavalink. This can be done by sending a `PATCH` request to the `/v4/lavasrc/config` endpoint.
+Keep in mind this will **NOT** update the settings in the `application.yml` file. If you restart Lavalink the settings will be reset to the ones in the `application.yml` file.
+
+```http
+PATCH /v4/lavasrc/config
+```
+
+#### LavaSrc Config Object
+
+> [!NOTE]
+> All fields are optional and only the fields you provide will be updated.
+
+| Field        | Type                                               | Description               |
+|--------------|----------------------------------------------------|---------------------------|
+| ?spotify     | [Spotify Config](#spotify-config-object)           | The Spotify settings      |
+| ?applemusic  | [Apple Music Config](#apple-music-config-object)   | The Apple Music settings  |
+| ?deezer      | [Deezer Config](#deezer-config-object)             | The Deezer settings       |
+| ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
+| ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
+
+##### Spotify Config Object
+
+| Field         | Type   | Description              |
+|---------------|--------|--------------------------|
+| ?clientId     | string | The Spotify clientId     |
+| ?clientSecret | string | The Spotify clientSecret |
+| ?spDc         | string | The Spotify spDc cookie  |
+
+##### Apple Music Config Object
+
+| Field          | Type   | Description               |
+|----------------|--------|---------------------------|
+| ?mediaAPIToken | string | The Apple Music api token |
+
+##### Deezer Config Object
+
+| Field    | Type                                      | Description           |
+|----------|-------------------------------------------|-----------------------|
+| ?arl     | string                                    | The Deezer arl cookie |
+| ?formats | array of [Deezer Format](#deezer-formats) | The Deezer formats    |
+
+##### Deezer Formats
+
+| Format    | Description |
+|-----------|-------------|
+| `FLAC`    | FLAC        |
+| `MP3_320` | MP3 320kbps |
+| `MP3_256` | MP3 256kbps |
+| `MP3_128` | MP3 128kbps |
+| `MP3_64`  | MP3 64kbps  |
+| `AAC_64`  | AAC 64kbps  |
+
+##### Yandex Music Config Object
+
+| Field        | Type   | Description                   |
+|--------------|--------|-------------------------------|
+| ?accessToken | string | The Yandex Music access token |
+
+##### Vk Music Config Object
+
+| Field      | Type   | Description             |
+|------------|--------|-------------------------|
+| ?userToken | string | The Vk Music user token |
+
+<details>
+<summary>Example Payload</summary>
+
+```json
+{
+    "spotify": {
+        "clientId": "your client id",
+        "clientSecret": "your client secret",
+        "spDc": "your sp dc cookie"
+    },
+    "applemusic": {
+        "mediaAPIToken": "your apple music api token"
+    },
+    "deezer": {
+        "arl": "your deezer arl",
+        "formats": [
+            "FLAC",
+            "MP3_320",
+            "MP3_256",
+            "MP3_128",
+            "MP3_64",
+            "AAC_64"
+        ]
+    },
+    "yandexMusic": {
+        "accessToken": "your access token"
+    },
+    "vkMusic": {
+        "userToken": "your user token"
+    }
+}
+```
+
+</details>
+
+---
+
+
+## Lavaplayer Usage
+
+Replace `x.y.z` with the latest version number
+
+Snapshot builds are instead available in https://maven.topi.wtf/snapshots with the short commit hash as the version
+
+### Using in Gradle:
+
+<details>
+<summary>Gradle</summary>
+
+```gradle
+repositories {
+  maven {
+    url "https://maven.topi.wtf/releases"
+  }
+}
+
+dependencies {
+  implementation "com.github.topi314.lavasrc:lavasrc:x.y.z"
+  implementation "com.github.topi314.lavasrc:lavasrc-protocol:x.y.z"
+}
+```
+
+</details>
+
+### Using in Maven:
+
+<details>
+<summary>Maven</summary>
+
+```xml
+<repositories>
+  <repository>
+    <id>TopiWTF-releases</id>
+    <name>Topis Maven Repo</name>
+    <url>https://maven.topi.wtf/releases</url>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>com.github.topi314.lavasrc</groupId>
+    <artifactId>lavasrc</artifactId>
+    <version>x.y.z</version>
+  </dependency>
+  <dependency>
+      <groupId>com.github.topi314.lavasrc</groupId>
+      <artifactId>lavasrc-protocol-jvm</artifactId>
+      <version>x.y.z</version>
+  </dependency>
+</dependencies>
+```
+
+</details>
+
+---
+
+### Spotify
+
+To get a Spotify clientId & clientSecret you must go [here](https://developer.spotify.com/dashboard) and create a new application.
+
+<details>
+<summary>How to get sp dc cookie</summary>
+
+1. Go to https://open.spotify.com
+2. Open DevTools and go to the Application tab
+3. Copy the value of the `sp_dc` cookie
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new SpotifySourceManager with the default providers, clientId, clientSecret, spDc, countryCode and AudioPlayerManager and register it
+// spDc is only needed if you want to use it with LavaLyrics
+var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode, () -> playerManager, DefaultMirroringAudioTrackResolver);
+playerManager.registerSourceManager(spotify);
+```
+
+#### LavaLyrics
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(spotify);
+```
+
+</details>
+
+#### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(spotify);
+```
+
+</details>
+
+---
+
+### Apple Music
+
+<details>
+<summary>How to get media api token without Apple developer account</summary>
+
+1. Go to https://music.apple.com
+2. Open DevTools and go to the Debugger tab
+3. Search with this regex `"(?<token>(ey[\w-]+)\.([\w-]+)\.([\w-]+))"` in all `index-*.js` files
+4. Copy the token from the source code
+
+</details>
+
+Alternatively, you can
+follow [this guide](https://developer.apple.com/help/account/configure-app-capabilities/create-a-media-identifier-and-private-key/)
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
+var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager);
+playerManager.registerSourceManager(appleMusic);
+```
+
+#### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(appleMusic);
+```
+</details>
+
+---
+
+### Deezer
+
+<details>
+<summary>How to get deezer master decryption key</summary>
+
+Use Google.
+
+</details>
+
+<details>
+<summary>How to get deezer arl cookie</summary>
+
+Use Google to find a guide on how to get the arl cookie. It's not that hard.
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new DeezerSourceManager with the master decryption key and register it
+
+var deezer = new DeezerSourceManager("the master decryption key", "your arl", formats);
+playerManager.registerSourceManager(deezer);
+```
+
+#### LavaLyrics
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(deezer);
+```
+
+</details>
+
+#### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(deezer);
+```
+
+</details>
+
+---
+
+### Yandex Music
+
+<details>
+<summary>How to get access token</summary>
+
+1. (Optional) Open DevTools in your browser and on the Network tab enable trotlining.
+2. Go to https://oauth.yandex.ru/authorize?response_type=token&client_id=23cabbbdc6cd418abb4b39c32c41195d
+3. Authorize and grant access
+4. The browser will redirect to the address like `https://music.yandex.ru/#access_token=AQAAAAAYc***&token_type=bearer&expires_in=31535645`.
+   Very quickly there will be a redirect to another page, so you need to have time to copy the link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
+5. Your accessToken, what is after `access_token`.
+
+Token expires in 1 year. You can get a new one by repeating the steps above.
+
+#### Important information
+
+Yandex Music is very location-dependent. You should either have a premium subscription or be located in one of the following countries:
+
+- Azerbaijan
+- Armenia
+- Belarus
+- Georgia
+- Kazakhstan
+- Kyrgyzstan
+- Moldova
+- Russia
+- Tajikistan
+- Turkmenistan
+- Uzbekistan
+
+Else you will only have access to podcasts.
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new YandexMusicSourceManager with the access token and register it
+var yandex = new YandexMusicSourceManager("...");
+
+playerManager.registerSourceManager(yandex);
+```
+
+#### LavaLyrics
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(yandex);
+```
+
+</details>
+
+#### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(yandex);
+```
+
+</details>
+
+---
+
+### Flowery Text-to-Speech
+
+Get list of all voices and languages supported [here](https://api.flowery.pw/v1/tts/voices)
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new FloweryTTSSourceManager 
+playerManager.registerSourceManager(new FloweryTTSSourceManager());
+// create a new FloweryTTSSourceManager with a default voice
+playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
+```
+
+---
+
+### Vk Music
+
+<details>
+<summary>How to get user token</summary>
+
+### WARNING!
+
+#### Carefully, this token can be used to access your personal data. Use a newly created account specifically for LavaSrc. This source is designed mainly for the RU region, 80% of songs in other regions will not be played.
+
+1. Go to the authorization page [Marusya application](https://oauth.vk.com/authorize?client_id=6463690&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1)
+2. Authorize through your vk account.
+3. A link like this `https://oauth.vk.com/blank.html#access_token=$$$$$&expires_in=0&user_id=$$$$$@email=$$$$$@gmail.com`
+4. Copy your token and paste it into your config! Enjoy captcha-free vk music!
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new VkMusicSourceManager with the user token and register it
+playerManager.registerSourceManager(new VkMusicSourceManager("...");
+```
+
+#### LavaLyrics
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new lyrics manager
+var lyricsManager = new LyricsManager();
+
+// register source
+lyricsManager.registerLyricsManager(vkmusic);
+```
+
+</details>
+
+#### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(vkmusic);
+```
+
+</details>
 
 ---
 
 ## Supported URLs and Queries
 
 ### Spotify
+
 * `spsearch:animals architects` (check out [Spotify Search Docs](https://developer.spotify.com/documentation/web-api/reference/search) for advanced search queries like isrc & co)
 * `sprec:seed_artists=3ZztVuWxHzNpl0THurTFCv,4MzJMcHQBl9SIYSjwWn8QW&seed_genres=metalcore&seed_tracks=5ofoB8PFmocBXFBEWVb6Vz,6I5zXzSDByTEmYZ7ePVQeB`
   (check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/get-recommendations) for the full query parameter list)
@@ -512,6 +688,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 (including new regional links like https://open.spotify.com/intl-de/track/0eG08cBeKk0mzykKjw4hcQ)
 
 ### Apple Music
+
 * `amsearch:animals architects`
 * https://music.apple.com/cy/album/animals/1533388849?i=1533388859
 * https://music.apple.com/cy/album/for-those-that-wish-to-exist/1533388849
@@ -519,6 +696,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://music.apple.com/cy/artist/architects/182821355
 
 ### Deezer
+
 * `dzsearch:animals architects`
 * `dzisrc:USEP42058010`
 * https://deezer.page.link/U6BTQ2Q1KpmNt2yh8
@@ -528,6 +706,7 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://www.deezer.com/artist/159126
 
 ### Yandex Music
+
 * `ymsearch:animals architects`
 * `ymrec:71663565` (`ymrec:{TRACK_ID}`)
 * https://music.yandex.ru/album/13886032/track/71663565
@@ -537,12 +716,14 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://music.yandex.ru/artist/701626
 
 ### Flowery TTS
+
 You can read about all the available options [here](https://flowery.pw/docs), a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
 
 * `ftts://hello%20world`
 * `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0&voice=09924826-684f-51e9-825b-cf85aed2b2cf`
 
 ### Vk Music
+
 * `vksearch:animals architects`
 * `vkrec:-2001015907_104015907` (`vkrec:{TRACK_ID}`)
 * https://vk.com/audio-2001015907_104015907
@@ -557,4 +738,5 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://vk.com/music/album/-2000228258_15228258
 * https://vk.com/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493%2Fbe3494d46d310b0d0d
 * https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
+
 ---

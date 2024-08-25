@@ -1,23 +1,23 @@
-package com.github.topi314.lavasrc.plugin;
+package com.github.topi314.lavasrc.plugin.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = "plugins.lavasrc.yandexmusic")
+@ConfigurationProperties(prefix = "plugins.lavasrc.vkmusic")
 @Component
-public class YandexMusicConfig {
+public class VkMusicConfig {
 
-	private String accessToken;
+	private String userToken;
 	private int playlistLoadLimit = 1;
-	private int albumLoadLimit = 1;
 	private int artistLoadLimit = 1;
+	private int recommendationLoadLimit = 1;
 
-	public String getAccessToken() {
-		return this.accessToken;
+	public String getUserToken() {
+		return this.userToken;
 	}
 
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
+	public void setUserToken(String userToken) {
+		this.userToken = userToken;
 	}
 
 	public int getPlaylistLoadLimit() {
@@ -28,19 +28,19 @@ public class YandexMusicConfig {
 		this.playlistLoadLimit = playlistLoadLimit;
 	}
 
-	public int getAlbumLoadLimit() {
-		return this.albumLoadLimit;
-	}
-
-	public void setAlbumLoadLimit(int albumLoadLimit) {
-		this.albumLoadLimit = albumLoadLimit;
-	}
-
 	public int getArtistLoadLimit() {
 		return this.artistLoadLimit;
 	}
 
 	public void setArtistLoadLimit(int artistLoadLimit) {
 		this.artistLoadLimit = artistLoadLimit;
+	}
+
+	public int getRecommendationLoadLimit() {
+		return this.recommendationLoadLimit;
+	}
+
+	public void setRecommendationLoadLimit(int recommendationLoadLimit) {
+		this.recommendationLoadLimit = recommendationLoadLimit;
 	}
 }

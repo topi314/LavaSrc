@@ -1,4 +1,4 @@
-package com.github.topi314.lavasrc.plugin;
+package com.github.topi314.lavasrc.plugin.config;
 
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -6,8 +6,11 @@ import com.github.topi314.lavasearch.SearchManager;
 import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
+import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.plugin.config.*;
+import com.github.topi314.lavasrc.protocol.Config;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
@@ -18,8 +21,11 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Service
+@RestController
 public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchManagerConfiguration, LyricsManagerConfiguration {
 
 	private static final Logger log = LoggerFactory.getLogger(LavaSrcPlugin.class);
@@ -210,5 +216,52 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			manager.registerLyricsManager(this.vkMusic);
 		}
 		return manager;
+	}
+
+	@PatchMapping("/v4/lavasrc/config")
+	public void updateConfig(Config config) {
+		var spotifyConfig = config.getSpotify();
+		if (spotifyConfig != null && this.spotify != null) {
+			if (spotifyConfig.getSpDc() != null) {
+				this.spotify.setSpDc(spotifyConfig.getSpDc());
+			}
+			if (spotifyConfig.getClientId() != null && spotifyConfig.getClientSecret() != null) {
+				this.spotify.setClientIDSecret(spotifyConfig.getClientId(), spotifyConfig.getClientSecret());
+			}
+		}
+
+		var appleMusicConfig = config.getAppleMusic();
+		if (appleMusicConfig != null && this.appleMusic != null && appleMusicConfig.getMediaAPIToken() != null) {
+			this.appleMusic.setMediaAPIToken(appleMusicConfig.getMediaAPIToken());
+		}
+
+		var deezerConfig = config.getDeezer();
+		if (deezerConfig != null && this.deezer != null) {
+			if (deezerConfig.getArl() != null) {
+				this.deezer.setArl(deezerConfig.getArl());
+			}
+			if (deezerConfig.getFormats() != null) {
+				this.deezer.setFormats(deezerConfig.getFormats()
+					.stream()
+					.map(deezerTrackFormat -> DeezerAudioTrack.TrackFormat.from(deezerTrackFormat.name()))
+					.toList()
+					.toArray(new DeezerAudioTrack.TrackFormat[0])
+				);
+			}
+		}
+
+		var yandexMusicConfig = config.getYandexMusic();
+		if (yandexMusicConfig != null && this.yandexMusic != null) {
+			if (yandexMusicConfig.getAccessToken() != null) {
+				this.yandexMusic.setAccessToken(yandexMusicConfig.getAccessToken());
+			}
+		}
+
+		var vkMusicConfig = config.getVkMusic();
+		if (vkMusicConfig != null && this.vkMusic != null) {
+			if (vkMusicConfig.getUserToken() != null) {
+				this.vkMusic.setUserToken(vkMusicConfig.getUserToken());
+			}
+		}
 	}
 }
