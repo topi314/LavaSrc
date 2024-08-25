@@ -45,9 +45,8 @@ kotlin {
     jvmToolchain(11)
 }
 
-
 fun DependencyHandlerScope.lyricsDependency(module: String) {
-    implementation("dev.schlaubi.lyrics", "$module-jvm", "2.2.2") {
+    implementation("dev.schlaubi.lyrics", "$module-jvm", "2.5.0") {
         isTransitive = false
     }
 }
