@@ -310,7 +310,7 @@ playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
 ### Vk Music
 
 <details>
-<summary>How to get need user token</summary>
+<summary>How to get user token</summary>
 
 ### WARNING!
 #### Carefully, this token can be used to access your personal data. Use a newly created account specifically for LavaSrc. This source is designed mainly for the RU region, 80% of songs in other regions will not be played.
@@ -536,6 +536,12 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://music.yandex.ru/users/yamusic-bestsongs/playlists/701626
 * https://music.yandex.ru/artist/701626
 
+### Flowery TTS
+You can read about all the available options [here](https://flowery.pw/docs), a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
+
+* `ftts://hello%20world`
+* `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0&voice=09924826-684f-51e9-825b-cf85aed2b2cf`
+
 ### Vk Music
 * `vksearch:animals architects`
 * `vkrec:-2001015907_104015907` (`vkrec:{TRACK_ID}`)
@@ -551,10 +557,4 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 * https://vk.com/music/album/-2000228258_15228258
 * https://vk.com/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493%2Fbe3494d46d310b0d0d
 * https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
-
-### Flowery TTS
-You can read about all the available options [here](https://flowery.pw/docs), a list of available voices is [here](https://api.flowery.pw/v1/tts/voices)
-
-* `ftts://hello%20world`
-* `ftts://hello%20world?audio_format=ogg_opus&translate=False&silence=1000&speed=1.0&voice=09924826-684f-51e9-825b-cf85aed2b2cf`
 ---

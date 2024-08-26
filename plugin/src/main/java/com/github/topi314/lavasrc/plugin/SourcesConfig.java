@@ -12,9 +12,9 @@ public class SourcesConfig {
 	private boolean appleMusic = false;
 	private boolean deezer = false;
 	private boolean yandexMusic = false;
-	private boolean vkMusic = false;
 	private boolean floweryTTS = false;
 	private boolean youtube = false;
+	private boolean vkMusic = false;
 
 	public boolean isSpotify() {
 		return this.spotify;
@@ -48,14 +48,6 @@ public class SourcesConfig {
 		this.yandexMusic = yandexMusic;
 	}
 
-	public boolean isVkMusic() {
-		return this.vkMusic;
-	}
-
-	public void setVkMusic(boolean vkMusic) {
-		this.vkMusic = vkMusic;
-	}
-
 	public boolean isFloweryTTS() {
 		return this.floweryTTS;
 	}
@@ -70,5 +62,13 @@ public class SourcesConfig {
 
 	public void setYoutube(boolean youtube) {
 		this.youtube = youtube;
+	}
+
+	public boolean isVkMusic() {
+		return this.vkMusic;
+	}
+
+	public void setVkMusic(boolean vkMusic) {
+		this.vkMusic = vkMusic;
 	}
 }

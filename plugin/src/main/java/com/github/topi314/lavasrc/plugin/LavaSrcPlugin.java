@@ -31,11 +31,11 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private AppleMusicSourceManager appleMusic;
 	private DeezerAudioSourceManager deezer;
 	private YandexMusicSourceManager yandexMusic;
-	private VkMusicSourceManager vkMusic;
 	private FloweryTTSSourceManager flowerytts;
 	private YoutubeSearchManager youtube;
+	private VkMusicSourceManager vkMusic;
 
-	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, VkMusicConfig vkMusicConfig, FloweryTTSConfig floweryTTSConfig, YouTubeConfig youTubeConfig) {
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig, YouTubeConfig youTubeConfig, VkMusicConfig vkMusicConfig) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
@@ -79,18 +79,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				yandexMusic.setArtistLoadLimit(yandexMusicConfig.getArtistLoadLimit());
 			}
 		}
-		if (sourcesConfig.isVkMusic()) {
-			this.vkMusic = new VkMusicSourceManager(vkMusicConfig.getUserToken());
-			if (vkMusicConfig.getPlaylistLoadLimit() > 0) {
-				vkMusic.setPlaylistLoadLimit(vkMusicConfig.getPlaylistLoadLimit());
-			}
-			if (vkMusicConfig.getArtistLoadLimit() > 0) {
-                vkMusic.setArtistLoadLimit(vkMusicConfig.getArtistLoadLimit());
-            }
-			if (vkMusicConfig.getRecommendationLoadLimit() > 0) {
-                vkMusic.setRecommendationsLoadLimit(vkMusicConfig.getRecommendationLoadLimit());
-            }
-		}
 		if (sourcesConfig.isFloweryTTS()) {
 			this.flowerytts = new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
 			if (floweryTTSConfig.getTranslate()) {
@@ -112,6 +100,18 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				this.youtube = new YoutubeSearchManager(() -> manager, youTubeConfig.getCountryCode());
 			} else {
 				throw new IllegalStateException("Youtube LavaSearch requires the new Youtube Source plugin to be enabled.");
+			}
+		}
+		if (sourcesConfig.isVkMusic() || lyricsSourcesConfig.isVkMusic()) {
+			this.vkMusic = new VkMusicSourceManager(vkMusicConfig.getUserToken());
+			if (vkMusicConfig.getPlaylistLoadLimit() > 0) {
+				vkMusic.setPlaylistLoadLimit(vkMusicConfig.getPlaylistLoadLimit());
+			}
+			if (vkMusicConfig.getArtistLoadLimit() > 0) {
+				vkMusic.setArtistLoadLimit(vkMusicConfig.getArtistLoadLimit());
+			}
+			if (vkMusicConfig.getRecommendationLoadLimit() > 0) {
+				vkMusic.setRecommendationsLoadLimit(vkMusicConfig.getRecommendationLoadLimit());
 			}
 		}
 	}
@@ -145,13 +145,13 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Yandex Music audio source manager...");
 			manager.registerSourceManager(this.yandexMusic);
 		}
-		if (this.vkMusic != null) {
-			log.info("Registering Vk Music audio source manager...");
-			manager.registerSourceManager(this.vkMusic);
-		}
 		if (this.flowerytts != null) {
 			log.info("Registering Flowery TTS audio source manager...");
 			manager.registerSourceManager(this.flowerytts);
+		}
+		if (this.vkMusic != null) {
+			log.info("Registering Vk Music audio source manager...");
+			manager.registerSourceManager(this.vkMusic);
 		}
 		return manager;
 	}

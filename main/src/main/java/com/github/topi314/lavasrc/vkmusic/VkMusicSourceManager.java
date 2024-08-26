@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class VkMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioLyricsManager, AudioSearchManager {
-	private static final Pattern VK_PLAYLIST_HEADER_REGEX = Pattern.compile("z=audio_playlist(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
+	private static final Pattern VK_PLAYLIST_HEADER_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/audios\\d+\\?q=[^&]+&z=audio_playlist(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
 	private static final Pattern VK_PLAYLIST_TYPE_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/music/(playlist|album)/(?<owner>-?[A-Za-z\\d]+)_(?<id>-?[A-Za-z\\d]+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
 	private static final Pattern VK_TRACK_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/audio(?<id>-?\\d+)_(?<artistId>-?\\d+)(?<accessKey>_([^/?#]*))?(?:[/?#].*)?");
 	private static final Pattern VK_ARTIST_REGEX = Pattern.compile("(https?://)?(?:www\\.)?vk\\.(?:com|ru)/artist/(?<artistId>[^/?#]+)");
