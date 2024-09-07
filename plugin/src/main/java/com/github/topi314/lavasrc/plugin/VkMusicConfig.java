@@ -37,10 +37,10 @@ public class VkMusicConfig {
 	}
 
 	public int getRecommendationLoadLimit() {
-        return this.recommendationLoadLimit;
-    }
+		return this.recommendationLoadLimit;
+	}
 
 	public void setRecommendationLoadLimit(int recommendationLoadLimit) {
-        this.recommendationLoadLimit = recommendationLoadLimit;
-    }
+		this.recommendationLoadLimit = recommendationLoadLimit;
+	}
 }

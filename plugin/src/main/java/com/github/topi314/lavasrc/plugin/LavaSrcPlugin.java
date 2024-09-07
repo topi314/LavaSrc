@@ -51,7 +51,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (!spotifyConfig.isResolveArtistsInSearch()) {
 				this.spotify.setResolveArtistsInSearch(spotifyConfig.isResolveArtistsInSearch());
 			}
-			if(spotifyConfig.isLocalFiles()) {
+			if (spotifyConfig.isLocalFiles()) {
 				this.spotify.setLocalFiles(spotifyConfig.isLocalFiles());
 			}
 		}
@@ -181,7 +181,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (this.vkMusic != null && this.sourcesConfig.isVkMusic()) {
 			log.info("Registering VK Music search manager...");
-            manager.registerSearchManager(this.vkMusic);
+			manager.registerSearchManager(this.vkMusic);
 		}
 		return manager;
 	}
@@ -207,7 +207,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (this.vkMusic != null && this.lyricsSourcesConfig.isVkMusic()) {
 			log.info("Registering VK Music lyrics manager...");
-            manager.registerLyricsManager(this.vkMusic);
+			manager.registerLyricsManager(this.vkMusic);
 		}
 		return manager;
 	}

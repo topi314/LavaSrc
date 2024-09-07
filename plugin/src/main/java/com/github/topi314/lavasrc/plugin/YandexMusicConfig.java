@@ -23,6 +23,7 @@ public class YandexMusicConfig {
 	public int getPlaylistLoadLimit() {
 		return this.playlistLoadLimit;
 	}
+
 	public void setPlaylistLoadLimit(int playlistLoadLimit) {
 		this.playlistLoadLimit = playlistLoadLimit;
 	}
@@ -30,6 +31,7 @@ public class YandexMusicConfig {
 	public int getAlbumLoadLimit() {
 		return this.albumLoadLimit;
 	}
+
 	public void setAlbumLoadLimit(int albumLoadLimit) {
 		this.albumLoadLimit = albumLoadLimit;
 	}
@@ -37,6 +39,7 @@ public class YandexMusicConfig {
 	public int getArtistLoadLimit() {
 		return this.artistLoadLimit;
 	}
+
 	public void setArtistLoadLimit(int artistLoadLimit) {
 		this.artistLoadLimit = artistLoadLimit;
 	}

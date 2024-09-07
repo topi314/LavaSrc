@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -75,10 +74,6 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 	public void setRecommendationsLoadLimit(int recommendationsLimit) {
 		this.recommendationsLoadLimit = recommendationsLimit;
-	}
-
-	public String getUserToken() {
-		return userToken;
 	}
 
 	@NotNull
@@ -250,7 +245,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
 				return this.getRecommendations(reference.identifier.substring(RECOMMENDATIONS_PREFIX.length()));
 			}
-			var uri = URLDecoder.decode(reference.identifier, StandardCharsets.UTF_8);
+			var uri = reference.identifier;
 
 			var playlistFromHeader = VK_PLAYLIST_HEADER_REGEX.matcher(uri);
 			if (playlistFromHeader.find()) {
