@@ -51,6 +51,7 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 			}
 			catch (Exception e) {
 				log.error("Failed to load track from provider \"{}\"!", provider, e);
+				continue;
 			}
 			if (track != AudioReference.NO_TRACK) {
 				break;
