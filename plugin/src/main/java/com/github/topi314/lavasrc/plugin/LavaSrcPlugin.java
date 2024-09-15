@@ -9,6 +9,7 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
+import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -32,8 +33,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private YandexMusicSourceManager yandexMusic;
 	private FloweryTTSSourceManager flowerytts;
 	private YoutubeSearchManager youtube;
+	private VkMusicSourceManager vkMusic;
 
-	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig, YouTubeConfig youTubeConfig) {
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig, YouTubeConfig youTubeConfig, VkMusicConfig vkMusicConfig) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
@@ -49,7 +51,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (!spotifyConfig.isResolveArtistsInSearch()) {
 				this.spotify.setResolveArtistsInSearch(spotifyConfig.isResolveArtistsInSearch());
 			}
-			if(spotifyConfig.isLocalFiles()) {
+			if (spotifyConfig.isLocalFiles()) {
 				this.spotify.setLocalFiles(spotifyConfig.isLocalFiles());
 			}
 		}
@@ -100,6 +102,18 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				throw new IllegalStateException("Youtube LavaSearch requires the new Youtube Source plugin to be enabled.");
 			}
 		}
+		if (sourcesConfig.isVkMusic() || lyricsSourcesConfig.isVkMusic()) {
+			this.vkMusic = new VkMusicSourceManager(vkMusicConfig.getUserToken());
+			if (vkMusicConfig.getPlaylistLoadLimit() > 0) {
+				vkMusic.setPlaylistLoadLimit(vkMusicConfig.getPlaylistLoadLimit());
+			}
+			if (vkMusicConfig.getArtistLoadLimit() > 0) {
+				vkMusic.setArtistLoadLimit(vkMusicConfig.getArtistLoadLimit());
+			}
+			if (vkMusicConfig.getRecommendationLoadLimit() > 0) {
+				vkMusic.setRecommendationsLoadLimit(vkMusicConfig.getRecommendationLoadLimit());
+			}
+		}
 	}
 
 	private boolean hasNewYoutubeSource() {
@@ -135,6 +149,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Flowery TTS audio source manager...");
 			manager.registerSourceManager(this.flowerytts);
 		}
+		if (this.vkMusic != null) {
+			log.info("Registering Vk Music audio source manager...");
+			manager.registerSourceManager(this.vkMusic);
+		}
 		return manager;
 	}
 
@@ -161,6 +179,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Yandex Music search manager...");
 			manager.registerSearchManager(this.yandexMusic);
 		}
+		if (this.vkMusic != null && this.sourcesConfig.isVkMusic()) {
+			log.info("Registering VK Music search manager...");
+			manager.registerSearchManager(this.vkMusic);
+		}
 		return manager;
 	}
 
@@ -182,6 +204,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.yandexMusic != null && this.lyricsSourcesConfig.isYandexMusic()) {
 			log.info("Registering Yandex Music lyrics manager");
 			manager.registerLyricsManager(this.yandexMusic);
+		}
+		if (this.vkMusic != null && this.lyricsSourcesConfig.isVkMusic()) {
+			log.info("Registering VK Music lyrics manager...");
+			manager.registerLyricsManager(this.vkMusic);
 		}
 		return manager;
 	}
