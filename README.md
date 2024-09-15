@@ -12,7 +12,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch)(Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
 * [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
-* [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch)
+* [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
 
 > [!IMPORTANT]
 > Tracks from Spotify & Apple Music don't actually play from their sources, but are instead resolved via the configured providers
