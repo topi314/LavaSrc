@@ -3,6 +3,7 @@ package com.github.topi314.lavasrc.mirror;
 import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,6 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 
 	@Override
 	public AudioItem apply(MirroringAudioTrack mirroringAudioTrack) {
-		AudioItem track = AudioReference.NO_TRACK;
 		for (var provider : providers) {
 			if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
 				log.warn("Can not use spotify search as search provider!");
@@ -46,19 +46,22 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 			}
 
 			provider = provider.replace(MirroringAudioSourceManager.QUERY_PATTERN, getTrackTitle(mirroringAudioTrack));
+
+			AudioItem item;
 			try {
-				track = mirroringAudioTrack.loadItem(provider);
-			}
-			catch (Exception e) {
+				item = mirroringAudioTrack.loadItem(provider);
+			} catch (Exception e) {
 				log.error("Failed to load track from provider \"{}\"!", provider, e);
 				continue;
 			}
-			if (track != AudioReference.NO_TRACK) {
-				break;
+			// If the track is an empty playlist, skip the provider
+			if (item instanceof AudioPlaylist && ((AudioPlaylist) item).getTracks().isEmpty() || item == AudioReference.NO_TRACK) {
+				continue;
 			}
+			return item;
 		}
 
-		return track;
+		return AudioReference.NO_TRACK;
 	}
 
 	public String getTrackTitle(MirroringAudioTrack mirroringAudioTrack) {
