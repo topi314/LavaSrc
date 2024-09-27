@@ -56,8 +56,8 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
 
 	private final String masterDecryptionKey;
-	private final String arl;
-	private final DeezerAudioTrack.TrackFormat[] formats;
+	private String arl;
+	private DeezerAudioTrack.TrackFormat[] formats;
 	private final HttpInterfaceManager httpInterfaceManager;
 	private Tokens tokens;
 
@@ -78,6 +78,17 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		this.arl = arl != null && arl.isEmpty() ? null : arl;
 		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+	}
+
+	public void setFormats(DeezerAudioTrack.TrackFormat[] formats) {
+		if (formats.length == 0) {
+			throw new IllegalArgumentException("Deezer track formats must not be empty");
+		}
+		this.formats = formats;
+	}
+
+	public void setArl(String arl) {
+		this.arl = arl;
 	}
 
 	static void checkResponse(JsonBrowser json, String message) throws IllegalStateException {

@@ -51,7 +51,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 	private final HttpInterfaceManager httpInterfaceManager;
 
-	private final String userToken;
+	private String userToken;
 	private int artistLoadLimit;
 	private int playlistLoadLimit;
 	private int recommendationsLoadLimit;
@@ -62,6 +62,14 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		}
 		this.userToken = userToken;
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+	}
+
+	public void setUserToken(String userToken) {
+		if (userToken == null || userToken.isEmpty()) {
+			throw new IllegalArgumentException("Vk Music user token must be set");
+		}
+
+		this.userToken = userToken;
 	}
 
 	public void setArtistLoadLimit(int artistLimit) {
@@ -426,11 +434,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 	}
 
 	public JsonBrowser getJson(String method, String headers) throws IOException {
-		var uri = PUBLIC_API_BASE + method + "?v=" + API_VERSION + headers;
-		if (!this.userToken.isEmpty()) {
-			uri += "&access_token=" + this.userToken;
-		}
-
+		var uri = PUBLIC_API_BASE + method + "?v=" + API_VERSION + headers + "&access_token=" + this.userToken;
 		var request = new HttpGet(uri);
 		request.setHeader("Content-Type", "application/json");
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);

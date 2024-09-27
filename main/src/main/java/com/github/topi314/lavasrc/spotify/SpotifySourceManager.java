@@ -57,8 +57,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-	private final SpotifyTokenTracker tokenTracker;
-	private final String spDc;
+	private SpotifyTokenTracker tokenTracker;
+	private String spDc;
 	private final String countryCode;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
@@ -110,6 +110,16 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setResolveArtistsInSearch(boolean resolveArtistsInSearch) {
 		this.resolveArtistsInSearch = resolveArtistsInSearch;
+	}
+
+	public void setClientIDSecret(String clientId, String clientSecret) {
+		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret);
+	}
+
+	public void setSpDc(String spDc) {
+		this.spDc = spDc;
+		this.spToken = null;
+		this.spTokenExpire = null;
 	}
 
 	@NotNull
@@ -365,7 +375,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			}
 		}
 
-		return new BasicAudioPlaylist("Search results for: " + query, this.parseTrackItems(json.get("tracks"), preview), null, true);
+		return new BasicAudioPlaylist("Spotify Search: " + query, this.parseTrackItems(json.get("tracks"), preview), null, true);
 	}
 
 	public AudioItem getRecommendations(String query, boolean preview) throws IOException {

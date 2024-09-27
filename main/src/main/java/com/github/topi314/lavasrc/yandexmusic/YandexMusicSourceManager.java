@@ -54,7 +54,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	private final HttpInterfaceManager httpInterfaceManager;
 
-	private final String accessToken;
+	private String accessToken;
 	private int artistLoadLimit;
 	private int albumLoadLimit;
 	private int playlistLoadLimit;
@@ -65,6 +65,13 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		}
 		this.accessToken = accessToken;
 		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+	}
+
+	public void setAccessToken(String accessToken) {
+		if (accessToken == null || accessToken.isEmpty()) {
+			throw new IllegalArgumentException("Yandex Music accessToken must be set");
+		}
+		this.accessToken = accessToken;
 	}
 
 	public void setArtistLoadLimit(int artistLimit) {
@@ -179,10 +186,6 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	@Override
 	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> setOfTypes) {
-		if (accessToken == null || accessToken.isEmpty()) {
-			throw new IllegalArgumentException("Yandex Music accessToken must be set");
-		}
-
 		try {
 			if (query.startsWith(SEARCH_PREFIX)) {
 				return this.getSearchResult(query.substring(SEARCH_PREFIX.length()), setOfTypes);
@@ -205,10 +208,6 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	@Override
 	public @Nullable AudioLyrics loadLyrics(@NotNull AudioTrack track) throws IllegalStateException {
-		if (accessToken == null || accessToken.isEmpty()) {
-			throw new IllegalArgumentException("Yandex Music accessToken must be set");
-		}
-
 		if (track.getSourceManager() instanceof YandexMusicSourceManager) {
 			try {
 				var lyricsJson = findLyrics(track.getIdentifier());
