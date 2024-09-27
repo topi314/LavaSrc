@@ -45,7 +45,7 @@ public abstract class MirroringAudioTrack extends ExtendedAudioTrack {
 		if (track instanceof AudioPlaylist) {
 			var tracks = ((AudioPlaylist) track).getTracks();
 			if (tracks.isEmpty()) {
-				throw new TrackNotFoundException();
+				throw new TrackNotFoundException("No tracks found in playlist or search result for track");
 			}
 			track = tracks.get(0);
 		}
@@ -55,7 +55,7 @@ public abstract class MirroringAudioTrack extends ExtendedAudioTrack {
 			processDelegate(internalTrack, executor);
 			return;
 		}
-		throw new TrackNotFoundException();
+		throw new TrackNotFoundException("No mirror found for track");
 	}
 
 	@Override
