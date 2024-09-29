@@ -302,9 +302,9 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
-		boolean readable = json.get("readable").asBoolean(false);
-		if (!readable) {
-			throw new FriendlyException("This track is not readable. Available countries: " + json.get("available_countries").text(), FriendlyException.Severity.COMMON, null);
+		if (!json.get("readable").asBoolean(false)) {
+			throw new FriendlyException("This track is not readable. Available countries: " + json.get("available_countries").text(),
+					FriendlyException.Severity.COMMON, null);
 		}
 		var id = json.get("id").text();
 		return new DeezerAudioTrack(
