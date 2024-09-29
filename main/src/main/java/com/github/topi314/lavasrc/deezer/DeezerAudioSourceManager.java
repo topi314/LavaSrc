@@ -292,7 +292,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			if (!track.get("type").text().equals("track")) {
 				continue;
 			}
-			if (!track.get("readable").as(Boolean.class)) {
+			if (!track.get("readable").asBoolean(false)) {
 				log.warn("Skipping track {} by {} because it is not readable. Available countries: {}", track.get("title").text(), track.get("artist").get("name").text(), track.get("available_countries").text());
 				continue;
 			}
@@ -302,8 +302,8 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
-		Boolean readable = json.get("readable").as(Boolean.class);
-		if (readable == null || !readable) {
+		boolean readable = json.get("readable").asBoolean(false);
+		if (!readable) {
 			throw new FriendlyException("This track is not readable. Available countries: " + json.get("available_countries").text(), FriendlyException.Severity.COMMON, null);
 		}
 		var id = json.get("id").text();
