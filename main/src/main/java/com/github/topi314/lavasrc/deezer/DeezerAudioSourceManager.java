@@ -292,7 +292,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			if (!track.get("type").text().equals("track")) {
 				continue;
 			}
-			if (!track.get("readable").asBoolean(false)) {
+			if (!track.get("readable").asBoolean(true)) {
 				log.warn("Skipping track {} by {} because it is not readable. Available countries: {}", track.get("title").text(), track.get("artist").get("name").text(), track.get("available_countries").text());
 				continue;
 			}
