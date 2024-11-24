@@ -2,68 +2,79 @@ package com.github.topi314.lavasrc;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public class ExtendedAudioPlaylist extends BasicAudioPlaylist {
 
-	@NotNull
-	protected final Type type;
-	@Nullable
-	protected final String url;
-	@Nullable
-	protected final String artworkURL;
-	@Nullable
-	protected final String author;
-	@Nullable
-	protected final Integer totalTracks;
+  @NotNull
+  protected final Type type;
 
-	public ExtendedAudioPlaylist(String name, List<AudioTrack> tracks, @NotNull Type type, @Nullable String url, @Nullable String artworkURL, @Nullable String author, @Nullable Integer totalTracks) {
-		super(name, tracks, null, false);
-		this.type = type;
-		this.url = url;
-		this.artworkURL = artworkURL;
-		this.author = author;
-		this.totalTracks = totalTracks;
-	}
+  @Nullable
+  protected final String url;
 
-	@NotNull
-	public Type getType() {
-		return type;
-	}
+  @Nullable
+  protected final String artworkURL;
 
-	@Nullable
-	public String getUrl() {
-		return this.url;
-	}
+  @Nullable
+  protected final String author;
 
-	@Nullable
-	public String getArtworkURL() {
-		return this.artworkURL;
-	}
+  @Nullable
+  protected final Integer totalTracks;
 
-	@Nullable
-	public String getAuthor() {
-		return this.author;
-	}
+  public ExtendedAudioPlaylist(
+    String name,
+    List<AudioTrack> tracks,
+    @NotNull Type type,
+    @Nullable String url,
+    @Nullable String artworkURL,
+    @Nullable String author,
+    @Nullable Integer totalTracks
+  ) {
+    super(name, tracks, null, false);
+    this.type = type;
+    this.url = url;
+    this.artworkURL = artworkURL;
+    this.author = author;
+    this.totalTracks = totalTracks;
+  }
 
-	@Nullable
-	public Integer getTotalTracks() {
-		return this.totalTracks;
-	}
+  @NotNull
+  public Type getType() {
+    return type;
+  }
 
-	public enum Type {
-		ALBUM("album"),
-		PLAYLIST("playlist"),
-		ARTIST("artist"),
-		RECOMMENDATIONS("recommendations");
+  @Nullable
+  public String getUrl() {
+    return this.url;
+  }
 
-		public final String name;
+  @Nullable
+  public String getArtworkURL() {
+    return this.artworkURL;
+  }
 
-		Type(String name) {
-			this.name = name;
-		}
-	}
+  @Nullable
+  public String getAuthor() {
+    return this.author;
+  }
+
+  @Nullable
+  public Integer getTotalTracks() {
+    return this.totalTracks;
+  }
+
+  public enum Type {
+    ALBUM("album"),
+    PLAYLIST("playlist"),
+    ARTIST("artist"),
+    RECOMMENDATIONS("recommendations");
+
+    public final String name;
+
+    Type(String name) {
+      this.name = name;
+    }
+  }
 }
