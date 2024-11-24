@@ -3,10 +3,10 @@ plugins {
     id "org.jetbrains.kotlin.jvm"
     id "org.jetbrains.kotlin.plugin.serialization"
 }
-archivesBaseName = "lavasrc"
+archivesBaseName = "mewwme-lavasrc"
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 java {
     withJavadocJar()
@@ -38,5 +38,5 @@ publishing {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 }

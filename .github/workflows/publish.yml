@@ -33,14 +33,14 @@ jobs:
       - name: Upload main Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: LavaSrc.jar
-          path: main/build/libs/lavasrc-*.jar
+          name: Mewwme-LavaSrc.jar
+          path: main/build/libs/mewwme-lavasrc-*.jar
 
       - name: Upload plugin Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: LavaSrc-Plugin.jar
-          path: plugin/build/libs/lavasrc-plugin-*.jar
+          name: Mewwme-LavaSrc.jar
+          path: plugin/build/libs/mewwme-lavasrc-*.jar
 
   release:
     needs: build
@@ -53,17 +53,17 @@ jobs:
       - name: Download main Artifact
         uses: actions/download-artifact@v3
         with:
-          name: LavaSrc.jar
+          name: Mewwme-LavaSrc.jar
 
       - name: Download plugin Artifact
         uses: actions/download-artifact@v3
         with:
-          name: LavaSrc-Plugin.jar
+          name: Mewwme-LavaSrc.jar
 
       - name: Upload Artifacts to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: lavasrc-*.jar
+          artifacts: mewwme-lavasrc.jar-*.jar
           allowUpdates: true
           omitBodyDuringUpdate: true
           omitDraftDuringUpdate: true

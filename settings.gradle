@@ -1,4 +1,4 @@
-rootProject.name = "LavaSrc"
+rootProject.name = "Mewwme-LavaSrc"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":main")

@@ -8,6 +8,7 @@ import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
+// import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,7 @@ public class LavaSrcPlugin
   private DeezerAudioSourceManager deezer;
   private YandexMusicSourceManager yandexMusic;
   private FloweryTTSSourceManager flowerytts;
+ // private YoutubeSearchManager youtube;
   private TidalSourceManager tidal;
 
   public LavaSrcPlugin(
@@ -107,7 +109,28 @@ public class LavaSrcPlugin
         this.flowerytts.setAudioFormat(floweryTTSConfig.getAudioFormat());
       }
     }
+    /*
+    if (sourcesConfig.isYoutube()) {
+      if (hasNewYoutubeSource()) {
+        log.info("Registering Youtube Source audio source manager...");
+        this.youtube = new YoutubeSearchManager(() -> manager);
+      } else {
+        throw new IllegalStateException("Youtube LavaSearch requires the new Youtube Source plugin to be enabled.");
+      }
+    }
+    */
   }
+
+  /*
+  private boolean hasNewYoutubeSource() {
+    try {
+      Class.forName("dev.lavalink.youtube.YoutubeAudioSourceManager");
+      return true;
+    } catch (ClassNotFoundException ignored) {
+      return false;
+    }
+  }
+  */
 
   @NotNull
   @Override
@@ -155,6 +178,12 @@ public class LavaSrcPlugin
       log.info("Registering Deezer search manager...");
       manager.registerSearchManager(this.deezer);
     }
+    /*
+    if (this.youtube != null) {
+      log.info("Registering Youtube search manager...");
+      manager.registerSearchManager(this.youtube);
+    }
+    */
     return manager;
   }
 }
