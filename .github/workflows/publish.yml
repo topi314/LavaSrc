@@ -1,71 +1,49 @@
-name: Publish
+name: Build and Publish for JitPack
 on:
   push:
+    branches:
+      - main
+  pull_request:
   release:
-    types: [ published ]
+    types: [published]
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-      MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-      LAVALINK_MAVEN_USERNAME: ${{ secrets.LAVALINK_MAVEN_USERNAME }}
-      LAVALINK_MAVEN_PASSWORD: ${{ secrets.LAVALINK_MAVEN_PASSWORD }}
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Setup Java
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: zulu
           java-version: 17
           cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+      - name: Build with Gradle
+        run: ./gradlew clean build --no-daemon
 
-      - name: Build and Publish
-        run: ./gradlew build publish --no-daemon -PMAVEN_USERNAME=$MAVEN_USERNAME -PMAVEN_PASSWORD=$MAVEN_PASSWORD -PLAVALINK_MAVEN_USERNAME=$LAVALINK_MAVEN_USERNAME -PLAVALINK_MAVEN_PASSWORD=$LAVALINK_MAVEN_PASSWORD
-
-      - name: Upload main Artifact
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Mewwme-LavaSrc.jar
-          path: main/build/libs/mewwme-lavasrc-*.jar
-
-      - name: Upload plugin Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: Mewwme-LavaSrc.jar
-          path: plugin/build/libs/mewwme-lavasrc-*.jar
+          name: Build Artifacts
+          path: '**/build/libs/*.jar'
 
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Download main Artifact
+      - name: Download Build Artifacts
         uses: actions/download-artifact@v3
         with:
-          name: Mewwme-LavaSrc.jar
+          name: Build Artifacts
 
-      - name: Download plugin Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: Mewwme-LavaSrc.jar
-
-      - name: Upload Artifacts to GitHub Release
+      - name: Attach Artifacts to Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: mewwme-lavasrc.jar-*.jar
-          allowUpdates: true
-          omitBodyDuringUpdate: true
-          omitDraftDuringUpdate: true
-          omitNameDuringUpdate: true
-          omitPrereleaseDuringUpdate: true
+          artifacts: '**/*.jar'
+          token: ${{ secrets.GITHUB_TOKEN }}
