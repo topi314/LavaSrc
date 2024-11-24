@@ -14,14 +14,8 @@ allprojects {
         maven { url "https://maven.arbjerg.dev/snapshots" }
         maven { url "https://jitpack.io" }
         jcenter()
-
-        // Menambahkan folder lokal untuk JAR
-        flatDir {
-            dirs 'plugin/build/libs'  // Ganti dengan path yang sesuai
-        }
     }
 }
-
 
 def getGitVersion() {
     def versionStr = new ByteArrayOutputStream()
@@ -59,11 +53,6 @@ subprojects {
 
     compileJava.options.encoding = "UTF-8"
 
-    dependencies {
-        // Menggunakan file lokal yang ada di plugin/build/libs/
-        implementation name: 'mewwme-lavasrc-4.3.1'  // Nama file JAR tanpa ekstensi .jar
-    }
-
     publishing {
         repositories {
             if (isMavenDefined) {
@@ -79,6 +68,7 @@ subprojects {
                         username = findProperty("MAVEN_USERNAME")
                         password = findProperty("MAVEN_PASSWORD")
                     }
+
                 }
             }
             if (isLavalinkMavenDefined && name == "plugin") {
