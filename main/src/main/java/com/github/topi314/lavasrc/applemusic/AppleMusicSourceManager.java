@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 public class AppleMusicSourceManager extends MirroringAudioSourceManager implements AudioSearchManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?music\\.apple\\.com/((?<countrycode>[a-zA-Z]{2})/)?(?<type>album|playlist|artist|song)(/[a-zA-Z\\p{L}\\d\\-]+)?/(?<identifier>[a-zA-Z\\d\\-.]+)(\\?i=(?<identifier2>\\d+))?");
-	public static final Pattern TOKEN_PATTERN = Pattern.compile("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ[^\"]+");
+	public static final Pattern TOKEN_PATTERN = Pattern.compile("ey[\\w-]+\\.[\\w-]+\\.[\\w-]+");
 	public static final String SEARCH_PREFIX = "amsearch:";
 	public static final String PREVIEW_PREFIX = "amprev:";
 	public static final long PREVIEW_LENGTH = 30000;
