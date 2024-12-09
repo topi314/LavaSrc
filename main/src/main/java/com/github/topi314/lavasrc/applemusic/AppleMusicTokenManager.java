@@ -29,10 +29,8 @@ public class AppleMusicTokenManager {
 
 	public AppleMusicTokenManager(String initialToken) throws IOException {
 		if (initialToken == null || initialToken.isEmpty()) {
-			log.debug("No initial token provided. Fetching a new token...");
 			fetchNewToken();
 		} else {
-			log.debug("Initial token provided. Parsing token data...");
 			this.token = initialToken;
 			parseTokenData();
 		}
@@ -40,7 +38,6 @@ public class AppleMusicTokenManager {
 
 	public synchronized String getToken() throws IOException {
 		if (isTokenCheckRequired()) {
-			log.debug("Token expired or not set. Fetching a new token...");
 			fetchNewToken();
 		}
 		return token;
@@ -48,14 +45,12 @@ public class AppleMusicTokenManager {
 
 	public String getOrigin() throws IOException {
 		if (isTokenCheckRequired()) {
-			log.debug("Token expired. Fetching new token to get origin...");
 			fetchNewToken();
 		}
 		return origin;
 	}
 
 	public void setToken(String newToken) throws IOException {
-		log.debug("Setting a new token.");
 		this.token = newToken;
 		parseTokenData();
 		tokenValidityChecked = false;
@@ -96,8 +91,6 @@ public class AppleMusicTokenManager {
 
 			tokenExpire = Instant.ofEpochSecond(json.get("exp").asLong(0));
 			origin = json.get("root_https_origin").index(0).text();
-
-			log.debug("Token parsed successfully. Expiration: {}, Origin: {}", tokenExpire, origin);
 		} catch (Exception e) {
 			log.warn("Error parsing token data. Fetching a new token...", e);
 			fetchNewToken();
@@ -119,7 +112,6 @@ public class AppleMusicTokenManager {
 			if (tokenMatcher.find()) {
 				token = tokenMatcher.group();
 				parseTokenData();
-				log.debug("New token fetched and parsed successfully.");
 				tokenValidityChecked = false;
 			} else {
 				throw new IllegalStateException("Failed to extract token from script content.");
