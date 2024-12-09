@@ -64,11 +64,7 @@ public class AppleMusicTokenManager {
 	}
 
 	private boolean isTokenCheckRequired() {
-		if (!tokenValidityChecked && isTokenExpired()) {
-			tokenValidityChecked = true;
-			return true;
-		}
-		return false;
+		return (!tokenValidityChecked && isTokenExpired()) && (tokenValidityChecked = true);
 	}
 
 	private void parseTokenData() throws IOException {
