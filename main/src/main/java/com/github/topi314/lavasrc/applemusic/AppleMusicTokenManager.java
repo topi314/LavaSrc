@@ -63,9 +63,13 @@ public class AppleMusicTokenManager {
 		return tokenExpire.minusSeconds(5).isBefore(Instant.now());
 	}
 
-	private boolean isTokenCheckRequired() {
-		return (!tokenValidityChecked && isTokenExpired()) && (tokenValidityChecked = true);
-	}
+    private boolean isTokenCheckRequired() {
+        if (!tokenValidityChecked && isTokenExpired()) {
+            tokenValidityChecked = true;
+            return true;
+        }
+        return false;
+    }
 
 	private void parseTokenData() throws IOException {
 		if (token == null || token.isEmpty()) {
