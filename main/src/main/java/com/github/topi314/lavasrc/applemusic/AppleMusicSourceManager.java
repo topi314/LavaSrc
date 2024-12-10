@@ -58,10 +58,6 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private int albumPageLimit;
 	private final AppleMusicTokenManager tokenManager;
 
-	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager) {
-		this(mediaAPIToken, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
-	}
-
 	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
 		this(mediaAPIToken, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
@@ -75,11 +71,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
 
 		try {
-			if (mediaAPIToken == null || mediaAPIToken.isEmpty()) {
-				this.tokenManager = new AppleMusicTokenManager(null); // Allow the token manager to generate the token hopefully
-			} else {
-				this.tokenManager = new AppleMusicTokenManager(mediaAPIToken);
-			}
+			this.tokenManager = new AppleMusicTokenManager(mediaAPIToken);
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Cannot initialize AppleMusicTokenManager", e);
 		}
