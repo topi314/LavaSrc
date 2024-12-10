@@ -58,6 +58,10 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private int albumPageLimit;
 	private final AppleMusicTokenManager tokenManager;
 
+	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager) {
+		this(mediaAPIToken, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
+	}
+
 	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
 		this(mediaAPIToken, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
