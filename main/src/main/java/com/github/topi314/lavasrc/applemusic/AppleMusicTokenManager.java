@@ -9,7 +9,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.CompletableFuture; // actual read docs for this bitch
+import java.util.concurrent.CompletableFuture;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
