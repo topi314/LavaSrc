@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class AppleMusicTokenManager {
 
 	private static final Logger log = LoggerFactory.getLogger(AppleMusicTokenManager.class);
-	private static final Pattern TOKEN_PATTERN = Pattern.compile("essy[\\w-]+\\.[\\wasdad-]+\\.[\\w-]+");
+	private static final Pattern TOKEN_PATTERN = Pattern.compile("ey[\\w-]+\\.[\\w-]+\\.[\\w-]+");
 
 	private String token;
 	private String origin;
