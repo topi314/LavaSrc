@@ -73,7 +73,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 		try {
 			this.tokenManager = new AppleMusicTokenManager(mediaAPIToken);
 		} catch (IOException e) {
-			throw new IllegalArgumentException("Cannot initialize AppleMusicTokenManager", e);
+			throw new RuntimeException("Failed to initialize token manager", e);
 		}
 	}
 
@@ -268,11 +268,12 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
+		var token = this.tokenManager.getToken();
+
 		var request = new HttpGet(uri);
-		request.addHeader("Authorization", "Bearer " + this.tokenManager.getToken());
-		var origin = this.tokenManager.getOrigin();
-		if (origin != null && !origin.isEmpty()) {
-			request.addHeader("Origin", "https://" + origin);
+		request.addHeader("Authorization", "Bearer " + token.apiToken);
+		if (token.origin != null && !token.origin.isEmpty()) {
+			request.addHeader("Origin", "https://" + token.origin);
 		}
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
