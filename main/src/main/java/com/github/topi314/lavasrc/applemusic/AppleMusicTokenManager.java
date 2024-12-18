@@ -9,13 +9,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.CompletableFuture;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,50 +92,6 @@ public class AppleMusicTokenManager {
 		}
 	}
 
-	private CompletableFuture<Void> fetchNewTokenAsync(long backoff, int attempts) {
-		final long maxBackoff = 60 * 60 * 1000; // backoff max of like an hour
-		final long nextBackoff = Math.min(backoff * 2, maxBackoff);
-
-		return CompletableFuture.runAsync(() -> { // I think this is correct usage
-			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-				String mainPageHtml = fetchHtml(httpClient, "https://music.apple.com");
-				String tokenScriptUrl = extractTokenScriptUrl(mainPageHtml);
-				if (tokenScriptUrl == null) {
-					throw new IOException("Token script URL not found.");
-				}
-
-				String tokenScriptContent = fetchHtml(httpClient, tokenScriptUrl);
-				Matcher tokenMatcher = TOKEN_PATTERN.matcher(tokenScriptContent);
-				if (tokenMatcher.find()) {
-					token = tokenMatcher.group();
-					parseTokenData();
-					tokenValidityChecked = false;
-				} else {
-					throw new IOException("Token extraction failed.");
-				}
-			} catch (IOException e) {
-				log.warn("Attempt {} failed: {}. Retrying...", attempts, e.getMessage()); // aka ur fucked
-				throw new CompletionException(e);
-			}
-		}).handle((result, throwable) -> { // looks wrong
-			if (throwable != null) {
-				log.info("Waiting for {} ms before retrying...", nextBackoff);
-				return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor(nextBackoff, TimeUnit.MILLISECONDS))
-					.thenCompose(ignored -> fetchNewTokenAsync(nextBackoff, attempts + 1));
-			}
-			return CompletableFuture.completedFuture(result);
-		}).thenCompose(completed -> completed);
-	}
-
-	public void fetchNewToken() throws IOException {
-		try {
-			fetchNewTokenAsync(1000, 1).join();
-			log.info("Token fetched successfully: {}", token);
-		} catch (CompletionException e) {
-			throw new IOException("Failed to fetch token after retries.", e.getCause());
-		}
-	}
-
 	private String fetchHtml(CloseableHttpClient httpClient, String url) throws IOException {
 		HttpGet request = new HttpGet(url);
 		try (var response = httpClient.execute(request)) {
@@ -147,6 +100,28 @@ public class AppleMusicTokenManager {
 					response.getStatusLine().getStatusCode());
 			}
 			return IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+		}
+	}
+
+	private void fetchNewToken() throws IOException {
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String mainPageHtml = fetchHtml(httpClient, "https://music.apple.com");
+			String tokenScriptUrl = extractTokenScriptUrl(mainPageHtml);
+
+			if (tokenScriptUrl == null) {
+				throw new IllegalStateException("Failed to locate token script URL.");
+			}
+
+			String tokenScriptContent = fetchHtml(httpClient, tokenScriptUrl);
+			Matcher tokenMatcher = TOKEN_PATTERN.matcher(tokenScriptContent);
+
+			if (tokenMatcher.find()) {
+				token = tokenMatcher.group();
+				parseTokenData();
+				tokenValidityChecked = false;
+			} else {
+				throw new IllegalStateException("Failed to extract token from script content.");
+			}
 		}
 	}
 
