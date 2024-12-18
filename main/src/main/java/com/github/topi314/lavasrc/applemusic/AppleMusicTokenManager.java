@@ -9,18 +9,20 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.util.concurrent.CompletableFuture; // actual read docs for this bitch
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AppleMusicTokenManager {
 
 	private static final Logger log = LoggerFactory.getLogger(AppleMusicTokenManager.class);
-	private static final Pattern TOKEN_PATTERN = Pattern.compile("ey[\\w-]+\\.[\\w-]+\\.[\\w-]+");
+	private static final Pattern TOKEN_PATTERN = Pattern.compile("essy[\\w-]+\\.[\\wasdad-]+\\.[\\w-]+");
 
 	private String token;
 	private String origin;
@@ -63,13 +65,9 @@ public class AppleMusicTokenManager {
 		return tokenExpire.minusSeconds(5).isBefore(Instant.now());
 	}
 
-    private boolean isTokenCheckRequired() {
-        if (!tokenValidityChecked && isTokenExpired()) {
-            tokenValidityChecked = true;
-            return true;
-        }
-        return false;
-    }
+	private boolean isTokenCheckRequired() {
+		return (!tokenValidityChecked && isTokenExpired()) && (tokenValidityChecked = true);
+	}
 
 	private void parseTokenData() throws IOException {
 		if (token == null || token.isEmpty()) {
@@ -97,25 +95,47 @@ public class AppleMusicTokenManager {
 		}
 	}
 
-	private void fetchNewToken() throws IOException {
-		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-			String mainPageHtml = fetchHtml(httpClient, "https://music.apple.com");
-			String tokenScriptUrl = extractTokenScriptUrl(mainPageHtml);
+	private CompletableFuture<Void> fetchNewTokenAsync(long backoff, int attempts) {
+		final long maxBackoff = 60 * 60 * 1000; // backoff max of like an hour
+		final long nextBackoff = Math.min(backoff * 2, maxBackoff);
 
-			if (tokenScriptUrl == null) {
-				throw new IllegalStateException("Failed to locate token script URL.");
+		return CompletableFuture.runAsync(() -> { // I think this is correct usage
+			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+				String mainPageHtml = fetchHtml(httpClient, "https://music.apple.com");
+				String tokenScriptUrl = extractTokenScriptUrl(mainPageHtml);
+				if (tokenScriptUrl == null) {
+					throw new IOException("Token script URL not found.");
+				}
+
+				String tokenScriptContent = fetchHtml(httpClient, tokenScriptUrl);
+				Matcher tokenMatcher = TOKEN_PATTERN.matcher(tokenScriptContent);
+				if (tokenMatcher.find()) {
+					token = tokenMatcher.group();
+					parseTokenData();
+					tokenValidityChecked = false;
+				} else {
+					throw new IOException("Token extraction failed.");
+				}
+			} catch (IOException e) {
+				log.warn("Attempt {} failed: {}. Retrying...", attempts, e.getMessage()); // aka ur fucked
+				throw new CompletionException(e);
 			}
-
-			String tokenScriptContent = fetchHtml(httpClient, tokenScriptUrl);
-			Matcher tokenMatcher = TOKEN_PATTERN.matcher(tokenScriptContent);
-
-			if (tokenMatcher.find()) {
-				token = tokenMatcher.group();
-				parseTokenData();
-				tokenValidityChecked = false;
-			} else {
-				throw new IllegalStateException("Failed to extract token from script content.");
+		}).handle((result, throwable) -> { // looks wrong
+			if (throwable != null) {
+				log.info("Waiting for {} ms before retrying...", nextBackoff);
+				return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor(nextBackoff, TimeUnit.MILLISECONDS))
+					.thenCompose(ignored -> fetchNewTokenAsync(nextBackoff, attempts + 1));
 			}
+			return CompletableFuture.completedFuture(result);
+		}).thenCompose(completed -> completed);
+	}
+
+	public void fetchNewToken() throws IOException {
+		try {
+			fetchNewTokenAsync(1000, 1).join();
+			log.info("Token fetched successfully: {}", token);
+		} catch (CompletionException e) {
+			throw new IOException("Failed to fetch token after retries.", e.getCause());
 		}
 	}
 
