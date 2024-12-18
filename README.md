@@ -80,14 +80,14 @@ plugins:
       deezer: false # Enable Deezer source
       yandexmusic: false # Enable Yandex Music source
       flowerytts: false # Enable Flowery TTS source
-      youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
+      youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
       youtube: false # Enable YouTube lyrics source
       yandexmusic: false # Enable Yandex Music lyrics source
-      vkmusic: true # Enable Vk Music lyrics source
+      vkmusic: false # Enable Vk Music lyrics source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
@@ -699,6 +699,7 @@ searchManager.registerSearchManager(vkmusic);
 
 * `dzsearch:animals architects`
 * `dzisrc:USEP42058010`
+* `dzrec:1090538082` (`dzrec:{TRACK_ID}`)
 * https://deezer.page.link/U6BTQ2Q1KpmNt2yh8
 * https://www.deezer.com/track/1090538082
 * https://www.deezer.com/album/175537082
