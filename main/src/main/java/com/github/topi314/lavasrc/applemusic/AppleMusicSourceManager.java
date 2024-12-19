@@ -16,6 +16,8 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.track.*;
+import org.jsoup.Jsoup;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -54,13 +56,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	private final String countryCode;
 	private int playlistPageLimit;
 	private int albumPageLimit;
-	private String token;
-	private String origin;
-	private Instant tokenExpire;
-
-	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, AudioPlayerManager audioPlayerManager) {
-		this(mediaAPIToken, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
-	}
+	private final AppleMusicTokenManager tokenManager;
 
 	public AppleMusicSourceManager(String[] providers, String mediaAPIToken, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
 		this(mediaAPIToken, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -72,21 +68,12 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 
 	public AppleMusicSourceManager(String mediaAPIToken, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
-		if (mediaAPIToken == null || mediaAPIToken.isEmpty()) {
-			throw new RuntimeException("Apple Music API token is empty or null");
-		}
-		this.token = mediaAPIToken;
+		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
 
 		try {
-			this.parseTokenData();
+			this.tokenManager = new AppleMusicTokenManager(mediaAPIToken);
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to parse Apple Music API token", e);
-		}
-
-		if (countryCode == null || countryCode.isEmpty()) {
-			this.countryCode = "us";
-		} else {
-			this.countryCode = countryCode;
+			throw new RuntimeException("Failed to initialize token manager", e);
 		}
 	}
 
@@ -99,11 +86,10 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 	}
 
 	public void setMediaAPIToken(String mediaAPIToken) {
-		this.token = mediaAPIToken;
 		try {
-			this.parseTokenData();
+			this.tokenManager.setToken(mediaAPIToken);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Failed to update token", e);
 		}
 	}
 
@@ -181,23 +167,6 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			throw new RuntimeException(e);
 		}
 		return null;
-	}
-
-	public void parseTokenData() throws IOException {
-		var parts = this.token.split("\\.");
-		if (parts.length < 3) {
-			throw new IllegalArgumentException("Invalid Apple Music API token provided");
-		}
-		var json = JsonBrowser.parse(new String(Base64.getDecoder().decode(parts[1]), StandardCharsets.UTF_8));
-		this.tokenExpire = Instant.ofEpochSecond(json.get("exp").asLong(0));
-		this.origin = json.get("root_https_origin").index(0).text();
-	}
-
-	public String getToken() throws IOException {
-		if (this.tokenExpire.isBefore(Instant.now())) {
-			throw new FriendlyException("Apple Music API token is expired", FriendlyException.Severity.SUSPICIOUS, null);
-		}
-		return this.token;
 	}
 
 	public AudioSearchResult getSearchSuggestions(String query, Set<AudioSearchResult.Type> types) throws IOException, URISyntaxException {
@@ -295,15 +264,16 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 				}
 			}
 		}
-
 		return new BasicAudioSearchResult(tracks, albums, artists, playLists, terms);
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
+		var token = this.tokenManager.getToken();
+
 		var request = new HttpGet(uri);
-		request.addHeader("Authorization", "Bearer " + this.getToken());
-		if (this.origin != null && !this.origin.isEmpty()) {
-			request.addHeader("Origin", "https://" + this.origin);
+		request.addHeader("Authorization", "Bearer " + token.apiToken);
+		if (token.origin != null && !token.origin.isEmpty()) {
+			request.addHeader("Origin", "https://" + token.origin);
 		}
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 	}
@@ -319,7 +289,6 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			var artwork = artist.get("attributes").get("artwork");
 			output.put(artist.get("id").text(), parseArtworkUrl(artwork));
 		}
-
 		return output;
 	}
 
@@ -467,7 +436,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			attributes.get("albumName").text(),
 			// Apple doesn't give us the album url, however the track url is
 			// /albums/{albumId}?i={trackId}, so if we cut off that parameter it's fine
-			paramIndex == -1 ? null : trackUrl.substring(0, paramIndex), 
+			paramIndex == -1 ? null : trackUrl.substring(0, paramIndex),
 			artistUrl,
 			artistArtwork,
 			attributes.get("previews").index(0).get("hlsUrl").text(),
@@ -513,5 +482,4 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			.sign(Algorithm.ECDSA256(key));
 		return new AppleMusicSourceManager(jwt, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
-
 }
