@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackResolver {
 
+	private StringCompareMirroringAudioTrackResolver advancedResolver;
+
 	private static final Logger log = LoggerFactory.getLogger(DefaultMirroringAudioTrackResolver.class);
 
 	private String[] providers = {
@@ -26,15 +28,8 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 	@Override
 	public AudioItem apply(MirroringAudioTrack mirroringAudioTrack) {
 		for (var provider : providers) {
-			if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
-				log.warn("Can not use spotify search as search provider!");
-				continue;
-			}
 
-			if (provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)) {
-				log.warn("Can not use apple music search as search provider!");
-				continue;
-			}
+			if(!canBeAsearchProvider(provider)) continue;
 
 			if (provider.contains(MirroringAudioSourceManager.ISRC_PATTERN)) {
 				if (mirroringAudioTrack.getInfo().isrc != null && !mirroringAudioTrack.getInfo().isrc.isEmpty()) {
@@ -54,14 +49,34 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 				log.error("Failed to load track from provider \"{}\"!", provider, e);
 				continue;
 			}
-			// If the track is an empty playlist, skip the provider
-			if (item instanceof AudioPlaylist && ((AudioPlaylist) item).getTracks().isEmpty() || item == AudioReference.NO_TRACK) {
-				continue;
+			if ((!(item instanceof AudioPlaylist) || !((AudioPlaylist)item).getTracks().isEmpty()) && item != AudioReference.NO_TRACK) {
+				if (this.advancedResolver == null) {
+					break;
+				}
+
+				item = this.advancedResolver.apply(item, mirroringAudioTrack, provider);
+				if ((!(item instanceof AudioPlaylist) || !((AudioPlaylist)item).getTracks().isEmpty()) && item != AudioReference.NO_TRACK) {
+					break;
+				}
 			}
 			return item;
 		}
 
 		return AudioReference.NO_TRACK;
+	}
+
+	private boolean canBeAsearchProvider(String provider) {
+		if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
+			log.warn("Can not use spotify search as search provider!");
+			return false;
+		}
+
+		if (provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)) {
+			log.warn("Can not use apple music search as search provider!");
+			return false;
+		}
+
+		return true;
 	}
 
 	public String getTrackTitle(MirroringAudioTrack mirroringAudioTrack) {
@@ -72,4 +87,8 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 		return query;
 	}
 
+	public void setStringComparisonResolver(StringCompareMirroringAudioTrackResolver resolver) {
+		this.advancedResolver = resolver;
+		log.info("Set string comparison resolver to " + resolver.getClass().getSimpleName());
+	}
 }
