@@ -13,6 +13,7 @@ public class DeezerConfig {
 	private String arl;
 	private DeezerAudioTrack.TrackFormat[] formats;
 	private ProxyConfig[] proxies;
+	private boolean useLocalNetwork;
 
 	public String getMasterDecryptionKey() {
 		return this.masterDecryptionKey;
@@ -44,6 +45,14 @@ public class DeezerConfig {
 
 	public void setProxies(ProxyConfig[] proxies) {
 		this.proxies = proxies;
+	}
+
+	public boolean isUseLocalNetwork() {
+		return useLocalNetwork;
+	}
+
+	public void setUseLocalNetwork(boolean useLocalNetwork) {
+		this.useLocalNetwork = useLocalNetwork;
 	}
 
 }

@@ -115,7 +115,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isDeezer()) {
-			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats(), deezerConfig.getProxies());
+			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats(), deezerConfig.getProxies(), deezerConfig.isUseLocalNetwork());
 		}
 
 		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
@@ -167,7 +167,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isSaavn()) {
-			this.saavn = new SaavnAudioSourceManager(saavnConfig.getApiUrl(), saavnConfig.getProxyConfig());
+			this.saavn = new SaavnAudioSourceManager(saavnConfig.getApiUrl(), saavnConfig.getProxies(), saavnConfig.isUseLocalNetwork());
 		}
 
 		if (sourcesConfig.isTidal()) {

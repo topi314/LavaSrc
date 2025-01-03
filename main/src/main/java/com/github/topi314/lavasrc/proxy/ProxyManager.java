@@ -20,9 +20,10 @@ public class ProxyManager {
 
 	private final List<HttpInterfaceManager> httpInterfaceManagers = new CopyOnWriteArrayList<>();
 	private int nextManagerIndex = 0;
+	private HttpInterfaceManager localManager;
 
 
-	public ProxyManager(ProxyConfig[] configs) {
+	public ProxyManager(ProxyConfig[] configs, boolean useLocalnetwork) {
 		for (var config : configs) {
 			var manager = HttpClientTools.createCookielessThreadLocalManager();
 			manager.configureRequests(config::configureRequest);
@@ -30,7 +31,11 @@ public class ProxyManager {
 			this.httpInterfaceManagers.add(manager);
 		}
 
-		this.httpInterfaceManagers.add(HttpClientTools.createCookielessThreadLocalManager());
+		if(useLocalnetwork) {
+			this.localManager = HttpClientTools.createCookielessThreadLocalManager();
+			this.httpInterfaceManagers.add(localManager);
+			log.debug("Created local proxy manager");
+		}
 
 		log.debug("Created {} proxy managers", httpInterfaceManagers);
 	}
@@ -40,6 +45,10 @@ public class ProxyManager {
 		log.debug("Using proxy manager {}", nextManagerIndex);
 		nextManagerIndex = (nextManagerIndex + 1) % httpInterfaceManagers.size();
 		return manager;
+	}
+
+	public HttpInterfaceManager getLocalManager() {
+		return localManager;
 	}
 
 	public void close() throws IOException {

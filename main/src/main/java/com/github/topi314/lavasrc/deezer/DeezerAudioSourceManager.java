@@ -73,10 +73,10 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl) {
-		this(masterDecryptionKey, arl, null, null);
+		this(masterDecryptionKey, arl, null, null, false);
 	}
 
-	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl, @Nullable DeezerAudioTrack.TrackFormat[] formats, ProxyConfig[] proxyConfigs) {
+	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl, @Nullable DeezerAudioTrack.TrackFormat[] formats, ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
 		if (masterDecryptionKey == null || masterDecryptionKey.isEmpty()) {
 			throw new IllegalArgumentException("Deezer master key must be set");
 		}
@@ -84,7 +84,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		this.masterDecryptionKey = masterDecryptionKey;
 		this.arl = arl != null && arl.isEmpty() ? null : arl;
 		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
-		this.proxyManager = proxyConfigs != null ? new ProxyManager(proxyConfigs) : null;
+		this.proxyManager = proxyConfigs != null ? new ProxyManager(proxyConfigs, useLocalNetwork) : null;
 		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
 
 	}

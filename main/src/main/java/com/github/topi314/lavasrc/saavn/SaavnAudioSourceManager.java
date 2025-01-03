@@ -62,10 +62,9 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 	private final HttpInterfaceManager httpInterfaceManager;
 	private final ProxyManager proxyManager;
 
-	public SaavnAudioSourceManager(@Nullable String apiUrl, ProxyConfig[] proxyConfigs) {
+	public SaavnAudioSourceManager(@Nullable String apiUrl, ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
 		this.apiUrl = apiUrl;
-
-		this.proxyManager = proxyConfigs != null ? new ProxyManager(proxyConfigs) : null;
+		this.proxyManager = proxyConfigs != null ? new ProxyManager(proxyConfigs, useLocalNetwork) : null;
 		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
 	}
 

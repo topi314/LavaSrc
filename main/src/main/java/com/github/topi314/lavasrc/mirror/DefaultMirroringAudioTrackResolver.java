@@ -29,15 +29,15 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 	public AudioItem apply(MirroringAudioTrack mirroringAudioTrack) {
 		for (var provider : providers) {
 
-			if(!canBeAsearchProvider(provider)) continue;
+			if (!canBeAsearchProvider(provider)) continue;
 
 			if (provider.contains(MirroringAudioSourceManager.ISRC_PATTERN)) {
-				if (mirroringAudioTrack.getInfo().isrc != null && !mirroringAudioTrack.getInfo().isrc.isEmpty()) {
-					provider = provider.replace(MirroringAudioSourceManager.ISRC_PATTERN, mirroringAudioTrack.getInfo().isrc);
-				} else {
+				String isrc = mirroringAudioTrack.getInfo().isrc;
+				if (isrc == null || isrc.isEmpty()) {
 					log.debug("Ignoring identifier \"{}\" because this track does not have an ISRC!", provider);
 					continue;
 				}
+				provider = provider.replace("%ISRC%", isrc);
 			}
 
 			provider = provider.replace(MirroringAudioSourceManager.QUERY_PATTERN, getTrackTitle(mirroringAudioTrack));
@@ -49,19 +49,18 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 				log.error("Failed to load track from provider \"{}\"!", provider, e);
 				continue;
 			}
-			if ((!(item instanceof AudioPlaylist) || !((AudioPlaylist)item).getTracks().isEmpty()) && item != AudioReference.NO_TRACK) {
-				if (this.advancedResolver == null) {
-					break;
-				}
 
-				item = this.advancedResolver.apply(item, mirroringAudioTrack, provider);
-				if ((!(item instanceof AudioPlaylist) || !((AudioPlaylist)item).getTracks().isEmpty()) && item != AudioReference.NO_TRACK) {
-					break;
+			if (isValidAudioItem(item)) {
+				if (this.advancedResolver != null) {
+					item = this.advancedResolver.apply(item, mirroringAudioTrack, provider);
+					if (isValidAudioItem(item)) {
+						return item;
+					}
+				} else {
+					return item;
 				}
 			}
-			return item;
 		}
-
 		return AudioReference.NO_TRACK;
 	}
 
@@ -82,7 +81,11 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 	public String getTrackTitle(MirroringAudioTrack mirroringAudioTrack) {
 		var query = mirroringAudioTrack.getInfo().title;
 		if (!mirroringAudioTrack.getInfo().author.equals("unknown")) {
-			query += " " + mirroringAudioTrack.getInfo().author;
+			if (advancedResolver != null) {
+				query += " by " + mirroringAudioTrack.getInfo().author;
+			} else {
+				query += " " + mirroringAudioTrack.getInfo().author;
+			}
 		}
 		return query;
 	}
@@ -91,4 +94,9 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 		this.advancedResolver = resolver;
 		log.info("Set string comparison resolver to " + resolver.getClass().getSimpleName());
 	}
+	private boolean isValidAudioItem(AudioItem item) {
+		boolean isPlaylistWithTracks = (item instanceof AudioPlaylist) && !((AudioPlaylist) item).getTracks().isEmpty();
+		return isPlaylistWithTracks || (item != AudioReference.NO_TRACK);
+	}
+
 }
