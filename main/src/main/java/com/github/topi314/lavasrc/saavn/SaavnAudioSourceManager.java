@@ -151,7 +151,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 	public JsonBrowser getJson(String uri) throws IOException {
 		HttpGet request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
-		return LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(false), request);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview, boolean metadataType) {
@@ -391,10 +391,10 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		if (this.httpInterfaceManager != null) httpInterfaceManager.configureBuilder(configurator);
 	}
 
-	public HttpInterface getHttpInterface() {
+	public HttpInterface getHttpInterface(boolean useLocalNetwork) {
 		if (this.proxyManager == null) {
 			return this.httpInterfaceManager.getInterface();
 		}
-		return this.proxyManager.getHttpInterfaceManager().getInterface();
+		return useLocalNetwork ? this.proxyManager.getLocalManager().getInterface() : this.proxyManager.getHttpInterfaceManager().getInterface();
 	}
 }

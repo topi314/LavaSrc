@@ -31,8 +31,8 @@ public class ProxyManager {
 			this.httpInterfaceManagers.add(manager);
 		}
 
+		this.localManager = HttpClientTools.createCookielessThreadLocalManager();
 		if(useLocalnetwork) {
-			this.localManager = HttpClientTools.createCookielessThreadLocalManager();
 			this.httpInterfaceManagers.add(localManager);
 			log.debug("Created local proxy manager");
 		}
@@ -42,12 +42,13 @@ public class ProxyManager {
 
 	public synchronized HttpInterfaceManager getHttpInterfaceManager() {
 		var manager = httpInterfaceManagers.get(nextManagerIndex);
-		log.debug("Using proxy manager {}", nextManagerIndex);
+		log.debug("Using proxied interface manager number {}", nextManagerIndex);
 		nextManagerIndex = (nextManagerIndex + 1) % httpInterfaceManagers.size();
 		return manager;
 	}
 
 	public HttpInterfaceManager getLocalManager() {
+		log.debug("Using local proxy manager");
 		return localManager;
 	}
 
