@@ -1,5 +1,7 @@
 package com.github.topi314.lavasrc.tidal;
 
+import com.github.topi314.lavasearch.AudioSearchManager;
+import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
@@ -15,6 +17,8 @@ import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +30,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class TidalSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
+public class TidalSourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile(
 		"https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist|mix)/(?<id>[a-zA-Z0-9\\-]+)(?:\\?.*)?");
@@ -63,6 +68,11 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	@Override
 	public String getSourceName() {
 		return "tidal";
+	}
+
+	@Override
+	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> types) {
+		return null;
 	}
 
 	@Override
