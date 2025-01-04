@@ -88,7 +88,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 	}
 
 	private String buildSearchUrl(String query) {
-		String searchQuery = URLEncoder.encode(SEARCH_API_BASE + query, StandardCharsets.UTF_8);
+		String searchQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
 		if(apiUrl != null) {
 			return apiUrl + "?url=" + searchQuery;
 		}
