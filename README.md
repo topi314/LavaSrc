@@ -825,9 +825,9 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * `jssearch:animals architects`
 * `jsrec:identifier`
 * https://www.jiosaavn.com/song/hello/Oj0JdT5yZFo
-* https://www.jiosaavn.com/artist/adele-songs/yc6n84bIDm8_
-* https://www.jiosaavn.com/album/25/NGUmkn-uYyY_
-* https://www.jiosaavn.com/featured/lets-play-adele/pVh19D03XxOvz,QNANKgeg__
+* https://www.jiosaavn.com/artist/adele-songs/yc6n84bIDm8
+* https://www.jiosaavn.com/album/25/NGUmkn-uYyY
+* https://www.jiosaavn.com/featured/lets-play-adele/pVh19D03XxOvz,QNANKgeg
 
 ### Tidal 
 * `tdsearch:animals architects`
