@@ -75,13 +75,11 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 	}
 
 	private String buildSearchUrl(String query) {
-		return this.apiUrl != null
-			? this.apiUrl
-			+ "?url="
-			+ URLEncoder.encode(
-			SEARCH_API_BASE + query, StandardCharsets.UTF_8)
-			: SEARCH_API_BASE
-			+ URLEncoder.encode(query, StandardCharsets.UTF_8);
+		String searchQuery = URLEncoder.encode(SEARCH_API_BASE + query, StandardCharsets.UTF_8);
+		if(apiUrl != null) {
+			return apiUrl + "?url=" + searchQuery;
+		}
+		return SEARCH_API_BASE + searchQuery;
 	}
 
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
