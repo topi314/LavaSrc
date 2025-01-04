@@ -3,9 +3,21 @@ plugins:
     providers: # Custom providers for track loading. This is the default
 #      - "dzisrc:%ISRC%" # Deezer ISRC provider
 #      - "dzsearch:%QUERY%" # Deezer search provider
+#      - 'jssearch:%QUERY%' # JioSaavn search provider (recommended to use with advanced mirroring & search proxies)
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
-#        you can add multiple other fallback sources here
+    #        you can add multiple other fallback sources here
+    advancemirroring:
+      enabled: false # Whether to enable the advanced mirroring feature
+      titleThreshold: 50 # The threshold for the title match (50 is the most optimal)
+      authorThreshold: 70 # The threshold for the author match (70 is the most optimal)
+      totalMatchThreshold: 196 # The threshold for the total match (196 is the most optimal)
+      skipSoundCloudGo: true # Whether to skip the SoundCloud Go tracks (preview tracks)
+      levelOnePenalty: 1 # The penalty for the first level
+      levelTwoPenalty: 2 # The penalty for the second level
+      levelThreePenalty: 0.8 # The penalty for the third level
+      sources: # The sources to use for the advanced mirroring
+        - jssearch
     sources:
       spotify: false # Enable Spotify source
       applemusic: false # Enable Apple Music source
@@ -14,6 +26,8 @@ plugins:
       flowerytts: false # Enable Flowery TTs source
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
+      saavn: false # Enable JioSaavn source
+      tidal: false # Enable Tidal source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
