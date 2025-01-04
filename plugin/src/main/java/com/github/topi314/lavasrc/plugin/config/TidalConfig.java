@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 public class TidalConfig {
 	private String countryCode;
 	private int searchLimit;
+	private String tidalToken;
 
 	public String getCountryCode() {
 		return this.countryCode;
@@ -25,5 +26,13 @@ public class TidalConfig {
 
 	public void setSearchLimit(int searchLimit) {
 		this.searchLimit = searchLimit;
+	}
+
+	public String getTidalToken() {
+		return tidalToken;
+	}
+
+	public void setTidalToken(String tidalToken) {
+		this.tidalToken = tidalToken;
 	}
 }

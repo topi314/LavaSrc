@@ -45,7 +45,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 750;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 120;
 	private static final String USER_AGENT = "TIDAL/3704 CFNetwork/1220.1 Darwin/20.3.0";
-	private static final String TIDAL_TOKEN = "i4ZDjcyhed7Mu47q";
+	private final String tidalToken;
 	private static final Logger log = LoggerFactory.getLogger(TidalSourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
@@ -53,12 +53,13 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	private final String countryCode;
 
 	public TidalSourceManager(String[] providers, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
-		this(countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
+		this(countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), null);
 	}
 
-	public TidalSourceManager(String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+	public TidalSourceManager(String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver, String tidalToken) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
+		this.tidalToken = tidalToken != null ? tidalToken : "i4ZDjcyhed7Mu47q";
 	}
 
 	public void setSearchLimit(int searchLimit) {
@@ -119,7 +120,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	private JsonBrowser getApiResponse(String apiUrl) throws IOException {
 		var request = new HttpGet(apiUrl);
 		request.setHeader("user-agent", USER_AGENT);
-		request.setHeader("x-tidal-token", TIDAL_TOKEN);
+		request.setHeader("x-tidal-token", tidalToken);
 		return LavaSrcTools.fetchResponseAsJson(httpInterfaceManager.getInterface(), request);
 	}
 
