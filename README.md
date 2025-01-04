@@ -13,9 +13,11 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 * [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
+* [JioSaavn](https://www.jiosaavn.com) playlists/albums/songs/artists/featured/search results
+* [Tidal](https://tidal.com) playlists/albums/songs/search results
 
 > [!IMPORTANT]
-> Tracks from Spotify & Apple Music don't actually play from their sources, but are instead resolved via the configured providers
+> Tracks from Spotify & Apple Music & Tidal don't actually play from their sources, but are instead resolved via the configured providers
 
 ## Summary
 
@@ -71,9 +73,21 @@ plugins:
     providers: # Custom providers for track loading. This is the default
       # - "dzisrc:%ISRC%" # Deezer ISRC provider
       # - "dzsearch:%QUERY%" # Deezer search provider
+      # - 'jssearch:%QUERY%' # JioSaavn search provider (recommended to use with advanced mirroring & search proxies) 
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
       #  you can add multiple other fallback sources here
+    advancemirroring:
+      enabled: false # Whether to enable the advanced mirroring feature
+      titleThreshold: 50 # The threshold for the title match (50 is the most optimal)
+      authorThreshold: 70 # The threshold for the author match (70 is the most optimal)
+      totalMatchThreshold: 196 # The threshold for the total match (196 is the most optimal)
+      skipSoundCloudGo: true # Whether to skip the SoundCloud Go tracks (preview tracks)
+      levelOnePenalty: 1 # The penalty for the first level
+      levelTwoPenalty: 2 # The penalty for the second level
+      levelThreePenalty: 0.8 # The penalty for the third level
+      sources: # The sources to use for the advanced mirroring
+        - jssearch
     sources:
       spotify: false # Enable Spotify source
       applemusic: false # Enable Apple Music source
@@ -82,6 +96,8 @@ plugins:
       flowerytts: false # Enable Flowery TTS source
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
+      saavn: false # Enable JioSaavn source
+      tidal: false # Enable Tidal source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -113,6 +129,13 @@ plugins:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
       # arl: "your deezer arl" # the arl cookie used for accessing the deezer api this is optional but required for formats above MP3_128
       formats: [ "FLAC", "MP3_320", "MP3_256", "MP3_128", "MP3_64", "AAC_64" ] # the formats you want to use for the deezer tracks. "FLAC", "MP3_320", "MP3_256" & "AAC_64" are only available for premium users and require a valid arl
+#      useLocalNetwork: true # whether to use the local network for accessing the deezer api or just rely on the proxies
+#      proxies:
+#        - proxyProtocol: "http" # the protocol of the proxy
+#          proxyHost: "192.0.2.146" # the host of the proxy (ip or domain)
+#          proxyPort: 8080 # the port of the proxy
+#          proxyUser: "user" # the user of the proxy (optional)
+#          proxyPassword: "youShallPass" # the password of the proxy (optional)
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
       playlistLoadLimit: 1 # The number of pages at 100 tracks each
@@ -131,6 +154,19 @@ plugins:
       playlistLoadLimit: 1 # The number of pages at 50 tracks each
       artistLoadLimit: 1 # The number of pages at 10 tracks each
       recommendationsLoadLimit: 10 # Number of tracks
+    tidal:
+      countryCode: "US"
+      searchLimit: 6
+      #tidalToken: "your tidal token" # optional (in case you want to change the token & use your own)
+    saavn:
+      #apiUrl: "https://apilink.lavalink/api" # the api link used for accessing the saavn api (not recommended to use, use proxies)
+      useLocalNetwork: false # whether to use the local network for accessing the deezer api or just rely on the proxies (keep it false if your server is not in India)
+      proxies:
+        - proxyProtocol: "http" # the protocol of the proxy (use http or https)
+          proxyHost: "192.0.2.146" # the host of the proxy (ip or domain)
+          proxyPort: 8080 # the port of the proxy
+          proxyUser: "user" # the user of the proxy (optional)
+          proxyPassword: "youShallPass" # the password of the proxy (optional)
 ```
 
 ### Plugin Info
@@ -492,8 +528,11 @@ Use Google to find a guide on how to get the arl cookie. It's not that hard.
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new DeezerSourceManager with the master decryption key and register it
-
 var deezer = new DeezerSourceManager("the master decryption key", "your arl", formats);
+
+// To use Deezer with proxies
+// var proxyConfigs = List.of(new ProxyConfig(proxyProtocol, proxyHost, proxyPort, proxyUser, String proxyPassword))
+// var deezer = new DeezerAudioSourceManager("the master decryption key", "your arl", formats, proxiesList, useLocalNetwork);
 playerManager.registerSourceManager(deezer);
 ```
 
@@ -662,16 +701,55 @@ lyricsManager.registerLyricsManager(vkmusic);
 <summary>Click to expand</summary>
 
 ```java
-// create new search manager
-var searchManager = new SearchManager();
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// register source
-searchManager.registerSearchManager(vkmusic);
+// create a new VkMusicSourceManager with the user token and register it
+playerManager.registerSourceManager(new VkMusicSourceManager("...");
 ```
 
 </details>
 
 ---
+
+### JioSaavn
+
+<details>
+<summary>How to get api url</summary>
+Follow this guide https://github.com/appujet/jiosaavn-plugin-api)
+### Note: Using proxies is recommended instead of relying on an external API.
+
+</details>
+<details>
+<summary>Supported proxy regions</summary>
+India, Pakistan, Afghanistan, Bahrain, Bangladesh, Bhutan, Egypt, Iraq, Jordan, Kuwait, Lebanon, Maldives, Nepal, Oman, Qatar, Saudi Arabia, Sri Lanka, UAE, and Yemen.
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new SaavnAudioSourceManager and register it (ONLY IF YOUR SERVER IS IN A SUPPORTED REGION)
+var saavn = new SaavnAudioSourceManager();
+
+// to use Saavn with proxies (user & password are optional)
+// var proxyConfigs = List.of(new ProxyConfig(proxyProtocol, proxyHost, proxyPort, proxyUser, String proxyPassword))
+// var saavn = new SaavnAudioSourceManager(proxyConfigs, useLocalNetwork);
+
+playerManager.registerSourceManager(saavn);
+```
+
+### Tidal
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// Tidal token is optional (in case you want to change the token & use your own) 
+// country code is optional (default is US)
+var tidal = new TidalSourceManager(countryCode, playerManager, DefaultMirroringAudioTrackResolver, tidalToken);
+playerManager.registerSourceManager(tidal);
+````
+
+
 
 ## Supported URLs and Queries
 
@@ -740,4 +818,17 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://vk.com/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493%2Fbe3494d46d310b0d0d
 * https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
 
+### JioSaavn
+* `jssearch:animals architects`
+* `jsrec:identifier`
+* https://www.jiosaavn.com/song/hello/Oj0JdT5yZFo
+* https://www.jiosaavn.com/artist/adele-songs/yc6n84bIDm8_
+* https://www.jiosaavn.com/album/25/NGUmkn-uYyY_
+* https://www.jiosaavn.com/featured/lets-play-adele/pVh19D03XxOvz,QNANKgeg__
+
+### Tidal 
+* `tdsearch:animals architects`
+* http://www.tidal.com/track/205573155
+* https://tidal.com/browse/album/165814025
+* https://tidal.com/browse/mix/00527d2ae9ccc1721dc42e9cc48e7a
 ---

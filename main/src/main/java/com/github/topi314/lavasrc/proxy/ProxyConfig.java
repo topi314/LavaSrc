@@ -76,4 +76,20 @@ public class ProxyConfig {
 			httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 		}
 	}
+
+	public ProxyConfig() {
+	}
+
+	public ProxyConfig(String proxyProtocol, String proxyHost, int proxyPort, String proxyUser, String proxyPassword) {
+		this.proxyProtocol = proxyProtocol;
+		this.proxyHost = proxyHost;
+		this.proxyPort = proxyPort;
+		this.proxyUser = proxyUser;
+		this.proxyPassword = proxyPassword;
+	}
+
+	public ProxyConfig(String proxyHost, int proxyPort) {
+		this.proxyHost = proxyHost;
+		this.proxyPort = proxyPort;
+	}
 }
