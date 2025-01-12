@@ -41,6 +41,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 		"https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist|mix)/(?<id>[a-zA-Z0-9\\-]+)(?:\\?.*)?");
 
 	public static final String SEARCH_PREFIX = "tdsearch:";
+	public static final String RECOMMENDATIONS_PREFIX = "tdrec:";
 	public static final String PUBLIC_API_BASE = "https://api.tidal.com/v1/";
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 750;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 120;
@@ -110,6 +111,13 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 				} else {
 					return AudioReference.NO_TRACK;
 				}
+			} else if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
+				String trackId = reference.identifier.substring(RECOMMENDATIONS_PREFIX.length());
+				if (!trackId.isEmpty()) {
+					return getRecommendations(trackId);
+				} else {
+					return AudioReference.NO_TRACK;
+				}
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -161,6 +169,30 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			return AudioReference.NO_TRACK;
 		}
 	}
+
+	private AudioItem getRecommendations(String trackId) throws IOException {
+		try {
+			String apiUrl = PUBLIC_API_BASE + "tracks/" + trackId + "?countryCode=" + countryCode;
+			var json = getApiResponse(apiUrl);
+
+			if (json == null || json.isNull()) {
+				log.info("Track not found for ID: {}", trackId);
+				return AudioReference.NO_TRACK;
+			}
+
+			var mixId = json.get("mixes").get("TRACK_MIX").text();
+			if (mixId == null) {
+				log.info("Mix not found for ID: {}", trackId);
+				return AudioReference.NO_TRACK;
+			}
+
+			return getMix(mixId);
+		} catch (SocketTimeoutException e) {
+			log.error("Socket timeout while fetching track with ID: {}", trackId, e);
+			return AudioReference.NO_TRACK;
+		}
+	}
+
 
 	private AudioTrack parseTrack(JsonBrowser audio) {
 		var id = audio.get("id").text();
