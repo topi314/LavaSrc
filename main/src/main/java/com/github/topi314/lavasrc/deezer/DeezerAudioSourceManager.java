@@ -258,7 +258,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			if (identifier.startsWith(SHARE_URL)) {
 				var request = new HttpGet(identifier);
 				request.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build());
-				try (var response = proxyManager.getHttpInterfaceManager().getInterface().execute(request)) {
+				try (var response = getHttpInterface().execute(request)) {
 					if (response.getStatusLine().getStatusCode() == 302) {
 						var location = response.getFirstHeader("Location").getValue();
 						if (location.startsWith("https://www.deezer.com/")) {
@@ -298,7 +298,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public JsonBrowser getJson(String uri) throws IOException {
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
-		return LavaSrcTools.fetchResponseAsJson(this.proxyManager.getHttpInterfaceManager().getInterface(), request);
+		return LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(), request);
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) {
