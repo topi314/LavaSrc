@@ -82,7 +82,7 @@ plugins:
 #      tidalToken: "your tidal token" # optional (in case you want to change the token & use your own)
     saavn:
 #      apiUrl: "https://apilink.lavalink/api" # the api link used for accessing the saavn api (not recommended to use, use proxies)
-      useLocalNetwork: false # whether to use the local network for accessing the deezer api or just rely on the proxies (keep it false if your server is not in India)
+      useLocalNetwork: false # whether to use the local network for accessing the jiosaavn or just rely on the proxies (keep it false if your server is not in India)
       proxies:
         - proxyProtocol: "http" # the protocol of the proxy (use http or https)
           proxyHost: "192.0.2.146" # the host of the proxy (ip or domain)
