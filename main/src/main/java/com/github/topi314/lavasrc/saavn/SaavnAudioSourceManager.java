@@ -90,7 +90,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 	private String buildSearchUrl(String query) {
 		String searchQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
 		if(apiUrl != null) {
-			return apiUrl + "?url=" + searchQuery;
+			return apiUrl + "/search?q=" + searchQuery;
 		}
 		return SEARCH_API_BASE + searchQuery;
 	}
@@ -165,11 +165,33 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		return LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(false), request);
 	}
 
-	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview, boolean metadataType) {
+	private List<AudioTrack> localParseTracks(JsonBrowser json, boolean preview, boolean metadataType) {
 		ArrayList<AudioTrack> tracks = new ArrayList<>();
 
 		for (JsonBrowser track : json.values()) {
 			tracks.add(this.parseTrack(track, preview, metadataType));
+		}
+
+		return tracks;
+	}
+	private List<AudioTrack> apiParseTracks(JsonBrowser results, boolean preview) {
+		ArrayList<AudioTrack> tracks = new ArrayList<>();
+
+		for(JsonBrowser track : results.values()){
+			String identifier = track.get("identifier").text();
+			String title = this.cleanString(track.get("title").text());
+			String author = this.cleanString(track.get("author").text());
+			String artworkUrl = track.get("artworkUrl").text();
+			long length = track.get("length").asLong(PREVIEW_LENGTH);
+			String uri = track.get("uri").text();
+			String albumName = this.cleanString(track.get("albumName").text());
+			String albumUrl = track.get("albumUrl").text();
+			String artistUrl = track.get("artistUrl").text();
+			String artistArtworkUrl = track.get("artistArtworkUrl").text();
+			String previewUrl = track.get("encryptedMediaUrl").text();
+
+			AudioTrackInfo info = new AudioTrackInfo(title, author, length, identifier, false, uri, artworkUrl, null);
+			tracks.add(new SaavnAudioTrack(info, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, preview, this));
 		}
 
 		return tracks;
@@ -280,7 +302,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 			URLEncoder.encode(id, StandardCharsets.UTF_8)));
 
 		if (json != null && !json.values().isEmpty()) {
-			List<AudioTrack> artistTracks = this.parseTracks(json, false, true);
+			List<AudioTrack> artistTracks = this.localParseTracks(json, false, true);
 			if (!artistTracks.isEmpty()) {
 				return new SaavnAudioPlaylist(
 					"Saavn Recommendations", artistTracks, ExtendedAudioPlaylist.Type.RECOMMENDATIONS, id, null, "Saavn Editor", artistTracks.size()
@@ -299,9 +321,14 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 			log.debug("Failed to get search results for query: " + query);
 			return AudioReference.NO_TRACK;
 		}
+		if(apiUrl == null) return new BasicAudioPlaylist("Saavn Search: " + query,
+			this.localParseTracks(json.get("results"), preview, false), null, true);
+
 		return new BasicAudioPlaylist("Saavn Search: " + query,
-			this.parseTracks(json.get("results"), preview, false), null, true);
+			this.apiParseTracks(json.get("results"), preview), null, true);
 	}
+
+
 
 	private AudioItem getAlbum(String id, boolean preview) throws IOException {
 		JsonBrowser json = this.getJson(String.format(METADATA_API_BASE, URLEncoder.encode(id, StandardCharsets.UTF_8), "album"));
@@ -314,7 +341,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		String title = this.cleanString(json.get("title").text());
 		String artworkUrl = json.get("image").text().replace("150x150", "500x500");
 		String uri = json.get("perma_url").text();
-		List<AudioTrack> tracks = this.parseTracks(json.get("list"), preview, true);
+		List<AudioTrack> tracks = this.localParseTracks(json.get("list"), preview, true);
 		int trackCount = tracks.size();
 		String author = tracks.get(0).getInfo().author;
 
@@ -355,7 +382,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		}
 
 		String title = this.cleanString(json.get("title").text());
-		List<AudioTrack> tracks = this.parseTracks(json.get("list"), preview, true);
+		List<AudioTrack> tracks = this.localParseTracks(json.get("list"), preview, true);
 		String url = json.get("perma_url").text();
 		int trackCount = tracks.size();
 		return new SaavnAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, author, trackCount);
@@ -370,7 +397,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 			return AudioReference.NO_TRACK;
 		}
 
-		List<AudioTrack> tracks = this.parseTracks(json.get("topSongs"), preview, true);
+		List<AudioTrack> tracks = this.localParseTracks(json.get("topSongs"), preview, true);
 		int trackCount = tracks.size();
 		String artworkUrl = null;
 		if (!json.get("image").isNull()) {
