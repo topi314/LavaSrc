@@ -139,7 +139,7 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 				return this.getSearch(identifier.substring(SEARCH_PREFIX.length()).trim(), preview);
 			}
 
-			var matcher = URL_PATTERN.matcher(identifier);
+			var matcher = URL_PATTERN.matcher(URLDecoder.decode(identifier, StandardCharsets.UTF_8));
 			if (!matcher.find()) {
 				return null;
 			}
