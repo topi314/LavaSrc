@@ -8,6 +8,7 @@ import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
+import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.StringCompareMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
@@ -69,22 +70,22 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
 		this.advanceMirrorConfig = advanceMirrorConfig;
 
-		DefaultMirroringAudioTrackResolver defaultresolver = new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders());
+		MirroringAudioTrackResolver defaultresolver = new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders());
 		if (this.advanceMirrorConfig.isEnabled()) {
-			defaultresolver.setStringComparisonResolver(
-				new StringCompareMirroringAudioTrackResolver(
-					this.advanceMirrorConfig.isEnabled(),
-					this.advanceMirrorConfig.getSources(),
-					this.advanceMirrorConfig.getTitleThreshold(),
-					this.advanceMirrorConfig.getAuthorThreshold(),
-					this.advanceMirrorConfig.getTotalMatchThreshold(),
-					this.advanceMirrorConfig.isSkipSoundCloudGo(),
-					this.advanceMirrorConfig.getLevelOnePenalty(),
-					this.advanceMirrorConfig.getLevelTwoPenalty(),
-					this.advanceMirrorConfig.getLevelThreePenalty()
-				)
+			defaultresolver = new StringCompareMirroringAudioTrackResolver(
+				this.advanceMirrorConfig.isEnabled(),
+				this.advanceMirrorConfig.getSources(),
+				pluginConfig.getProviders(),
+				this.advanceMirrorConfig.getTitleThreshold(),
+				this.advanceMirrorConfig.getAuthorThreshold(),
+				this.advanceMirrorConfig.getTotalMatchThreshold(),
+				this.advanceMirrorConfig.isSkipSoundCloudGo(),
+				this.advanceMirrorConfig.getLevelOnePenalty(),
+				this.advanceMirrorConfig.getLevelTwoPenalty(),
+				this.advanceMirrorConfig.getLevelThreePenalty()
 			);
-			log.info("[-] Advanced Mirroring enabled for sources: " + Arrays.toString(this.advanceMirrorConfig.getSources()));
+
+			log.info("Advanced Mirroring enabled for sources: " + Arrays.toString(this.advanceMirrorConfig.getSources()));
 		}
 
 

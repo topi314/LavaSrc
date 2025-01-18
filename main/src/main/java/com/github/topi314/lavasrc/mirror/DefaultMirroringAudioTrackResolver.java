@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackResolver {
 
-	private StringCompareMirroringAudioTrackResolver advancedResolver;
-
 	private static final Logger log = LoggerFactory.getLogger(DefaultMirroringAudioTrackResolver.class);
 
 	private String[] providers = {
@@ -28,16 +26,23 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 	@Override
 	public AudioItem apply(MirroringAudioTrack mirroringAudioTrack) {
 		for (var provider : providers) {
+			if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
+				log.warn("Can not use spotify search as search provider!");
+				continue;
+			}
 
-			if (!canBeAsearchProvider(provider)) continue;
+			if (provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)) {
+				log.warn("Can not use apple music search as search provider!");
+				continue;
+			}
 
 			if (provider.contains(MirroringAudioSourceManager.ISRC_PATTERN)) {
-				String isrc = mirroringAudioTrack.getInfo().isrc;
-				if (isrc == null || isrc.isEmpty()) {
+				if (mirroringAudioTrack.getInfo().isrc != null && !mirroringAudioTrack.getInfo().isrc.isEmpty()) {
+					provider = provider.replace(MirroringAudioSourceManager.ISRC_PATTERN, mirroringAudioTrack.getInfo().isrc);
+				} else {
 					log.debug("Ignoring identifier \"{}\" because this track does not have an ISRC!", provider);
 					continue;
 				}
-				provider = provider.replace("%ISRC%", isrc);
 			}
 
 			provider = provider.replace(MirroringAudioSourceManager.QUERY_PATTERN, getTrackTitle(mirroringAudioTrack));
@@ -49,54 +54,22 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 				log.error("Failed to load track from provider \"{}\"!", provider, e);
 				continue;
 			}
-
-			if (isValidAudioItem(item)) {
-				if (this.advancedResolver != null) {
-					item = this.advancedResolver.apply(item, mirroringAudioTrack, provider);
-					if (isValidAudioItem(item)) {
-						return item;
-					}
-				} else {
-					return item;
-				}
+			// If the track is an empty playlist, skip the provider
+			if (item instanceof AudioPlaylist && ((AudioPlaylist) item).getTracks().isEmpty() || item == AudioReference.NO_TRACK) {
+				continue;
 			}
+			return item;
 		}
+
 		return AudioReference.NO_TRACK;
-	}
-
-	private boolean canBeAsearchProvider(String provider) {
-		if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
-			log.warn("Can not use spotify search as search provider!");
-			return false;
-		}
-
-		if (provider.startsWith(AppleMusicSourceManager.SEARCH_PREFIX)) {
-			log.warn("Can not use apple music search as search provider!");
-			return false;
-		}
-
-		return true;
 	}
 
 	public String getTrackTitle(MirroringAudioTrack mirroringAudioTrack) {
 		var query = mirroringAudioTrack.getInfo().title;
 		if (!mirroringAudioTrack.getInfo().author.equals("unknown")) {
-			if (advancedResolver != null) {
-				query += " by " + mirroringAudioTrack.getInfo().author;
-			} else {
-				query += " " + mirroringAudioTrack.getInfo().author;
-			}
+			query += " " + mirroringAudioTrack.getInfo().author;
 		}
 		return query;
-	}
-
-	public void setStringComparisonResolver(StringCompareMirroringAudioTrackResolver resolver) {
-		this.advancedResolver = resolver;
-		log.info("Set string comparison resolver to " + resolver.getClass().getSimpleName());
-	}
-	private boolean isValidAudioItem(AudioItem item) {
-		boolean isPlaylistWithTracks = (item instanceof AudioPlaylist) && !((AudioPlaylist) item).getTracks().isEmpty();
-		return isPlaylistWithTracks || (item != AudioReference.NO_TRACK);
 	}
 
 }
