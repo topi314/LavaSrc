@@ -21,7 +21,7 @@ plugins:
       flowerytts: false # Enable Flowery TTs source
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
-      saavn: false # Enable JioSaavn source
+      jiosaavn: false # Enable JioSaavn source
       tidal: false # Enable Tidal source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
@@ -75,7 +75,7 @@ plugins:
       countryCode: "US"
       searchLimit: 6
 #     token: "your tidal token" # optional (in case you want to change the token & use your own)
-    saavn:
+    jiosaavn:
       useLocalNetwork: false # whether to use the local network for accessing the jiosaavn or just rely on the proxies (keep it false if your server is not in India)
       proxies:
         - protocol: "http" # the protocol of the proxy (use http or https)

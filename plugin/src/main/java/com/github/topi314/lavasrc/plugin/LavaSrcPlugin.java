@@ -13,7 +13,7 @@ import com.github.topi314.lavasrc.mirror.StringCompareMirroringAudioTrackResolve
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
-import com.github.topi314.lavasrc.saavn.SaavnAudioSourceManager;
+import com.github.topi314.lavasrc.jiosaavn.JioSaavnAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
@@ -47,7 +47,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private FloweryTTSSourceManager flowerytts;
 	private YoutubeSearchManager youtube;
 	private VkMusicSourceManager vkMusic;
-	private SaavnAudioSourceManager saavn;
+	private JioSaavnAudioSourceManager jioSaavn;
 	private TidalSourceManager tidal;
 
 	public LavaSrcPlugin(
@@ -62,7 +62,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		FloweryTTSConfig floweryTTSConfig,
 		YouTubeConfig youTubeConfig,
 		VkMusicConfig vkMusicConfig,
-		SaavnConfig saavnConfig,
+		JioSaavnConfig jioSaavnConfig,
 		TidalConfig tidalConfig) {
 
 		log.info("Loading LavaSrc plugin...");
@@ -166,8 +166,8 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 
-		if (sourcesConfig.isSaavn()) {
-			this.saavn = new SaavnAudioSourceManager(saavnConfig.getApiUrl(), saavnConfig.getProxies(), saavnConfig.isUseLocalNetwork());
+		if (sourcesConfig.isJiosaavn()) {
+			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getApiUrl(), jioSaavnConfig.getProxies(), jioSaavnConfig.isUseLocalNetwork());
 		}
 
 		if (sourcesConfig.isTidal()) {
@@ -216,9 +216,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			manager.registerSourceManager(this.vkMusic);
 		}
 
-		if (this.saavn != null) {
-			log.info("Registering Saavn audio source manager...");
-			manager.registerSourceManager(this.saavn);
+		if (this.jioSaavn != null) {
+			log.info("Registering JioSaavn audio source manager...");
+			manager.registerSourceManager(this.jioSaavn);
 		}
 
 		if (this.tidal != null) {
@@ -258,9 +258,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 
-		if (this.saavn != null && this.sourcesConfig.isSaavn()) {
+		if (this.jioSaavn != null && this.sourcesConfig.isJiosaavn()) {
 			log.info("Registering Saavn search manager...");
-			manager.registerSearchManager(this.saavn);
+			manager.registerSearchManager(this.jioSaavn);
 		}
 
 		if (this.tidal != null && this.sourcesConfig.isTidal()) {

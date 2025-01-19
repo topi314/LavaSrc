@@ -1,4 +1,4 @@
-package com.github.topi314.lavasrc.saavn;
+package com.github.topi314.lavasrc.jiosaavn;
 
 import com.github.topi314.lavasrc.ExtendedAudioTrack;
 import com.github.topi314.lavasrc.LavaSrcTools;
@@ -22,17 +22,17 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.http.client.methods.HttpGet;
 
-public class SaavnAudioTrack extends ExtendedAudioTrack {
-	private final SaavnAudioSourceManager sourceManager;
+public class JioSaavnAudioTrack extends ExtendedAudioTrack {
+	private final JioSaavnAudioSourceManager sourceManager;
 	private static final String ALGORITHM = "DES";
 	private static final String TRANSFORMATION = "DES/ECB/PKCS5Padding";
 	private static final String SECRET_KEY = "38346591";
 
-	public SaavnAudioTrack(AudioTrackInfo trackInfo, SaavnAudioSourceManager sourceManager) {
+	public JioSaavnAudioTrack(AudioTrackInfo trackInfo, JioSaavnAudioSourceManager sourceManager) {
 		this(trackInfo, null, null, null, null, null, false, sourceManager);
 	}
 
-	public SaavnAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, SaavnAudioSourceManager sourceManager) {
+	public JioSaavnAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, JioSaavnAudioSourceManager sourceManager) {
 		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview);
 		this.sourceManager = sourceManager;
 	}
@@ -98,7 +98,7 @@ public class SaavnAudioTrack extends ExtendedAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new SaavnAudioTrack(
+		return new JioSaavnAudioTrack(
 			this.trackInfo, this.albumName, this.albumUrl, this.artistUrl, this.artistArtworkUrl, this.previewUrl, this.isPreview, this.sourceManager
 		);
 	}

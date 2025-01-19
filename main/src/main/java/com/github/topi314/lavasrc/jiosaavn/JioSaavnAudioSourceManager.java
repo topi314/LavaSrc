@@ -1,4 +1,4 @@
-package com.github.topi314.lavasrc.saavn;
+package com.github.topi314.lavasrc.jiosaavn;
 
 import com.github.topi314.lavasearch.AudioSearchManager;
 import com.github.topi314.lavasearch.result.AudioSearchResult;
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioSearchManager {
+public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioSearchManager {
 	public static final Pattern URL_PATTERN = Pattern.compile(
 		"https://www\\.jiosaavn\\.com/(?<type>album|featured|song|s/playlist|artist)/[^/]+/(?<id>[A-Za-z0-9_,\\-]+)"
 	);
@@ -55,27 +55,25 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 	public static final String RECOS_STATION_API_BASE = "https://www.jiosaavn.com/api.php?__call=webradio.createEntityStation&api_version=4&_format=json&_marker=0&ctx=android&entity_id=%s&entity_type=queue";
 	public static final String RECOS_API_BASE = "https://www.jiosaavn.com/api.php?__call=webradio.getSong&api_version=4&_format=json&_marker=0&ctx=android&stationid=%s&k=20";
 	public static final String ARTIST_RECOS_API_BASE = "https://www.jiosaavn.com/api.php?__call=search.artistOtherTopSongs&api_version=4&_format=json&_marker=0&ctx=wap6dot0&artist_ids=%s&song_id=%s&language=unknown";
-	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(
-		AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST
-	);
-	private static final Logger log = LoggerFactory.getLogger(SaavnAudioSourceManager.class);
+
+	private static final Logger log = LoggerFactory.getLogger(JioSaavnAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager;
 	private final ProxyManager proxyManager;
 
 
-	public SaavnAudioSourceManager() {
+	public JioSaavnAudioSourceManager() {
 		this(null, null, false);
 	}
 
-	public SaavnAudioSourceManager(ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
+	public JioSaavnAudioSourceManager(ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
 		this(null, proxyConfigs, useLocalNetwork);
 	}
 
-	public SaavnAudioSourceManager(@Nullable String apiUrl) {
+	public JioSaavnAudioSourceManager(@Nullable String apiUrl) {
 		this(apiUrl, null, false);
 	}
 
-	public SaavnAudioSourceManager(@Nullable String apiUrl, ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
+	public JioSaavnAudioSourceManager(@Nullable String apiUrl, ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
 		this.apiUrl = apiUrl;
 		this.proxyManager = proxyConfigs != null ? new ProxyManager(proxyConfigs, useLocalNetwork) : null;
 		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
@@ -97,7 +95,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		ExtendedAudioSourceManager.ExtendedAudioTrackInfo extendedAudioTrackInfo = super.decodeTrack(input);
-		return new SaavnAudioTrack(
+		return new JioSaavnAudioTrack(
 			trackInfo,
 			extendedAudioTrackInfo.albumName,
 			extendedAudioTrackInfo.albumUrl,
@@ -191,7 +189,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 			String previewUrl = track.get("encryptedMediaUrl").text();
 
 			AudioTrackInfo info = new AudioTrackInfo(title, author, length, identifier, false, uri, artworkUrl, null);
-			tracks.add(new SaavnAudioTrack(info, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, preview, this));
+			tracks.add(new JioSaavnAudioTrack(info, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, preview, this));
 		}
 
 		return tracks;
@@ -262,7 +260,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		}
 
 		AudioTrackInfo info = new AudioTrackInfo(title, author, length, identifier, false, uri, artworkUrl, null);
-		return new SaavnAudioTrack(info, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, preview, this);
+		return new JioSaavnAudioTrack(info, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, preview, this);
 	}
 
 
@@ -283,8 +281,8 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 					.collect(Collectors.toList());
 
 				if (!stationTracks.isEmpty()) {
-					return new SaavnAudioPlaylist(
-						"Saavn Recommendations", stationTracks, ExtendedAudioPlaylist.Type.RECOMMENDATIONS, id, null, "Saavn Editor", stationTracks.size()
+					return new JioSaavnAudioPlaylist(
+						"JioSaavn Recommendations", stationTracks, ExtendedAudioPlaylist.Type.RECOMMENDATIONS, id, null, "Saavn Editor", stationTracks.size()
 					);
 				}
 			}
@@ -304,8 +302,8 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		if (json != null && !json.values().isEmpty()) {
 			List<AudioTrack> artistTracks = this.localParseTracks(json, false, true);
 			if (!artistTracks.isEmpty()) {
-				return new SaavnAudioPlaylist(
-					"Saavn Recommendations", artistTracks, ExtendedAudioPlaylist.Type.RECOMMENDATIONS, id, null, "Saavn Editor", artistTracks.size()
+				return new JioSaavnAudioPlaylist(
+					"JioSaavn Recommendations", artistTracks, ExtendedAudioPlaylist.Type.RECOMMENDATIONS, id, null, "Saavn Editor", artistTracks.size()
 				);
 			}
 		}
@@ -314,17 +312,17 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 	}
 
 	private AudioItem getSearch(String query, boolean preview) throws IOException {
-		log.debug("Searching text based query on Saavn : " + query);
+		log.debug("Searching text based query on JioSaavn : " + query);
 
 		JsonBrowser json = this.getJson(this.buildSearchUrl(query));
 		if (json == null || json.get("results").values().isEmpty()) {
 			log.debug("Failed to get search results for query: " + query);
 			return AudioReference.NO_TRACK;
 		}
-		if(apiUrl == null) return new BasicAudioPlaylist("Saavn Search: " + query,
+		if(apiUrl == null) return new BasicAudioPlaylist("JioSaavn Search: " + query,
 			this.localParseTracks(json.get("results"), preview, false), null, true);
 
-		return new BasicAudioPlaylist("Saavn Search: " + query,
+		return new BasicAudioPlaylist("JioSaavn Search: " + query,
 			this.apiParseTracks(json.get("results"), preview), null, true);
 	}
 
@@ -345,7 +343,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		int trackCount = tracks.size();
 		String author = tracks.get(0).getInfo().author;
 
-		return new SaavnAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.ALBUM, uri, artworkUrl, author, trackCount);
+		return new JioSaavnAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.ALBUM, uri, artworkUrl, author, trackCount);
 	}
 
 	private AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -385,7 +383,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 		List<AudioTrack> tracks = this.localParseTracks(json.get("list"), preview, true);
 		String url = json.get("perma_url").text();
 		int trackCount = tracks.size();
-		return new SaavnAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, author, trackCount);
+		return new JioSaavnAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, url, artworkUrl, author, trackCount);
 
 	}
 
@@ -406,7 +404,7 @@ public class SaavnAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 		String uri = json.get("urls").get("overview").text();
 		String author = this.cleanString(json.get("name").text());
-		return new SaavnAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, uri, artworkUrl, author, trackCount);
+		return new JioSaavnAudioPlaylist(author + "'s Top Tracks", tracks, ExtendedAudioPlaylist.Type.ARTIST, uri, artworkUrl, author, trackCount);
 	}
 
 	@Override

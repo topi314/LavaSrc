@@ -4,9 +4,9 @@ import com.github.topi314.lavasrc.proxy.ProxyConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = "plugins.lavasrc.saavn")
+@ConfigurationProperties(prefix = "plugins.lavasrc.jiosaavn")
 @Component
-public class SaavnConfig {
+public class JioSaavnConfig {
 	private ProxyConfig[] proxies;
 	private String apiUrl;
 	private boolean useLocalNetwork;

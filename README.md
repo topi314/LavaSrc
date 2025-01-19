@@ -91,7 +91,7 @@ plugins:
       flowerytts: false # Enable Flowery TTS source
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
-      saavn: false # Enable JioSaavn source
+      jiosaavn: false # Enable JioSaavn source
       tidal: false # Enable Tidal source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
@@ -153,8 +153,8 @@ plugins:
       countryCode: "US"
       searchLimit: 6
       #token: "your tidal token" # optional (in case you want to change the token & use your own)
-    saavn:
-      #apiUrl: "https://apilink.lavalink/api" # the api link used for accessing the saavn api (not recommended to use, use proxies)
+    jiosaavn:
+      #apiUrl: "https://apilink.lavalink/api" # the api link used for accessing the jiosaavn api (not recommended to use, use proxies)
       useLocalNetwork: false # whether to use the local network for accessing the deezer api or just rely on the proxies (keep it false if your server is not in India)
       proxies:
         - protocol: "http" # the protocol of the proxy (use http or https)
@@ -723,14 +723,14 @@ India, Pakistan, Afghanistan, Bahrain, Bangladesh, Bhutan, Egypt, Iraq, Jordan, 
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new SaavnAudioSourceManager and register it (ONLY IF YOUR SERVER IS IN A SUPPORTED REGION)
-var saavn = new SaavnAudioSourceManager();
+// create a new JioSaavnAudioSourceManager and register it (ONLY IF YOUR SERVER IS IN A SUPPORTED REGION)
+var jioSaavn = new JioSaavnAudioSourceManager();
 
-// to use Saavn with proxies (user & password are optional)
-// var proxyConfigs = List.of(new ProxyConfig(protocol, host, port, user, String password))
-// var saavn = new SaavnAudioSourceManager(proxyConfigs, useLocalNetwork);
+// to use JioSaavn with proxies (user & password are optional)
+// var proxyConfigs = List.of(new ProxyConfig(protocol, host, port, user, password))
+// var jioSaavn = new JioSaavnAudioSourceManager(proxyConfigs, useLocalNetwork);
 
-playerManager.registerSourceManager(saavn);
+playerManager.registerSourceManager(jioSaavn);
 ```
 
 ---
@@ -829,5 +829,4 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * `tdrec:205573155` (`tdrec:{TRACK_ID}`)
 * http://www.tidal.com/track/205573155
 * https://tidal.com/browse/album/165814025
-* https://tidal.com/browse/mix/00527d2ae9ccc1721dc42e9cc48e7a
----
+* https://tidal.com/browse/mix/00527d2ae9ccc1721dc
