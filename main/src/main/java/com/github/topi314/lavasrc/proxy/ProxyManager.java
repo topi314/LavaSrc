@@ -1,6 +1,8 @@
 package com.github.topi314.lavasrc.proxy;
 
+import com.sedmelluq.discord.lavaplayer.tools.http.HttpContextFilter;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -15,35 +17,34 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
-public class ProxyManager {
+public class ProxyManager implements HttpInterfaceManager {
 	private static final Logger log = LoggerFactory.getLogger(ProxyManager.class);
 
-	private final List<HttpInterfaceManager> httpInterfaceManagers = new CopyOnWriteArrayList<>();
-	private int nextManagerIndex = 0;
-	private HttpInterfaceManager localManager;
-
+	private final List<HttpInterfaceManager> interfaceManagers = new CopyOnWriteArrayList<>();
+	private int currentManagerIndex = 0;
+	private final HttpInterfaceManager localManager;
 
 	public ProxyManager(ProxyConfig[] configs, boolean useLocalnetwork) {
 		for (var config : configs) {
 			var manager = HttpClientTools.createCookielessThreadLocalManager();
 			manager.configureRequests(config::configureRequest);
 			manager.configureBuilder(config::configureBuilder);
-			this.httpInterfaceManagers.add(manager);
+			this.interfaceManagers.add(manager);
 		}
 
 		this.localManager = HttpClientTools.createCookielessThreadLocalManager();
 		if(useLocalnetwork) {
-			this.httpInterfaceManagers.add(localManager);
+			this.interfaceManagers.add(localManager);
 			log.debug("Created local proxy manager");
 		}
 
-		log.debug("Created {} proxy managers", httpInterfaceManagers);
+		log.debug("Initialized {} proxy managers", interfaceManagers);
 	}
 
-	public synchronized HttpInterfaceManager getHttpInterfaceManager() {
-		var manager = httpInterfaceManagers.get(nextManagerIndex);
-		log.debug("Using proxied interface manager number {}", nextManagerIndex);
-		nextManagerIndex = (nextManagerIndex + 1) % httpInterfaceManagers.size();
+	public synchronized HttpInterfaceManager getNextHttpInterfaceManager() {
+		var manager = interfaceManagers.get(currentManagerIndex);
+		log.debug("Using proxied interface manager number {}", currentManagerIndex);
+		currentManagerIndex = (currentManagerIndex + 1) % interfaceManagers.size();
 		return manager;
 	}
 
@@ -53,7 +54,7 @@ public class ProxyManager {
 	}
 
 	public void close() throws IOException {
-		for(var manager : httpInterfaceManagers) {
+		for(var manager : interfaceManagers) {
 			try {
 				manager.close();
 			} catch (IOException e) {
@@ -62,11 +63,24 @@ public class ProxyManager {
 		}
 	}
 
-	public void configureAllRequests(Function<RequestConfig, RequestConfig> configurator) {
-		httpInterfaceManagers.forEach(manager -> manager.configureRequests(configurator));
+	@Override
+	public HttpInterface getInterface() {
+		return getNextHttpInterfaceManager().getInterface();
 	}
 
-	public void configureAllBuilder(Consumer<HttpClientBuilder> configurator) {
-		httpInterfaceManagers.forEach(manager -> manager.configureBuilder(configurator));
+	@Override
+	public void setHttpContextFilter(HttpContextFilter filter) {
+		interfaceManagers.forEach(manager -> manager.setHttpContextFilter(filter));
+	}
+
+	@Override
+	public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
+		interfaceManagers.forEach(manager -> manager.configureRequests(configurator));
+	}
+
+	@Override
+	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
+		interfaceManagers.forEach(manager -> manager.configureBuilder(configurator));
+
 	}
 }

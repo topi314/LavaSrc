@@ -85,7 +85,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		this.arl = arl != null && arl.isEmpty() ? null : arl;
 		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
 		this.proxyManager = proxyConfigs != null ? new ProxyManager(proxyConfigs, useLocalNetwork) : null;
-		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
+		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getNextHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
 
 	}
 
@@ -554,12 +554,12 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	@Override
 	public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-		this.proxyManager.configureAllRequests(configurator);
+		this.proxyManager.configureRequests(configurator);
 	}
 
 	@Override
 	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-		this.proxyManager.configureAllBuilder(configurator);
+		this.proxyManager.configureBuilder(configurator);
 	}
 
 	public String getMasterDecryptionKey() {
@@ -579,7 +579,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		if(this.proxyManager == null) {
 			return this.httpInterfaceManager.getInterface();
 		}
-		return this.proxyManager.getHttpInterfaceManager().getInterface();
+		return this.proxyManager.getInterface();
 	}
 
 	public static class Tokens {
