@@ -14,6 +14,8 @@ import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
 import com.github.topi314.lavasrc.jiosaavn.JioSaavnAudioSourceManager;
+import com.github.topi314.lavasrc.proxy.ProxyConfig;
+import com.github.topi314.lavasrc.proxy.ProxyManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
@@ -115,7 +117,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isDeezer()) {
-			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats(), deezerConfig.getProxies(), deezerConfig.isUseLocalNetwork());
+			ProxyConfig[] proxies = deezerConfig.getProxies();
+			ProxyManager proxyManager = (proxies != null && proxies.length > 0) ? new ProxyManager(proxies, deezerConfig.isUseLocalNetwork()) : null;
+			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats(), proxyManager);
 		}
 
 		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
@@ -167,7 +171,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isJiosaavn()) {
-			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getApiUrl(), jioSaavnConfig.getProxies(), jioSaavnConfig.isUseLocalNetwork());
+			ProxyConfig[] proxies = deezerConfig.getProxies();
+			ProxyManager proxyManager = (proxies != null && proxies.length > 0) ? new ProxyManager(proxies, deezerConfig.isUseLocalNetwork()) : null;
+			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getApiUrl(), proxyManager);
 		}
 
 		if (sourcesConfig.isTidal()) {

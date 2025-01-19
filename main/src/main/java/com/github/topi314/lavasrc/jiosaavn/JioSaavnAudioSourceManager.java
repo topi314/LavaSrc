@@ -62,20 +62,20 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 
 
 	public JioSaavnAudioSourceManager() {
-		this(null, null, false);
+		this(null, null);
 	}
 
 	public JioSaavnAudioSourceManager(ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
-		this(null, proxyConfigs, useLocalNetwork);
+		this(null, new ProxyManager(proxyConfigs, useLocalNetwork));
 	}
 
 	public JioSaavnAudioSourceManager(@Nullable String apiUrl) {
-		this(apiUrl, null, false);
+		this(apiUrl, null);
 	}
 
-	public JioSaavnAudioSourceManager(@Nullable String apiUrl, ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
+	public JioSaavnAudioSourceManager(@Nullable String apiUrl, ProxyManager proxyManager) {
 		this.apiUrl = apiUrl;
-		this.proxyManager = proxyConfigs != null ? new ProxyManager(proxyConfigs, useLocalNetwork) : null;
+		this.proxyManager = proxyManager;
 		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getNextHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
 	}
 
