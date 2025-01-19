@@ -821,7 +821,7 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 
 ### JioSaavn
 * `jssearch:animals architects`
-* `jsrec:identifier`
+* `jsrec:Oj0JdT5yZFo` (`jsrec:{TRACK_ID}`)
 * https://www.jiosaavn.com/song/hello/Oj0JdT5yZFo
 * https://www.jiosaavn.com/artist/adele-songs/yc6n84bIDm8
 * https://www.jiosaavn.com/album/25/NGUmkn-uYyY
