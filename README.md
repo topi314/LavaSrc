@@ -830,6 +830,6 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 ### Tidal 
 * `tdsearch:animals architects`
 * `tdrec:205573155` (`tdrec:{TRACK_ID}`)
-* http://www.tidal.com/track/205573155
+* https://www.tidal.com/track/205573155
 * https://tidal.com/browse/album/165814025
 * https://tidal.com/browse/mix/00527d2ae9ccc1721dc
