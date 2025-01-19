@@ -73,7 +73,7 @@ plugins:
       recommendationsLoadLimit: 10 # Number of tracks
     tidal:
       countryCode: "US"
-      searchLimit: 6
+      searchLimit: 6 # The total number of tracks in the search results.
 #     token: "your tidal token" # optional (in case you want to change the token & use your own)
     jiosaavn:
       useLocalNetwork: false # whether to use the local network for accessing the jiosaavn or just rely on the proxies (keep it false if your server is not in India)

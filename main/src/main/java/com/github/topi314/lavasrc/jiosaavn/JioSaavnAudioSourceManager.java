@@ -72,6 +72,9 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	public JioSaavnAudioSourceManager(@Nullable String apiUrl) {
 		this(apiUrl, null);
 	}
+	public JioSaavnAudioSourceManager(ProxyManager proxyManager) {
+		this(null, proxyManager);
+	}
 
 	public JioSaavnAudioSourceManager(@Nullable String apiUrl, ProxyManager proxyManager) {
 		this.apiUrl = apiUrl;
