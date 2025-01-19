@@ -38,7 +38,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 	private final SourcesConfig sourcesConfig;
 	private final LyricsSourcesConfig lyricsSourcesConfig;
-	private final AdvanceMirrorConfig advanceMirrorConfig;
+	private final AdvancedMirrorConfig advancedMirrorConfig;
 	private AudioPlayerManager manager;
 	private SpotifySourceManager spotify;
 	private AppleMusicSourceManager appleMusic;
@@ -54,7 +54,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		LavaSrcConfig pluginConfig,
 		SourcesConfig sourcesConfig,
 		LyricsSourcesConfig lyricsSourcesConfig,
-		AdvanceMirrorConfig advanceMirrorConfig,
+		AdvancedMirrorConfig advancedMirrorConfig,
 		SpotifyConfig spotifyConfig,
 		AppleMusicConfig appleMusicConfig,
 		DeezerConfig deezerConfig,
@@ -68,24 +68,23 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
-		this.advanceMirrorConfig = advanceMirrorConfig;
+		this.advancedMirrorConfig = advancedMirrorConfig;
 
 		MirroringAudioTrackResolver defaultresolver = new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders());
-		if (this.advanceMirrorConfig.isEnabled()) {
+		if (this.advancedMirrorConfig != null && this.advancedMirrorConfig.getSources() != null && this.advancedMirrorConfig.getSources().length > 0) {
 			defaultresolver = new StringCompareMirroringAudioTrackResolver(
-				this.advanceMirrorConfig.isEnabled(),
-				this.advanceMirrorConfig.getSources(),
+				this.advancedMirrorConfig.getSources(),
 				pluginConfig.getProviders(),
-				this.advanceMirrorConfig.getTitleThreshold(),
-				this.advanceMirrorConfig.getAuthorThreshold(),
-				this.advanceMirrorConfig.getTotalMatchThreshold(),
-				this.advanceMirrorConfig.isSkipSoundCloudGo(),
-				this.advanceMirrorConfig.getLevelOnePenalty(),
-				this.advanceMirrorConfig.getLevelTwoPenalty(),
-				this.advanceMirrorConfig.getLevelThreePenalty()
+				this.advancedMirrorConfig.getTitleThreshold(),
+				this.advancedMirrorConfig.getAuthorThreshold(),
+				this.advancedMirrorConfig.getTotalMatchThreshold(),
+				this.advancedMirrorConfig.isSkipSoundCloudGo(),
+				this.advancedMirrorConfig.getLevelOnePenalty(),
+				this.advancedMirrorConfig.getLevelTwoPenalty(),
+				this.advancedMirrorConfig.getLevelThreePenalty()
 			);
 
-			log.info("Advanced Mirroring enabled for sources: " + Arrays.toString(this.advanceMirrorConfig.getSources()));
+			log.info("Advanced Mirroring resolver enabled for sources: " + Arrays.toString(this.advancedMirrorConfig.getSources()));
 		}
 
 
@@ -172,7 +171,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isTidal()) {
-			this.tidal = new TidalSourceManager(tidalConfig.getCountryCode(), unused -> this.manager, defaultresolver, tidalConfig.getTidalToken());
+			this.tidal = new TidalSourceManager(tidalConfig.getCountryCode(), unused -> this.manager, defaultresolver, tidalConfig.getToken());
 			if (tidalConfig.getSearchLimit() > 0) {
 				this.tidal.setSearchLimit(tidalConfig.getSearchLimit());
 			}

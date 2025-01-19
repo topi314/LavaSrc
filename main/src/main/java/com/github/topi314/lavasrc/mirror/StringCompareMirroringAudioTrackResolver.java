@@ -19,7 +19,6 @@ public class StringCompareMirroringAudioTrackResolver implements MirroringAudioT
 	private static final Logger log = LoggerFactory.getLogger(StringCompareMirroringAudioTrackResolver.class);
 
 
-	private final boolean enabled;
 	private final String[] sources;
 	private String[] providers = {
 		"ytsearch:\"" + MirroringAudioSourceManager.ISRC_PATTERN + "\"",
@@ -35,7 +34,6 @@ public class StringCompareMirroringAudioTrackResolver implements MirroringAudioT
 	private final Float levelThreePenalty;
 
 	public StringCompareMirroringAudioTrackResolver(
-		boolean enabled,
 		String[] sources,
 		String[] providers,
 		Float titleThreshold,
@@ -46,7 +44,6 @@ public class StringCompareMirroringAudioTrackResolver implements MirroringAudioT
 		Float levelTwoPenalty,
 		Float levelThreePenalty
 	) {
-		this.enabled = enabled;
 		this.sources = sources;
 		this.titleThreshold = titleThreshold;
 		this.authorThreshold = authorThreshold;
@@ -174,10 +171,6 @@ public class StringCompareMirroringAudioTrackResolver implements MirroringAudioT
 	}
 
 	public AudioItem applyStringComparison(AudioItem item, MirroringAudioTrack track, String provider) {
-		if (!this.enabled) {
-			return item;
-		}
-
 		if (!(item instanceof AudioPlaylist)) {
 			log.warn("Item is not an AudioPlaylist but a single track. Skipping advanced mirroring logic.");
 			return item;
@@ -259,7 +252,7 @@ public class StringCompareMirroringAudioTrackResolver implements MirroringAudioT
 		return isPlaylistWithTracks || (item != AudioReference.NO_TRACK);
 	}
 
-	protected boolean isValidSearchProvider(String provider) {
+	private boolean isValidSearchProvider(String provider) {
 		if (provider.startsWith(SpotifySourceManager.SEARCH_PREFIX)) {
 			log.warn("Can not use spotify search as search provider!");
 			return false;

@@ -77,17 +77,12 @@ plugins:
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
       #  you can add multiple other fallback sources here
-    advancemirroring:
-      enabled: false # Whether to enable the advanced mirroring feature
-      titleThreshold: 50 # The threshold for the title match (50 is the most optimal)
-      authorThreshold: 70 # The threshold for the author match (70 is the most optimal)
-      totalMatchThreshold: 196 # The threshold for the total match (196 is the most optimal)
-      skipSoundCloudGo: true # Whether to skip the SoundCloud Go tracks (preview tracks)
-      levelOnePenalty: 1 # The penalty for the first level
-      levelTwoPenalty: 2 # The penalty for the second level
-      levelThreePenalty: 0.8 # The penalty for the third level
-      sources: # The sources to use for the advanced mirroring
-        - jssearch
+#    advancedmirroring: # A custom resolver that will be used for regular QUERY searches, and get you the best results from the sources you provide (Recommended for use with bad search platforms)
+#      sources: # The sources to use for the advanced mirroring
+#        - jssearch # JioSaavn search source
+#      skipSoundCloudGo: true # Whether to skip the SoundCloud Go tracks (preview tracks) (optional)
+#      You can also set the threshold for the title, author & total match (titleThreshold, authorThreshold (1 -> 100), totalMatchThreshold (1 -> 300)) (optional)
+#      levelOnePenalty: 1, levelTwoPenalty: 2, levelThreePenalty: 0.8 (0 -> 1) # Penalties for the first, second, and third levels (optional)
     sources:
       spotify: false # Enable Spotify source
       applemusic: false # Enable Apple Music source
@@ -131,11 +126,11 @@ plugins:
       formats: [ "FLAC", "MP3_320", "MP3_256", "MP3_128", "MP3_64", "AAC_64" ] # the formats you want to use for the deezer tracks. "FLAC", "MP3_320", "MP3_256" & "AAC_64" are only available for premium users and require a valid arl
 #      useLocalNetwork: true # whether to use the local network for accessing the deezer api or just rely on the proxies
 #      proxies:
-#        - proxyProtocol: "http" # the protocol of the proxy
-#          proxyHost: "192.0.2.146" # the host of the proxy (ip or domain)
-#          proxyPort: 8080 # the port of the proxy
-#          proxyUser: "user" # the user of the proxy (optional)
-#          proxyPassword: "youShallPass" # the password of the proxy (optional)
+#        - protocol: "http" # the protocol of the proxy
+#          host: "192.0.2.146" # the host of the proxy (ip or domain)
+#          port: 8080 # the port of the proxy
+#          user: "user" # the user of the proxy (optional)
+#          password: "youShallPass" # the password of the proxy (optional)
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
       playlistLoadLimit: 1 # The number of pages at 100 tracks each
@@ -157,16 +152,16 @@ plugins:
     tidal:
       countryCode: "US"
       searchLimit: 6
-      #tidalToken: "your tidal token" # optional (in case you want to change the token & use your own)
+      #token: "your tidal token" # optional (in case you want to change the token & use your own)
     saavn:
       #apiUrl: "https://apilink.lavalink/api" # the api link used for accessing the saavn api (not recommended to use, use proxies)
       useLocalNetwork: false # whether to use the local network for accessing the deezer api or just rely on the proxies (keep it false if your server is not in India)
       proxies:
-        - proxyProtocol: "http" # the protocol of the proxy (use http or https)
-          proxyHost: "192.0.2.146" # the host of the proxy (ip or domain)
-          proxyPort: 8080 # the port of the proxy
-          proxyUser: "user" # the user of the proxy (optional)
-          proxyPassword: "youShallPass" # the password of the proxy (optional)
+        - protocol: "http" # the protocol of the proxy (use http or https)
+          host: "192.0.2.146" # the host of the proxy (ip or domain)
+          port: 8080 # the port of the proxy
+          user: "user" # the user of the proxy (optional)
+          password: "youShallPass" # the password of the proxy (optional)
 ```
 
 ### Plugin Info
@@ -531,7 +526,7 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 var deezer = new DeezerSourceManager("the master decryption key", "your arl", formats);
 
 // To use Deezer with proxies
-// var proxyConfigs = List.of(new ProxyConfig(proxyProtocol, proxyHost, proxyPort, proxyUser, String proxyPassword))
+// var proxyConfigs = List.of(new ProxyConfig(protocol, host, port, user, String password))
 // var deezer = new DeezerAudioSourceManager("the master decryption key", "your arl", formats, proxiesList, useLocalNetwork);
 playerManager.registerSourceManager(deezer);
 ```
@@ -732,7 +727,7 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 var saavn = new SaavnAudioSourceManager();
 
 // to use Saavn with proxies (user & password are optional)
-// var proxyConfigs = List.of(new ProxyConfig(proxyProtocol, proxyHost, proxyPort, proxyUser, String proxyPassword))
+// var proxyConfigs = List.of(new ProxyConfig(protocol, host, port, user, String password))
 // var saavn = new SaavnAudioSourceManager(proxyConfigs, useLocalNetwork);
 
 playerManager.registerSourceManager(saavn);

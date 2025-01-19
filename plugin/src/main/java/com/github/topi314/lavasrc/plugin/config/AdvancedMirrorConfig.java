@@ -4,19 +4,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @ConfigurationProperties(
-	prefix = "plugins.lavasrc.advancemirroring"
+	prefix = "plugins.lavasrc.advancedmirroring"
 )
 @Component
-public class AdvanceMirrorConfig {
-	private boolean enabled = false;
+public class AdvancedMirrorConfig {
 	private String[] sources;
 	private Float titleThreshold = 50.0F;
 	private Float authorThreshold = 70.0F;
 	private Float totalMatchThreshold = 196.0F;
 	private boolean skipSoundCloudGo = false;
-	private Float levelOnePenalty;
-	private Float levelTwoPenalty;
-	private Float levelThreePenalty;
+	private Float levelOnePenalty = 1F;
+	private Float levelTwoPenalty = 2F;
+	private Float levelThreePenalty = 0.8F;
 
 	public Float getTitleThreshold() {
 		return this.titleThreshold;
@@ -80,13 +79,5 @@ public class AdvanceMirrorConfig {
 
 	public void setSources(String[] sources) {
 		this.sources = sources;
-	}
-
-	public boolean isEnabled() {
-		return this.enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
 	}
 }

@@ -8,54 +8,54 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 public class ProxyConfig {
-	private String proxyProtocol = "http";
-	private String proxyHost;
-	private int proxyPort;
-	private String proxyUser;
-	private String proxyPassword;
+	private String protocol = "http";
+	private String host;
+	private int port;
+	private String user;
+	private String password;
 
-	public String getProxyProtocol() {
-		return this.proxyProtocol;
+	public String getProtocol() {
+		return this.protocol;
 	}
 
-	public void setProxyProtocol(String proxyProtocol) {
-		this.proxyProtocol = proxyProtocol;
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
 	}
 
-	public String getProxyHost() {
-		return this.proxyHost;
+	public String getHost() {
+		return this.host;
 	}
 
-	public void setProxyHost(String proxyHost) {
-		this.proxyHost = proxyHost;
+	public void setHost(String host) {
+		this.host = host;
 	}
 
-	public int getProxyPort() {
-		return this.proxyPort;
+	public int getPort() {
+		return this.port;
 	}
 
-	public void setProxyPort(Integer proxyPort) {
-		this.proxyPort = proxyPort;
+	public void setPort(Integer port) {
+		this.port = port;
 	}
 
-	public String getProxyUser() {
-		return this.proxyUser;
+	public String getUser() {
+		return this.user;
 	}
 
-	public void setProxyUser(String proxyUser) {
-		this.proxyUser = proxyUser;
+	public void setUser(String user) {
+		this.user = user;
 	}
 
-	public String getProxyPassword() {
-		return this.proxyPassword;
+	public String getPassword() {
+		return this.password;
 	}
 
-	public void setProxyPassword(String proxyPassword) {
-		this.proxyPassword = proxyPassword;
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public RequestConfig configureRequest(RequestConfig requestConfig) {
-		var proxy = new HttpHost(this.getProxyHost(), this.getProxyPort(), this.getProxyProtocol());
+		var proxy = new HttpHost(this.getHost(), this.getPort(), this.getProtocol());
 
 		return RequestConfig.copy(requestConfig)
 			.setProxy(proxy)
@@ -63,16 +63,16 @@ public class ProxyConfig {
 	}
 
 	public void configureBuilder(HttpClientBuilder httpClientBuilder) {
-		if(this.proxyUser == null || this.proxyPassword == null) return;
+		if(this.user == null || this.password == null) return;
 		var credentialsProvider = new BasicCredentialsProvider();
 
 		credentialsProvider.setCredentials(
-			new AuthScope(this.getProxyHost(), this.getProxyPort()),
-			new UsernamePasswordCredentials(this.getProxyUser(), this.getProxyPassword())
+			new AuthScope(this.getHost(), this.getPort()),
+			new UsernamePasswordCredentials(this.getUser(), this.getPassword())
 		);
 
 
-		if (this.getProxyUser() != null && !this.getProxyUser().isBlank()) {
+		if (this.getUser() != null && !this.getUser().isBlank()) {
 			httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 		}
 	}
@@ -80,16 +80,16 @@ public class ProxyConfig {
 	public ProxyConfig() {
 	}
 
-	public ProxyConfig(String proxyProtocol, String proxyHost, int proxyPort, String proxyUser, String proxyPassword) {
-		this.proxyProtocol = proxyProtocol;
-		this.proxyHost = proxyHost;
-		this.proxyPort = proxyPort;
-		this.proxyUser = proxyUser;
-		this.proxyPassword = proxyPassword;
+	public ProxyConfig(String proxyProtocol, String host, int proxyPort, String proxyUser, String proxyPassword) {
+		this.protocol = proxyProtocol;
+		this.host = host;
+		this.port = proxyPort;
+		this.user = proxyUser;
+		this.password = proxyPassword;
 	}
 
-	public ProxyConfig(String proxyHost, int proxyPort) {
-		this.proxyHost = proxyHost;
-		this.proxyPort = proxyPort;
+	public ProxyConfig(String host, int proxyPort) {
+		this.host = host;
+		this.port = proxyPort;
 	}
 }
