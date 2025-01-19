@@ -525,7 +525,8 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 // create a new DeezerSourceManager with the master decryption key and register it
 var deezer = new DeezerSourceManager("the master decryption key", "your arl", formats);
 
-// To use Deezer with proxies
+// To use Deezer with proxies (user & password are optional)
+// proxies = new ProxyConfig[]{new ProxyConfig(proxyProtocol, host, proxyPort, proxyUser, proxyPassword)};
 // ProxyManager proxyManager = new ProxyManager(proxies, isUseLocalNetwork);
 // deezer = new DeezerAudioSourceManager("the master decryption key", "your arl", formats, proxyManager);
 
@@ -728,6 +729,7 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 var jioSaavn = new JioSaavnAudioSourceManager();
 
 // to use JioSaavn with proxies (user & password are optional)
+// proxies = new ProxyConfig[]{new ProxyConfig(proxyProtocol, host, proxyPort, proxyUser, proxyPassword)};
 // ProxyManager proxyManager = new ProxyManager(proxies, isUseLocalNetwork);
 // var jioSaavn = new JioSaavnAudioSourceManager(proxyManager);
 
