@@ -1,5 +1,6 @@
 package com.github.topi314.lavasrc.plugin.config;
 
+import com.github.topi314.lavasrc.jiosaavn.JioSaavnDecryptionConfig;
 import com.github.topi314.lavasrc.proxy.ProxyConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ public class JioSaavnConfig {
 	private ProxyConfig[] proxies;
 	private String apiUrl;
 	private boolean useLocalNetwork;
+	private JioSaavnDecryptionConfig decryption;
 
 	public ProxyConfig[] getProxies() {
 		return this.proxies;
@@ -33,5 +35,13 @@ public class JioSaavnConfig {
 
 	public void setUseLocalNetwork(boolean useLocalNetwork) {
 		this.useLocalNetwork = useLocalNetwork;
+	}
+
+	public JioSaavnDecryptionConfig getDecryption() {
+		return decryption;
+	}
+
+	public void setDecryption(JioSaavnDecryptionConfig decryption) {
+		this.decryption = decryption;
 	}
 }

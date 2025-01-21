@@ -59,27 +59,29 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	private static final Logger log = LoggerFactory.getLogger(JioSaavnAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager;
 	private final ProxyManager proxyManager;
+	private final JioSaavnDecryptionConfig decryptionConfig;
 
 
-	public JioSaavnAudioSourceManager() {
-		this(null, null);
+	public JioSaavnAudioSourceManager(ProxyConfig[] proxyConfigs, boolean useLocalNetwork, JioSaavnDecryptionConfig decryptionConfig) {
+		this(null, new ProxyManager(proxyConfigs, useLocalNetwork), decryptionConfig);
 	}
 
-	public JioSaavnAudioSourceManager(ProxyConfig[] proxyConfigs, boolean useLocalNetwork) {
-		this(null, new ProxyManager(proxyConfigs, useLocalNetwork));
+	public JioSaavnAudioSourceManager(JioSaavnDecryptionConfig decryptionConfig) {
+		this(null, null, decryptionConfig);
 	}
 
-	public JioSaavnAudioSourceManager(@Nullable String apiUrl) {
-		this(apiUrl, null);
+	public JioSaavnAudioSourceManager(@Nullable String apiUrl, JioSaavnDecryptionConfig decryptionConfig) {
+		this(apiUrl, null, decryptionConfig);
 	}
-	public JioSaavnAudioSourceManager(ProxyManager proxyManager) {
-		this(null, proxyManager);
+	public JioSaavnAudioSourceManager(ProxyManager proxyManager, JioSaavnDecryptionConfig decryptionConfig) {
+		this(null, proxyManager, decryptionConfig);
 	}
 
-	public JioSaavnAudioSourceManager(@Nullable String apiUrl, ProxyManager proxyManager) {
+	public JioSaavnAudioSourceManager(@Nullable String apiUrl, ProxyManager proxyManager, JioSaavnDecryptionConfig decryptionConfig) {
 		this.apiUrl = apiUrl;
 		this.proxyManager = proxyManager;
 		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getNextHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
+		this.decryptionConfig = decryptionConfig;
 	}
 
 	@NotNull
@@ -435,5 +437,9 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 			return this.httpInterfaceManager.getInterface();
 		}
 		return useLocalNetwork ? this.proxyManager.getLocalManager().getInterface() : this.proxyManager.getInterface();
+	}
+
+	public JioSaavnDecryptionConfig getDecryptionConfig() {
+		return this.decryptionConfig;
 	}
 }

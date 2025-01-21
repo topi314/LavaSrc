@@ -154,6 +154,10 @@ plugins:
       searchLimit: 6
       #token: "your tidal token" # optional (in case you want to change the token & use your own)
     jiosaavn:
+      decryption: # The decryption configuration for the jiosaavn tracks
+        algorithm: "??" # The algorithm used for decryption (Default "DES")
+        transformation: "??/??/??" # The transformation used for decryption (Default "DES/ECB/PKCS5Padding")
+        secretKey: "??" # The secret key used for decryption (Find your own secret key)
       #apiUrl: "https://apilink.lavalink/api" # the api link used for accessing the jiosaavn api (not recommended to use, use proxies)
       useLocalNetwork: false # whether to use the local network for accessing the deezer api or just rely on the proxies (keep it false if your server is not in India)
       proxies:
@@ -726,12 +730,12 @@ India, Pakistan, Afghanistan, Bahrain, Bangladesh, Bhutan, Egypt, Iraq, Jordan, 
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new JioSaavnAudioSourceManager and register it (ONLY IF YOUR SERVER IS IN A SUPPORTED REGION)
-var jioSaavn = new JioSaavnAudioSourceManager();
+var jioSaavn = new JioSaavnAudioSourceManager(new JioSaavnDecryptionConfig(secretKey));
 
 // to use JioSaavn with proxies (user & password are optional)
 // proxies = new ProxyConfig[]{new ProxyConfig(proxyProtocol, host, proxyPort, proxyUser, proxyPassword)};
 // ProxyManager proxyManager = new ProxyManager(proxies, isUseLocalNetwork);
-// var jioSaavn = new JioSaavnAudioSourceManager(proxyManager);
+// var jioSaavn = new JioSaavnAudioSourceManager(proxyManager, new JioSaavnDecryptionConfig(secretKey));
 
 playerManager.registerSourceManager(jioSaavn);
 ```

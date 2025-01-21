@@ -76,6 +76,10 @@ plugins:
       searchLimit: 6 # The total number of tracks in the search results.
 #     token: "your tidal token" # optional (in case you want to change the token & use your own)
     jiosaavn:
+      decryption: # The decryption configuration for the jiosaavn tracks
+        algorithm: "??" # The algorithm used for decryption (Default "DES")
+        transformation: "??/??/??" # The transformation used for decryption (Default "DES/ECB/PKCS5Padding")
+        secretKey: "??" # The secret key used for decryption (Find your own secret key)
       useLocalNetwork: false # whether to use the local network for accessing the jiosaavn or just rely on the proxies (keep it false if your server is not in India)
       proxies:
         - protocol: "http" # the protocol of the proxy (use http or https)

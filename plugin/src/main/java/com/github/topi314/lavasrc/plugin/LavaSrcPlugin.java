@@ -171,9 +171,12 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isJiosaavn()) {
-			ProxyConfig[] proxies = deezerConfig.getProxies();
-			ProxyManager proxyManager = (proxies != null && proxies.length > 0) ? new ProxyManager(proxies, deezerConfig.isUseLocalNetwork()) : null;
-			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getApiUrl(), proxyManager);
+			if(jioSaavnConfig.getDecryption() == null || jioSaavnConfig.getDecryption().getSecretKey() == null) {
+				log.warn("JioSaavn decryption config is missing, JioSaavn will not work properly");
+			}
+			ProxyConfig[] proxies = jioSaavnConfig.getProxies();
+			ProxyManager proxyManager = (proxies != null && proxies.length > 0) ? new ProxyManager(proxies, jioSaavnConfig.isUseLocalNetwork()) : null;
+			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getApiUrl(), proxyManager, jioSaavnConfig.getDecryption());
 		}
 
 		if (sourcesConfig.isTidal()) {

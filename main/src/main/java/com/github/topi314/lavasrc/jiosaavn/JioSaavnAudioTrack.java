@@ -24,9 +24,6 @@ import org.apache.http.client.methods.HttpGet;
 
 public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 	private final JioSaavnAudioSourceManager sourceManager;
-	private static final String ALGORITHM = "DES";
-	private static final String TRANSFORMATION = "DES/ECB/PKCS5Padding";
-	private static final String SECRET_KEY = "38346591";
 
 	public JioSaavnAudioTrack(AudioTrackInfo trackInfo, JioSaavnAudioSourceManager sourceManager) {
 		this(trackInfo, null, null, null, null, null, false, sourceManager);
@@ -37,11 +34,11 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 		this.sourceManager = sourceManager;
 	}
 
-	public static String decryptUrl(String url) {
+	public static String decryptUrl(String url, JioSaavnDecryptionConfig decryptionConfig) {
 		try {
 			byte[] encryptedBytes = Base64.getDecoder().decode(url);
-			SecretKeySpec keySpec = new SecretKeySpec(SECRET_KEY.getBytes(), ALGORITHM);
-			Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+			SecretKeySpec keySpec = new SecretKeySpec(decryptionConfig.getSecretKey().getBytes(), decryptionConfig.getAlgorithm());
+			Cipher cipher = Cipher.getInstance(decryptionConfig.getTransformation());
 			cipher.init(Cipher.DECRYPT_MODE, keySpec);
 			byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
 			return new String(decryptedBytes);
@@ -60,7 +57,7 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 
 		JsonBrowser trackData = jsonResponse.get(identifier);
 		String encryptedMediaUrl = trackData.get("encrypted_media_url").text();
-		String playbackUrl = decryptUrl(encryptedMediaUrl);
+		String playbackUrl = decryptUrl(encryptedMediaUrl, sourceManager.getDecryptionConfig());
 
 		if (trackData.get("320kbps").asBoolean(false)) {
 			playbackUrl = playbackUrl.replace("_96.mp4", "_320.mp4");
