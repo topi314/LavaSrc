@@ -176,7 +176,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 			ProxyConfig[] proxies = jioSaavnConfig.getProxies();
 			ProxyManager proxyManager = (proxies != null && proxies.length > 0) ? new ProxyManager(proxies, jioSaavnConfig.isUseLocalNetwork()) : null;
-			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getApiUrl(), proxyManager, jioSaavnConfig.getDecryption());
+			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getGenericProxy(), proxyManager, jioSaavnConfig.getDecryption());
 		}
 
 		if (sourcesConfig.isTidal()) {

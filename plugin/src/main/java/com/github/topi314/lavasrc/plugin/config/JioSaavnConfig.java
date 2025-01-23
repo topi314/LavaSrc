@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class JioSaavnConfig {
 	private ProxyConfig[] proxies;
-	private String apiUrl;
+	private String genericProxy;
 	private boolean useLocalNetwork;
 	private JioSaavnDecryptionConfig decryption;
 
@@ -21,12 +21,12 @@ public class JioSaavnConfig {
 		this.proxies = proxies;
 	}
 
-	public String getApiUrl() {
-		return this.apiUrl;
+	public String getGenericProxy() {
+		return this.genericProxy;
 	}
 
-	public void setApiUrl(String apiUrl) {
-		this.apiUrl = apiUrl;
+	public void setGenericProxy(String genericProxy) {
+		this.genericProxy = genericProxy;
 	}
 
 	public boolean isUseLocalNetwork() {

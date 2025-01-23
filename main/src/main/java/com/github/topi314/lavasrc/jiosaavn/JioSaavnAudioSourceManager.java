@@ -44,7 +44,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	public static final Pattern URL_PATTERN = Pattern.compile(
 		"https://www\\.jiosaavn\\.com/(?<type>album|featured|song|s/playlist|artist)/[^/]+/(?<id>[A-Za-z0-9_,\\-]+)"
 	);
-	private final String apiUrl;
+	private final String httpProxy;
 	public static final String SEARCH_PREFIX = "jssearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "jsrec:";
 	public static final String PREVIEW_PREFIX = "jsprev:";
@@ -70,15 +70,16 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		this(null, null, decryptionConfig);
 	}
 
-	public JioSaavnAudioSourceManager(@Nullable String apiUrl, JioSaavnDecryptionConfig decryptionConfig) {
-		this(apiUrl, null, decryptionConfig);
+	public JioSaavnAudioSourceManager(@Nullable String httpProxy, JioSaavnDecryptionConfig decryptionConfig) {
+		this(httpProxy, null, decryptionConfig);
 	}
+
 	public JioSaavnAudioSourceManager(ProxyManager proxyManager, JioSaavnDecryptionConfig decryptionConfig) {
 		this(null, proxyManager, decryptionConfig);
 	}
 
-	public JioSaavnAudioSourceManager(@Nullable String apiUrl, ProxyManager proxyManager, JioSaavnDecryptionConfig decryptionConfig) {
-		this.apiUrl = apiUrl;
+	public JioSaavnAudioSourceManager(@Nullable String httpProxy, ProxyManager proxyManager, JioSaavnDecryptionConfig decryptionConfig) {
+		this.httpProxy = httpProxy;
 		this.proxyManager = proxyManager;
 		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getNextHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
 		this.decryptionConfig = decryptionConfig;
@@ -91,11 +92,11 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	}
 
 	private String buildSearchUrl(String query) {
-		String searchQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-		if(apiUrl != null) {
-			return apiUrl + "/search?q=" + searchQuery;
+		String searchQuery = SEARCH_API_BASE + URLEncoder.encode(query, StandardCharsets.UTF_8);
+		if (httpProxy != null) {
+			return httpProxy.replace("%LINK%", searchQuery);
 		}
-		return SEARCH_API_BASE + searchQuery;
+		return searchQuery;
 	}
 
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
@@ -165,7 +166,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	public JsonBrowser getJson(String uri) throws IOException {
 		HttpGet request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
-		return LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(false), request);
+		return LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(this.httpProxy != null), request);
 	}
 
 	private List<AudioTrack> localParseTracks(JsonBrowser json, boolean preview, boolean metadataType) {
@@ -173,28 +174,6 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 
 		for (JsonBrowser track : json.values()) {
 			tracks.add(this.parseTrack(track, preview, metadataType));
-		}
-
-		return tracks;
-	}
-	private List<AudioTrack> apiParseTracks(JsonBrowser results, boolean preview) {
-		ArrayList<AudioTrack> tracks = new ArrayList<>();
-
-		for(JsonBrowser track : results.values()){
-			String identifier = track.get("identifier").text();
-			String title = this.cleanString(track.get("title").text());
-			String author = this.cleanString(track.get("author").text());
-			String artworkUrl = track.get("artworkUrl").text();
-			long length = track.get("length").asLong(PREVIEW_LENGTH);
-			String uri = track.get("uri").text();
-			String albumName = this.cleanString(track.get("albumName").text());
-			String albumUrl = track.get("albumUrl").text();
-			String artistUrl = track.get("artistUrl").text();
-			String artistArtworkUrl = track.get("artistArtworkUrl").text();
-			String previewUrl = track.get("encryptedMediaUrl").text();
-
-			AudioTrackInfo info = new AudioTrackInfo(title, author, length, identifier, false, uri, artworkUrl, null);
-			tracks.add(new JioSaavnAudioTrack(info, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, preview, this));
 		}
 
 		return tracks;
@@ -324,13 +303,10 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 			log.debug("Failed to get search results for query: " + query);
 			return AudioReference.NO_TRACK;
 		}
-		if(apiUrl == null) return new BasicAudioPlaylist("JioSaavn Search: " + query,
-			this.localParseTracks(json.get("results"), preview, false), null, true);
 
 		return new BasicAudioPlaylist("JioSaavn Search: " + query,
-			this.apiParseTracks(json.get("results"), preview), null, true);
+			this.localParseTracks(json.get("results"), preview, false), null, true);
 	}
-
 
 
 	private AudioItem getAlbum(String id, boolean preview) throws IOException {

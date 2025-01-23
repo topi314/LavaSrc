@@ -151,15 +151,15 @@ plugins:
       recommendationsLoadLimit: 10 # Number of tracks
     tidal:
       countryCode: "US"
-      searchLimit: 6
+      searchLimit: 6 # How many search results should be returned
       #token: "your tidal token" # optional (in case you want to change the token & use your own)
     jiosaavn:
       decryption: # The decryption configuration for the jiosaavn tracks
         algorithm: "??" # The algorithm used for decryption (Default "DES")
         transformation: "??/??/??" # The transformation used for decryption (Default "DES/ECB/PKCS5Padding")
         secretKey: "??" # The secret key used for decryption (Find your own secret key)
-      #apiUrl: "https://apilink.lavalink/api" # the api link used for accessing the jiosaavn api (not recommended to use, use proxies)
-      useLocalNetwork: false # whether to use the local network for accessing the deezer api or just rely on the proxies (keep it false if your server is not in India)
+      useLocalNetwork: false # whether to use the local network for accessing the jiosaavn api or just rely on the proxies (keep it false if your server is not in India)
+      genericProxy: "https://domain.dev/url?url=%LINK%" # A generic HTTP proxy used for search ONLY. The %LINK% will be replaced with the search URL and its parameters.
       proxies:
         - protocol: "http" # the protocol of the proxy (use http or https)
           host: "192.0.2.146" # the host of the proxy (ip or domain)
