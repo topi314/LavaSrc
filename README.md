@@ -715,15 +715,8 @@ playerManager.registerSourceManager(new VkMusicSourceManager("...");
 ### JioSaavn
 
 <details>
-<summary>How to get api url</summary>
-Follow this guide https://github.com/appujet/jiosaavn-plugin-api)
-### Note: Using proxies is recommended instead of relying on an external API.
-
-</details>
-<details>
 <summary>Supported proxy regions</summary>
 India, Pakistan, Afghanistan, Bahrain, Bangladesh, Bhutan, Egypt, Iraq, Jordan, Kuwait, Lebanon, Maldives, Nepal, Oman, Qatar, Saudi Arabia, Sri Lanka, UAE, and Yemen.
-
 </details>
 
 ```java
