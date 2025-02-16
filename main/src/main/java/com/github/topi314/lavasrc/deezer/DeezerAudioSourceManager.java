@@ -49,6 +49,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String ISRC_PREFIX = "dzisrc:";
 	public static final String PREVIEW_PREFIX = "dzprev:";
 	public static final String RECOMMENDATIONS_PREFIX = "dzrec:";
+	public static final String ARTIST_RECOMMENDATIONS_PREFIX = "dzarec:";
 	public static final long PREVIEW_LENGTH = 30000;
 	public static final String SHARE_URL = "https://deezer.page.link/";
 	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
@@ -243,7 +244,11 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			}
 
 			if (identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
-				return this.getRecommendations(identifier.substring(RECOMMENDATIONS_PREFIX.length()), preview);
+				return this.getRecommendations(RecommendationsType.BY_TRACK_ID, identifier.substring(RECOMMENDATIONS_PREFIX.length()), preview);
+			}
+
+			if (identifier.startsWith(ARTIST_RECOMMENDATIONS_PREFIX)) {
+				return this.getRecommendations(RecommendationsType.BY_ARTIST_ID, identifier.substring(ARTIST_RECOMMENDATIONS_PREFIX.length()), preview);
 			}
 
 			// If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
@@ -428,13 +433,28 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			this);
 	}
 
-	private AudioItem getRecommendations(String query, boolean preview) throws IOException {
+	private AudioItem getRecommendations(RecommendationsType recommendationsType, String id, boolean preview) throws IOException {
 		var tokens = this.getTokens();
 
-		var request = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + String.format("?method=song.getSearchTrackMix&input=3&api_version=1.0&api_token=%s", tokens.api));
+		String apiMethod;
+		String jsonPayload;
+
+		switch (recommendationsType) {
+			case BY_TRACK_ID:
+				apiMethod = "song.getSearchTrackMix";
+				jsonPayload = String.format("{\"sng_id\": %s, \"start_with_input_track\": \"true\"}", id);
+				break;
+			case BY_ARTIST_ID:
+				apiMethod = "smart.getSmartRadio";
+				jsonPayload = String.format("{\"art_id\": %s}", id);
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid recommendationsType");
+		}
+
+		var request = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + String.format("?method=%s&input=3&api_version=1.0&api_token=%s", apiMethod, tokens.api));
 		request.setHeader("Cookie", "sid=" + tokens.sessionId);
 		request.setHeader("Content-Type", "application/json");
-		var jsonPayload = String.format("{\"sng_id\": %s, \"start_with_input_track\": \"true\"}", query);
 		request.setEntity(new StringEntity(jsonPayload, StandardCharsets.UTF_8));
 
 		var result = LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(), request);
@@ -583,6 +603,11 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			this.license = license;
 			this.expireAt = expireAt;
 		}
+	}
+
+	public enum RecommendationsType {
+		BY_TRACK_ID,
+		BY_ARTIST_ID
 	}
 
 }
