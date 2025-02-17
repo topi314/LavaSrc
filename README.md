@@ -699,8 +699,7 @@ searchManager.registerSearchManager(vkmusic);
 
 * `dzsearch:animals architects`
 * `dzisrc:USEP42058010`
-* `dzrec:1090538082` (`dzrec:{TRACK_ID}` or `dzrec:track={TRACK_ID}`)
-* `dzrec:artist=5845141` (`dzrec:artist={ARTIST_ID}`)
+* `dzrec:1090538082` (`dzrec:{TRACK_ID}`, `dzrec:track={TRACK_ID}` or `dzrec:artist={ARTIST_ID}`)
 * https://deezer.page.link/U6BTQ2Q1KpmNt2yh8
 * https://www.deezer.com/track/1090538082
 * https://www.deezer.com/album/175537082

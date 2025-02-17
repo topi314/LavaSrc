@@ -431,32 +431,18 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	private AudioItem getRecommendations(String query, boolean preview) throws IOException {
 		var tokens = this.getTokens();
 
-		RecommendationsType recommendationsType;
-		String id;
-
-		var splitQuery = query.split("=", 2);
-		if (splitQuery.length >= 2) {
-			recommendationsType = RecommendationsType.fromString(splitQuery[0]);
-			id = splitQuery[1];
-		} else {
-			recommendationsType = RecommendationsType.BY_TRACK_ID;
-			id = query;
-		}
-
 		String apiMethod;
 		String jsonPayload;
 
-		switch (recommendationsType) {
-			case BY_TRACK_ID:
-				apiMethod = "song.getSearchTrackMix";
-				jsonPayload = String.format("{\"sng_id\": %s, \"start_with_input_track\": \"true\"}", id);
-				break;
-			case BY_ARTIST_ID:
-				apiMethod = "smart.getSmartRadio";
-				jsonPayload = String.format("{\"art_id\": %s}", id);
-				break;
-			default:
-				throw new IllegalArgumentException("Invalid recommendationsType");
+		var id = query.substring(query.indexOf("=") + 1);
+		if (!query.contains("=") || query.startsWith("track=")) {
+			apiMethod = "song.getSearchTrackMix";
+			jsonPayload = String.format("{\"sng_id\": %s, \"start_with_input_track\": \"true\"}", id);
+		} else if (query.startsWith("artist=")) {
+			apiMethod = "smart.getSmartRadio";
+			jsonPayload = String.format("{\"art_id\": %s}", id);
+		} else {
+			throw new IllegalArgumentException("Invalid recommendations type");
 		}
 
 		var request = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + String.format("?method=%s&input=3&api_version=1.0&api_token=%s", apiMethod, tokens.api));
@@ -609,26 +595,6 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			this.api = api;
 			this.license = license;
 			this.expireAt = expireAt;
-		}
-	}
-
-	public enum RecommendationsType {
-		BY_TRACK_ID("track"),
-		BY_ARTIST_ID("artist");
-
-		public final String key;
-
-		RecommendationsType(String key) {
-			this.key = key;
-		}
-
-		public static RecommendationsType fromString(String key) {
-			for (RecommendationsType value : RecommendationsType.values()) {
-				if (value.key.equalsIgnoreCase(key)) {
-					return value;
-				}
-			}
-			throw new IllegalArgumentException("Invalid recommendations type key: " + key);
 		}
 	}
 
