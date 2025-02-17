@@ -49,7 +49,6 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String ISRC_PREFIX = "dzisrc:";
 	public static final String PREVIEW_PREFIX = "dzprev:";
 	public static final String RECOMMENDATIONS_PREFIX = "dzrec:";
-	public static final String ARTIST_RECOMMENDATIONS_PREFIX = "dzarec:";
 	public static final long PREVIEW_LENGTH = 30000;
 	public static final String SHARE_URL = "https://deezer.page.link/";
 	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
@@ -244,11 +243,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			}
 
 			if (identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
-				return this.getRecommendations(RecommendationsType.BY_TRACK_ID, identifier.substring(RECOMMENDATIONS_PREFIX.length()), preview);
-			}
-
-			if (identifier.startsWith(ARTIST_RECOMMENDATIONS_PREFIX)) {
-				return this.getRecommendations(RecommendationsType.BY_ARTIST_ID, identifier.substring(ARTIST_RECOMMENDATIONS_PREFIX.length()), preview);
+				return this.getRecommendations(identifier.substring(RECOMMENDATIONS_PREFIX.length()), preview);
 			}
 
 			// If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
@@ -433,8 +428,20 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			this);
 	}
 
-	private AudioItem getRecommendations(RecommendationsType recommendationsType, String id, boolean preview) throws IOException {
+	private AudioItem getRecommendations(String query, boolean preview) throws IOException {
 		var tokens = this.getTokens();
+
+		RecommendationsType recommendationsType;
+		String id;
+
+		var splitQuery = query.split("=", 2);
+		if (splitQuery.length >= 2) {
+			recommendationsType = RecommendationsType.fromString(splitQuery[0]);
+			id = splitQuery[1];
+		} else {
+			recommendationsType = RecommendationsType.BY_TRACK_ID;
+			id = query;
+		}
 
 		String apiMethod;
 		String jsonPayload;
@@ -606,8 +613,23 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	public enum RecommendationsType {
-		BY_TRACK_ID,
-		BY_ARTIST_ID
+		BY_TRACK_ID("track"),
+		BY_ARTIST_ID("artist");
+
+		public final String key;
+
+		RecommendationsType(String key) {
+			this.key = key;
+		}
+
+		public static RecommendationsType fromString(String key) {
+			for (RecommendationsType value : RecommendationsType.values()) {
+				if (value.key.equalsIgnoreCase(key)) {
+					return value;
+				}
+			}
+			throw new IllegalArgumentException("Invalid recommendations type key: " + key);
+		}
 	}
 
 }
