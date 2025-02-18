@@ -49,6 +49,8 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String ISRC_PREFIX = "dzisrc:";
 	public static final String PREVIEW_PREFIX = "dzprev:";
 	public static final String RECOMMENDATIONS_PREFIX = "dzrec:";
+	public static final String RECOMMENDATIONS_ARTIST_PREFIX = "artist=";
+	public static final String RECOMMENDATIONS_TRACK_PREFIX = "track=";
 	public static final long PREVIEW_LENGTH = 30000;
 	public static final String SHARE_URL = "https://deezer.page.link/";
 	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
@@ -431,11 +433,20 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	private AudioItem getRecommendations(String query, boolean preview) throws IOException {
 		var tokens = this.getTokens();
 
-		var request = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + String.format("?method=song.getSearchTrackMix&input=3&api_version=1.0&api_token=%s", tokens.api));
+		String method;
+		String payload;
+		if (query.startsWith(RECOMMENDATIONS_ARTIST_PREFIX)) {
+			method = "song.getSmartRadio";
+			payload = String.format("{\"art_id\": %s}", query.substring(RECOMMENDATIONS_ARTIST_PREFIX.length()));
+		} else {
+			method = "song.getSearchTrackMix";
+			payload = String.format("{\"sng_id\": %s, \"start_with_input_track\": \"true\"}", query.startsWith(RECOMMENDATIONS_TRACK_PREFIX) ? query.substring(RECOMMENDATIONS_TRACK_PREFIX.length()) : query);
+		}
+
+		var request = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + String.format("?method=%s&input=3&api_version=1.0&api_token=%s", method, tokens.api));
 		request.setHeader("Cookie", "sid=" + tokens.sessionId);
 		request.setHeader("Content-Type", "application/json");
-		var jsonPayload = String.format("{\"sng_id\": %s, \"start_with_input_track\": \"true\"}", query);
-		request.setEntity(new StringEntity(jsonPayload, StandardCharsets.UTF_8));
+		request.setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
 
 		var result = LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(), request);
 		checkResponse(result, "Failed to get recommendations: ");
