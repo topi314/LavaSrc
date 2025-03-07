@@ -62,6 +62,8 @@ To get your Yandex Music access token go [here](#yandex-music)
 
 To get your Vk Music user token go [here](#vk-music)
 
+To get your Qobuz userOauthToken go [here](#qobuz)
+
 > [!WARNING]
 > YES `plugins` IS AT ROOT IN THE YAML
 
@@ -672,6 +674,47 @@ searchManager.registerSearchManager(vkmusic);
 </details>
 
 ---
+
+### Qobuz
+
+<details>
+<summary>How to get the userOauthToken</summary>
+
+### WARNING!
+
+#### If you are using an older userOauthToken, you must specify the `x-app-id` in the config. Each userOauthToken is associated with a specific app ID. If you don't specify the `x-app-id` in the config, the latest fetched one will be used, or it may not work.
+
+To retrieve the token:
+1. Open Qobuz in any web browser and log in with your Qobuz account.
+2. Press **F12** to open the developer tools and navigate to the **Network** tab.
+3. Select any request and check the request headers.
+4. Copy the value of the `x-user-auth-token` and paste it into the config.
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new QobuzAudioSourceManager with the userOauthToken and register it
+playerManager.registerSourceManager(new QobuzAudioSourceManager("...");
+```
+#### LavaSearch
+
+<details>
+<summary>Click to expand</summary>
+
+```java
+// create new search manager
+var searchManager = new SearchManager();
+
+// register source
+searchManager.registerSearchManager(qobuz);
+```
+
+</details>
+
+---
+
 
 ## Supported URLs and Queries
 
