@@ -62,9 +62,10 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	private final String masterDecryptionKey;
 	private String arl;
 	private DeezerAudioTrack.TrackFormat[] formats;
-	private final HttpInterfaceManager httpInterfaceManager;
+	private HttpInterfaceManager httpInterfaceManager;
 	private Tokens tokens;
 
+	@Deprecated()
 	public DeezerAudioSourceManager(String masterDecryptionKey) {
 		this(masterDecryptionKey, null);
 	}
@@ -78,10 +79,14 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			throw new IllegalArgumentException("Deezer master key must be set");
 		}
 
+		if (arl == null || arl.isEmpty()) {
+			log.warn("Deezer ARL is not set. It seems like deezer requires it for playback now.");
+		}
+
 		this.masterDecryptionKey = masterDecryptionKey;
-		this.arl = arl != null && arl.isEmpty() ? null : arl;
+		this.arl = arl;
 		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
-		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	}
 
 	public void setFormats(DeezerAudioTrack.TrackFormat[] formats) {
@@ -93,6 +98,12 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	public void setArl(String arl) {
 		this.arl = arl;
+		try {
+			this.httpInterfaceManager.close();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		this.httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	}
 
 	static void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
