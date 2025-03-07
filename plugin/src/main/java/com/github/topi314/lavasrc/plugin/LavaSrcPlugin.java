@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @Service
@@ -219,7 +220,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	}
 
 	@PatchMapping("/v4/lavasrc/config")
-	public void updateConfig(Config config) {
+	public void updateConfig(@RequestBody Config config) {
 		var spotifyConfig = config.getSpotify();
 		if (spotifyConfig != null && this.spotify != null) {
 			if (spotifyConfig.getSpDc() != null) {
