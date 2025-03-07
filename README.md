@@ -73,6 +73,9 @@ plugins:
     providers: # Custom providers for track loading. This is the default
       # - "dzisrc:%ISRC%" # Deezer ISRC provider
       # - "dzsearch:%QUERY%" # Deezer search provider
+      # - "qbsearch:%QUERY%" # Qobuz search provider
+      # - "qbsearch:%ISRC%" # Qobuz ISRC provider
+      
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
       #  you can add multiple other fallback sources here
@@ -84,6 +87,7 @@ plugins:
       flowerytts: false # Enable Flowery TTS source
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
+      qobuz : false # Enabled qobuz Music source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -133,6 +137,10 @@ plugins:
       playlistLoadLimit: 1 # The number of pages at 50 tracks each
       artistLoadLimit: 1 # The number of pages at 10 tracks each
       recommendationsLoadLimit: 10 # Number of tracks
+    qobuz:
+      userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/munishkhatri720/LavaSrc/tree/qobuz-rewrite#qobuz
+      #appId : optional (Only pass it when you are using an old userOauthToken)
+      #appSecret : optional (Only pass it when you are using an old userOauthToken)
 ```
 
 ### Plugin Info
@@ -240,6 +248,7 @@ PATCH /v4/lavasrc/config
 | ?deezer      | [Deezer Config](#deezer-config-object)             | The Deezer settings       |
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
+| ?qobuz       | [Qobuz Music Config](#qobuz-music-config-object)   | THe Qobuz Music settings  |
 
 ##### Spotify Config Object
 
@@ -285,6 +294,15 @@ PATCH /v4/lavasrc/config
 |------------|--------|-------------------------|
 | ?userToken | string | The Vk Music user token |
 
+
+#### Qobuz Music Config Object
+
+| Field           | Type   | Description                |
+|-----------------|--------|----------------------------|
+| ?userOauthToken | string | The Qobuz Music user token |
+| ?appId          | String | The Qobuz Music App ID     |
+| ?appSecret      | string | The Qobuz Music App Secret |
+
 <details>
 <summary>Example Payload</summary>
 
@@ -314,6 +332,11 @@ PATCH /v4/lavasrc/config
     },
     "vkMusic": {
         "userToken": "your user token"
+    },
+    "qobuz": {
+      "userOauthToken" : "your user token",
+      "appId" : "your app ID",
+      "appSecret" : "your app Secret"
     }
 }
 ```
@@ -783,4 +806,14 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://vk.com/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493%2Fbe3494d46d310b0d0d
 * https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
 
+
+### Qobuz 
+
+* `qbsearch:animals architects`
+* `qbsearch:USEP42058010` (`qbsearch:ISRC`)
+* https://open.qobuz.com/track/52151405
+* https://play.qobuz.com/album/c9wsrrjh49ftb
+* https://play.qobuz.com/playlist/24893079
+* https://play.qobuz.com/artist/2070395
+* https://www.qobuz.com/us-en/album/kesariya-pritam-arijit-singh-amitabh-bhattacharya/cxtiqss1up8ub
 ---
