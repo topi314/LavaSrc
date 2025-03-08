@@ -15,11 +15,9 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
-
 import kotlinx.serialization.descriptors.PrimitiveKind.STRING;
 import kotlinx.serialization.json.JsonBuilder;
 import kotlinx.serialization.json.JsonObject;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -55,12 +53,13 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 
 	private static final String WEB_PLAYER_BASE_URL = "https://play.qobuz.com";
 	public static final String API_URL = "https://www.qobuz.com/api.json/0.2/";
+	public static final String HARDCODED_APP_ID = "950096963";
+	public static final String HARDCODED_APP_SECRET = "979549437fcc4a3faad4867b5cd25dcb";
 	public static final Pattern URL_PATTERN = Pattern.compile(
 			"https?://(?:www\\.|play\\.|open\\.)?qobuz\\.com/(?:(?:[a-z]{2}-[a-z]{2}/)?(?<type>album|playlist|track|artist)/(?:.+?/)?(?<id>[a-zA-Z0-9]+)|(?<type2>playlist)/(?<id2>\\d+))");
 	private String appId;
 	private String appSecret;
 	private String userOauthToken;
-
 	public static final String SEARCH_PREFIX = "qbsearch:";
 	public static final long PREVIEW_LENGTH = 30000;
 	private static final int ALBUM_LOAD_LIMIT = 500;
@@ -72,10 +71,8 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 	private static final Logger log = LoggerFactory.getLogger(QobuzAudioSourceManager.class);
 
 	private final HttpInterfaceManager httpInterfaceManager;
-    
 
-	
-	public QobuzAudioSourceManager(String userOauthToken , String appId , String appSecret) {
+	public QobuzAudioSourceManager(String userOauthToken, String appId, String appSecret) {
 		if (userOauthToken == null || userOauthToken.isEmpty()) {
 			throw new IllegalArgumentException("User Oauth token cannot be null or empty.");
 		}
@@ -92,8 +89,7 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 			this.appId = appId;
 			this.appSecret = appSecret;
 		}
-		
-		
+
 	}
 
 	@NotNull
@@ -117,9 +113,6 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 	public void setAppSecret(String appSecret) {
 		this.appSecret = appSecret;
 	}
-
-
-
 
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
@@ -216,8 +209,8 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 			}
 		} catch (Exception e) {
 			log.error("Failed to fetch app info falling back to hardcoded values.", e);
-			this.appId = "950096963";
-			this.appSecret = "979549437fcc4a3faad4867b5cd25dcb";
+			this.appId = HARDCODED_APP_ID;
+			this.appSecret = HARDCODED_APP_SECRET;
 		}
 
 	}

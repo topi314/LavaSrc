@@ -51,7 +51,6 @@ data class VkMusicConfig(
     val userToken: String? = null,
 )
 
-
 @Serializable
 data class QobuzConfig(
     val userOauthToken: String? = null,

@@ -28,8 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Service
 @RestController
-public class LavaSrcPlugin
-		implements AudioPlayerManagerConfiguration, SearchManagerConfiguration, LyricsManagerConfiguration {
+public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchManagerConfiguration, LyricsManagerConfiguration {
 
 	private static final Logger log = LoggerFactory.getLogger(LavaSrcPlugin.class);
 
@@ -54,9 +53,7 @@ public class LavaSrcPlugin
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
 
 		if (sourcesConfig.isSpotify() || lyricsSourcesConfig.isSpotify()) {
-			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(),
-					spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), unused -> manager,
-					new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()));
+			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(),spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), unused -> manager,new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()));
 			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
 				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
 			}
@@ -71,8 +68,7 @@ public class LavaSrcPlugin
 			}
 		}
 		if (sourcesConfig.isAppleMusic()) {
-			this.appleMusic = new AppleMusicSourceManager(pluginConfig.getProviders(),
-					appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager);
+			this.appleMusic = new AppleMusicSourceManager(pluginConfig.getProviders(), appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager);
 			if (appleMusicConfig.getPlaylistLoadLimit() > 0) {
 				appleMusic.setPlaylistPageLimit(appleMusicConfig.getPlaylistLoadLimit());
 			}
@@ -81,8 +77,7 @@ public class LavaSrcPlugin
 			}
 		}
 		if (sourcesConfig.isDeezer() || lyricsSourcesConfig.isDeezer()) {
-			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(),
-					deezerConfig.getFormats());
+			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats());
 		}
 		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
@@ -269,10 +264,10 @@ public class LavaSrcPlugin
 			}
 			if (deezerConfig.getFormats() != null) {
 				this.deezer.setFormats(deezerConfig.getFormats()
-						.stream()
-						.map(deezerTrackFormat -> DeezerAudioTrack.TrackFormat.from(deezerTrackFormat.name()))
-						.toList()
-						.toArray(new DeezerAudioTrack.TrackFormat[0]));
+				.stream()
+				.map(deezerTrackFormat -> DeezerAudioTrack.TrackFormat.from(deezerTrackFormat.name()))
+				.toList()
+				.toArray(new DeezerAudioTrack.TrackFormat[0]));
 			}
 		}
 

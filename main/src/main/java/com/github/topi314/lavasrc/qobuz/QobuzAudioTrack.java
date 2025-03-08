@@ -1,9 +1,12 @@
 package com.github.topi314.lavasrc.qobuz;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.http.client.utils.URIBuilder;
 
 import com.github.topi314.lavasrc.ExtendedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
@@ -80,19 +83,15 @@ public class QobuzAudioTrack extends ExtendedAudioTrack {
         return hexString.toString();
     }
 
-    private static String getQueryString(Map<String, String> params) {
-        StringBuilder result = new StringBuilder();
+    private static String getQueryString(Map<String, String> params) throws URISyntaxException {
+        URIBuilder builder = new URIBuilder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
-            if (result.length() > 0) {
-                result.append("&");
-            }
-            result.append(entry.getKey());
-            result.append("=");
-            result.append(entry.getValue());
+            builder.addParameter(entry.getKey(), entry.getValue());
         }
-        return result.toString();
-    }
+        return builder.build().getQuery();
+    }    
 
+    
     @Override
     public void process(LocalAudioTrackExecutor executor) throws Exception {
         try (var httpInterface = this.sourceManager.getHttpInterface()) {

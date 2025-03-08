@@ -73,9 +73,6 @@ plugins:
     providers: # Custom providers for track loading. This is the default
       # - "dzisrc:%ISRC%" # Deezer ISRC provider
       # - "dzsearch:%QUERY%" # Deezer search provider
-      # - "qbsearch:%QUERY%" # Qobuz search provider
-      # - "qbsearch:%ISRC%" # Qobuz ISRC provider
-      
       - "ytsearch:\"%ISRC%\"" # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
       - "ytsearch:%QUERY%" # Will be used if track has no ISRC or no track could be found for the ISRC
       #  you can add multiple other fallback sources here
@@ -138,7 +135,7 @@ plugins:
       artistLoadLimit: 1 # The number of pages at 10 tracks each
       recommendationsLoadLimit: 10 # Number of tracks
     qobuz:
-      userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/munishkhatri720/LavaSrc/tree/qobuz-rewrite#qobuz
+      userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc/tree/qobuz-rewrite#qobuz
       #appId : optional (Only pass it when you are using an old userOauthToken)
       #appSecret : optional (Only pass it when you are using an old userOauthToken)
 ```
