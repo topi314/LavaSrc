@@ -807,7 +807,8 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 ### Qobuz 
 
 * `qbsearch:animals architects`
-* `qbsearch:USEP42058010` (`qbsearch:ISRC`)
+* `qbisrc:USEP42058010` (`qbisrc:ISRC`)
+* `qbrec:295210968`
 * https://open.qobuz.com/track/52151405
 * https://play.qobuz.com/album/c9wsrrjh49ftb
 * https://play.qobuz.com/playlist/24893079

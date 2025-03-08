@@ -5,9 +5,7 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.http.client.utils.URIBuilder;
-
 import com.github.topi314.lavasrc.ExtendedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
@@ -34,7 +32,6 @@ public class QobuzAudioTrack extends ExtendedAudioTrack {
     private URI getFallback() throws Exception {
         String url = String.format(
                 "https://music.wjhe.top/api/music/qobuz/url?ID=%s&quality=320&format=mp3", this.getIdentifier());
-
         return new URI(url);
 
     }

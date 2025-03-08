@@ -23,6 +23,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -61,6 +62,8 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 	private String appSecret;
 	private String userOauthToken;
 	public static final String SEARCH_PREFIX = "qbsearch:";
+	public static final String ISRC_PREFIX = "qbisrc:";
+	public static final String RECOMMENDATIONS_PREFIX = "qbrec:";
 	public static final long PREVIEW_LENGTH = 30000;
 	private static final int ALBUM_LOAD_LIMIT = 500;
 	private static final int PLAYLIST_LOAD_LIMIT = 1000;
@@ -145,6 +148,14 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 		try {
 			if (identifier.startsWith(SEARCH_PREFIX)) {
 				return this.getSearch(identifier.substring(SEARCH_PREFIX.length()), preview);
+			}
+
+			if (identifier.startsWith(ISRC_PREFIX)) {
+				return this.getTrackByISRC(identifier.substring(ISRC_PREFIX.length()), preview);
+			}
+
+			if (identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
+				return this.getRecommendations(identifier.substring(RECOMMENDATIONS_PREFIX.length()), preview);
 			}
 
 			Matcher matcher = URL_PATTERN.matcher(identifier);
@@ -272,15 +283,11 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 			throw new IllegalStateException(
 					"Failed to extract info and extras for timezone " + productionTimezone + " from bundle.js");
 		}
-
 		String info = infoExtrasMatcher.group("info");
 		String extras = infoExtrasMatcher.group("extras");
-
 		String base64EncodedAppSecret = seed + info + extras;
 		base64EncodedAppSecret = base64EncodedAppSecret.substring(0, base64EncodedAppSecret.length() - 44);
-
 		byte[] appSecretBytes = Base64.getDecoder().decode(base64EncodedAppSecret);
-
 		return new String(appSecretBytes);
 	}
 
@@ -320,23 +327,17 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 		if (!json.get("album").get("artist").isNull() && !json.get("album").get("artist").get("image").isNull()) {
 			artistArtworkUrl = json.get("album").get("artist").get("image").text();
 		}
-
 		var isrc = json.get("isrc").isNull() ? null : json.get("isrc").text();
-
 		var info = new AudioTrackInfo(title, author, length, identifier, false, uri, artworkUrl, isrc);
 		return new QobuzAudioTrack(info, albumName, albumurl, artistUrl, artistArtworkUrl, previewUrl, preview, this);
 	}
 
 	private AudioItem getSearch(String query, boolean preview) throws IOException {
-		System.out.println(this.appId + " " + this.appSecret + " " + this.userOauthToken);
-		var json = this.getJson(
-				API_URL + "catalog/search?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
-						+ "&limit=15&type=tracks");
-
+		var json = this.getJson(API_URL + "catalog/search?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
+				+ "&limit=15&type=tracks");
 		if (json == null || json.get("tracks").isNull() || json.get("tracks").get("items").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-
 		return new BasicAudioPlaylist("Qobuz Search: " + query,
 				this.parseTracks(json.get("tracks").get("items"), preview), null, true);
 	}
@@ -348,15 +349,11 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 		if (json == null || json.get("tracks").isNull() || json.get("tracks").get("items").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
-
 		var title = json.get("title").text();
 		var artworkUrl = json.get("image").get("large").text();
 		var author = json.get("artist").get("name").text();
-
 		var uri = "https://open.qobuz.com/album/" + id;
-
 		var tracks = json.get("tracks").get("items");
-
 		json.remove("tracks");
 
 		var m = new ArrayList<AudioTrack>();
@@ -377,15 +374,55 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager
 	}
 
 	private AudioItem getTrack(String id, boolean preview) throws IOException {
-
 		JsonBrowser json = this
 				.getJson(API_URL + "track/get?track_id=" + URLEncoder.encode(id, StandardCharsets.UTF_8));
-
 		if (json == null) {
 			return AudioReference.NO_TRACK;
 		}
-
 		return this.parseTrack(json, preview);
+	}
+
+	private AudioItem getRecommendations(String id, boolean preview) throws IOException {
+		JsonBrowser json = this
+				.getJson(API_URL + "track/get?track_id=" + URLEncoder.encode(id, StandardCharsets.UTF_8));
+		if (json == null) {
+			return AudioReference.NO_TRACK;
+		}
+		String artistId = json.get("performer").get("id").text();
+		String jsonPayload = "{"
+				+ "\"limit\": 50,"
+				+ "\"listened_tracks_ids\": [" + id + "],"
+				+ "\"track_to_analysed\": ["
+				+ "    {"
+				+ "        \"track_id\": " + id + ","
+				+ "        \"artist_id\": " + artistId
+				+ "    }"
+				+ "]"
+				+ "}";
+		HttpPost request = new HttpPost(API_URL + "dynamic/suggest");
+		request.setHeader("Accept", "application/json");
+		request.setHeader("x-app-id", this.appId);
+		request.setHeader("x-user-auth-token", this.userOauthToken);
+		StringEntity entity = new StringEntity(jsonPayload, StandardCharsets.UTF_8);
+		request.setEntity(entity);
+		JsonBrowser recos = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+		if (recos.get("tracks").isNull() || recos.get("tracks").get("items").values().size() == 0) {
+			return AudioReference.NO_TRACK;
+		} else {
+			List<AudioTrack> tracks = this.parseTracks(recos.get("tracks").get("items"), preview);
+			return new ExtendedAudioPlaylist("Qobuz Recommendations", tracks,
+					ExtendedAudioPlaylist.Type.RECOMMENDATIONS, null, null, "Qobuz", tracks.size());
+		}
+
+	}
+
+	private AudioItem getTrackByISRC(String isrc, boolean preview) throws IOException {
+		var json = this.getJson(API_URL + "catalog/search?query=" + URLEncoder.encode(isrc, StandardCharsets.UTF_8)
+				+ "&limit=15&type=tracks");
+		if (json == null || json.get("tracks").isNull() || json.get("tracks").get("items").values().isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+		return this.parseTrack(json.get("tracks").get("items").values().get(0), preview);
 	}
 
 	private AudioItem getPlaylist(String id, boolean preview) throws IOException {
