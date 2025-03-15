@@ -16,7 +16,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 
 public class QobuzAudioTrack extends ExtendedAudioTrack {
-
     private final QobuzAudioSourceManager sourceManager;
 
     public QobuzAudioTrack(AudioTrackInfo trackInfo, QobuzAudioSourceManager sourceManager) {
@@ -29,18 +28,10 @@ public class QobuzAudioTrack extends ExtendedAudioTrack {
         this.sourceManager = sourceManager;
     }
 
-    private URI getFallback() throws Exception {
-        String url = String.format(
-                "https://music.wjhe.top/api/music/qobuz/url?ID=%s&quality=320&format=mp3", this.getIdentifier());
-        return new URI(url);
-
-    }
-
     private URI getTrackMediaURI() throws Exception {
         long unixTs = System.currentTimeMillis() / 1000L;
         String rSig = String.format("trackgetFileUrlformat_id%dintentstream" +
                 "track_id%d%d%s", 5, Integer.parseInt(this.getIdentifier()), unixTs, this.sourceManager.getAppSecret());
-
         String rSigHashed = getMd5Hash(rSig);
         Map<String, String> params = new HashMap<>();
         params.put("request_ts", String.valueOf(unixTs));
@@ -48,20 +39,14 @@ public class QobuzAudioTrack extends ExtendedAudioTrack {
         params.put("track_id", String.valueOf(Integer.parseInt(this.getIdentifier())));
         params.put("format_id", String.valueOf(5));
         params.put("intent", "stream");
-
         String url = "https://www.qobuz.com/api.json/0.2/track/getFileUrl";
         String fullUrl = url + "?" + getQueryString(params);
-
         var json = this.sourceManager.getJson(fullUrl);
         if (json == null || json.get("url").isNull()) {
-            return getFallback();
-
-            // throw new IllegalStateException("Failed to get track media URI");
+            throw new IllegalStateException("Failed to get track media URI");
         }
         if (!json.get("sample").isNull() && json.get("sample").asBoolean(true) == true) {
-            return getFallback();
-            // throw new IllegalStateException("Premium account required to play the whole
-            // track");
+            throw new IllegalStateException("Premium account required to play the whole track");
         }
         return new URI(json.get("url").text());
     }

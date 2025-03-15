@@ -245,7 +245,7 @@ PATCH /v4/lavasrc/config
 | ?deezer      | [Deezer Config](#deezer-config-object)             | The Deezer settings       |
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
-| ?qobuz       | [Qobuz Music Config](#qobuz-music-config-object)   | THe Qobuz Music settings  |
+| ?qobuz       | [Qobuz Music Config](#qobuz-music-config-object)   | The Qobuz Music settings  |
 
 ##### Spotify Config Object
 
@@ -290,7 +290,6 @@ PATCH /v4/lavasrc/config
 | Field      | Type   | Description             |
 |------------|--------|-------------------------|
 | ?userToken | string | The Vk Music user token |
-
 
 #### Qobuz Music Config Object
 
@@ -732,10 +731,7 @@ searchManager.registerSearchManager(qobuz);
 ```
 
 </details>
-
 ---
-
-
 ## Supported URLs and Queries
 
 ### Spotify
@@ -803,12 +799,11 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://vk.com/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493%2Fbe3494d46d310b0d0d
 * https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
 
-
 ### Qobuz 
 
 * `qbsearch:animals architects`
 * `qbisrc:USEP42058010` (`qbisrc:ISRC`)
-* `qbrec:295210968`
+* `qbrec:295210968` (`qbrec:{TRACK_ID}`)
 * https://open.qobuz.com/track/52151405
 * https://play.qobuz.com/album/c9wsrrjh49ftb
 * https://play.qobuz.com/playlist/24893079
