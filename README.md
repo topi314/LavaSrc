@@ -13,9 +13,10 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 * [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
+* [Tidal](https://tidal.com) playlists/albums/songs/search results
 
 > [!IMPORTANT]
-> Tracks from Spotify & Apple Music don't actually play from their sources, but are instead resolved via the configured providers
+> Tracks from Spotify & Apple Music & Tidal don't actually play from their sources, but are instead resolved via the configured providers
 
 ## Summary
 
@@ -82,6 +83,7 @@ plugins:
       flowerytts: false # Enable Flowery TTS source
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
+      tidal: false # Enable Tidal source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -131,6 +133,10 @@ plugins:
       playlistLoadLimit: 1 # The number of pages at 50 tracks each
       artistLoadLimit: 1 # The number of pages at 10 tracks each
       recommendationsLoadLimit: 10 # Number of tracks
+    tidal:
+      countryCode: "US"
+      searchLimit: 6 # How many search results should be returned
+      token: "your tidal token" # the token used for accessing the tidal api.
 ```
 
 ### Plugin Info
