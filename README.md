@@ -731,6 +731,7 @@ searchManager.registerSearchManager(qobuz);
 ```
 
 </details>
+
 ---
 ## Supported URLs and Queries
 
