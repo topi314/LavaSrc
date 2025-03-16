@@ -75,7 +75,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
-		return new TidalAudioTrack(trackInfo, extendedAudioTrackInfo.albumName, extendedAudioTrackInfo.albumUrl, extendedAudioTrackInfo.artistUrl, extendedAudioTrackInfo.artistArtworkUrl, extendedAudioTrackInfo.previewUrl, extendedAudioTrackInfo.isPreview, this);
+		return new TidalAudioTrack(trackInfo, extendedAudioTrackInfo.albumName, extendedAudioTrackInfo.albumUrl, extendedAudioTrackInfo.artistUrl, extendedAudioTrackInfo.previewUrl, this);
 	}
 
 	@Override
@@ -195,7 +195,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			return null;
 		}
 
-		var duration = audio.get("duration").asLong() * 1000;
+		var duration = audio.get("duration").asLong(0) * 1000;
 		var title = audio.get("title").text();
 		var originalUrl = audio.get("url").text();
 		var artistsArray = audio.get("artists");
@@ -264,13 +264,13 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 				url = itemInfoJson.get("url").text();
 				coverUrl = itemInfoJson.get("squareImage").text();
 				artistName = itemInfoJson.get("promotedArtists").index(0).get("name").text();
-				totalTracks = itemInfoJson.get("numberOfTracks").asLong();
+				totalTracks = itemInfoJson.get("numberOfTracks").asLong(0);
 			} else {
 				title = itemInfoJson.get("title").text();
 				url = itemInfoJson.get("url").text();
 				coverUrl = itemInfoJson.get("cover").text();
 				artistName = itemInfoJson.get("artists").index(0).get("name").text();
-				totalTracks = itemInfoJson.get("numberOfTracks").asLong();
+				totalTracks = itemInfoJson.get("numberOfTracks").asLong(0);
 			}
 			if (title == null || url == null) {
 				return AudioReference.NO_TRACK;
@@ -279,7 +279,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			var artworkUrl = "https://resources.tidal.com/images/" +
 				formattedCoverIdentifier +
 				"/1080x1080.jpg";
-			return new TidalAudioPlaylist(title, items, type.equalsIgnoreCase("playlist") ? ExtendedAudioPlaylist.Type.PLAYLIST : ExtendedAudioPlaylist.Type.ALBUM, url, artworkUrl, artistName, totalTracks);
+			return new TidalAudioPlaylist(title, items, type.equalsIgnoreCase("playlist") ? ExtendedAudioPlaylist.Type.PLAYLIST : ExtendedAudioPlaylist.Type.ALBUM, url, artworkUrl, artistName, (int) totalTracks);
 		} catch (SocketTimeoutException e) {
 			log.error("Socket timeout while fetching {} info for ID: {}", type, itemId, e);
 		} catch (Exception e) {

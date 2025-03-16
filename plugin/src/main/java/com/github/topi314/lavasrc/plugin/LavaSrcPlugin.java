@@ -9,7 +9,6 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
-import com.github.topi314.lavasrc.mirror.StringCompareMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
@@ -38,7 +37,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 	private final SourcesConfig sourcesConfig;
 	private final LyricsSourcesConfig lyricsSourcesConfig;
-	private final AdvancedMirrorConfig advancedMirrorConfig;
 	private AudioPlayerManager manager;
 	private SpotifySourceManager spotify;
 	private AppleMusicSourceManager appleMusic;
@@ -53,7 +51,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		LavaSrcConfig pluginConfig,
 		SourcesConfig sourcesConfig,
 		LyricsSourcesConfig lyricsSourcesConfig,
-		AdvancedMirrorConfig advancedMirrorConfig,
 		SpotifyConfig spotifyConfig,
 		AppleMusicConfig appleMusicConfig,
 		DeezerConfig deezerConfig,
@@ -66,7 +63,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
-		this.advancedMirrorConfig = advancedMirrorConfig;
 
 		if (sourcesConfig.isSpotify() || lyricsSourcesConfig.isSpotify()) {
 			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getSpDc(),
