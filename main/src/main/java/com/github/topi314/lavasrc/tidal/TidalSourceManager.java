@@ -1,6 +1,5 @@
 package com.github.topi314.lavasrc.tidal;
 
-import com.github.topi314.lavasearch.AudioSearchManager;
 import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.LavaSrcTools;
@@ -36,7 +35,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class TidalSourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchManager {
+public class TidalSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
 
 	public static final Pattern URL_PATTERN = Pattern.compile(
 		"https?://(?:(?:listen|www)\\.)?tidal\\.com/(?:browse/)?(?<type>album|track|playlist|mix)/(?<id>[a-zA-Z0-9\\-]+)(?:\\?.*)?");
@@ -54,14 +53,14 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	private int searchLimit = 6;
 	private final String countryCode;
 
-	public TidalSourceManager(String[] providers, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
-		this(countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), null);
+	public TidalSourceManager(String[] providers, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, String tidalToken) {
+		this(countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), tidalToken);
 	}
 
 	public TidalSourceManager(String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver, String tidalToken) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 		this.countryCode = (countryCode == null || countryCode.isEmpty()) ? "US" : countryCode;
-		this.tidalToken = tidalToken != null ? tidalToken : "i4ZDjcyhed7Mu47q";
+		this.tidalToken = tidalToken;
 	}
 
 	public void setSearchLimit(int searchLimit) {
@@ -71,11 +70,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	@Override
 	public String getSourceName() {
 		return "tidal";
-	}
-
-	@Override
-	public @Nullable AudioSearchResult loadSearch(@NotNull String query, @NotNull Set<AudioSearchResult.Type> types) {
-		return null;
 	}
 
 	@Override
@@ -165,7 +159,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 				return AudioReference.NO_TRACK;
 			}
 
-			return new BasicAudioPlaylist("Tidal Music Search: " + query, tracks, null, true);
+			return new BasicAudioPlaylist("Tidal Search: " + query, tracks, null, true);
 		} catch (SocketTimeoutException e) {
 			return AudioReference.NO_TRACK;
 		}
@@ -201,33 +195,28 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			return null;
 		}
 
-		try {
-			var duration = Long.parseLong(rawDuration) * 1000;
-			var title = audio.get("title").text();
-			var originalUrl = audio.get("url").text();
-			var artistsArray = audio.get("artists");
-			StringBuilder artistName = new StringBuilder();
+		var duration = audio.get("duration").asLong() * 1000;
+		var title = audio.get("title").text();
+		var originalUrl = audio.get("url").text();
+		var artistsArray = audio.get("artists");
+		StringBuilder artistName = new StringBuilder();
 
-			for (int i = 0; i < artistsArray.values().size(); i++) {
-				var currentArtistName = artistsArray.index(i).get("name").text();
-				artistName.append(i > 0 ? ", " : "").append(currentArtistName);
-			}
-			var coverIdentifier = audio.get("album").get("cover").text();
-			if (coverIdentifier == null) {
-				coverIdentifier = "https://tidal.com/_nuxt/img/logos.d8ce10b.jpg";
-			}
-			var isrc = audio.get("isrc").text();
-			var formattedCoverIdentifier = coverIdentifier.replaceAll("-", "/");
-			var artworkUrl = "https://resources.tidal.com/images/" +
-				formattedCoverIdentifier +
-				"/1280x1280.jpg";
-			return new TidalAudioTrack(
-				new AudioTrackInfo(title, artistName.toString(), duration, id, false, originalUrl, artworkUrl, isrc),
-				this);
-		} catch (NumberFormatException e) {
-			log.error("Error parsing duration for track. Audio JSON: {}", audio, e);
-			return null;
+		for (int i = 0; i < artistsArray.values().size(); i++) {
+			var currentArtistName = artistsArray.index(i).get("name").text();
+			artistName.append(i > 0 ? ", " : "").append(currentArtistName);
 		}
+		var coverIdentifier = audio.get("album").get("cover").text();
+		if (coverIdentifier == null) {
+			coverIdentifier = "https://tidal.com/_nuxt/img/logos.d8ce10b.jpg";
+		}
+		var isrc = audio.get("isrc").text();
+		var formattedCoverIdentifier = coverIdentifier.replaceAll("-", "/");
+		var artworkUrl = "https://resources.tidal.com/images/" +
+			formattedCoverIdentifier +
+			"/1280x1280.jpg";
+		return new TidalAudioTrack(
+			new AudioTrackInfo(title, artistName.toString(), duration, id, false, originalUrl, artworkUrl, isrc),
+			this);
 	}
 
 	private AudioItem getAlbumOrPlaylist(String itemId, String type, int maxPageItems) throws IOException {
@@ -268,20 +257,20 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			String artistName = "";
 			String url = "";
 			String coverUrl = "";
-			Integer totalTracks = 0;
+			long totalTracks = 0;
 
 			if (trackType == ExtendedAudioPlaylist.Type.PLAYLIST) {
 				title = itemInfoJson.get("title").text();
 				url = itemInfoJson.get("url").text();
 				coverUrl = itemInfoJson.get("squareImage").text();
 				artistName = itemInfoJson.get("promotedArtists").index(0).get("name").text();
-				totalTracks = itemInfoJson.get("numberOfTracks").as(Integer.class);
+				totalTracks = itemInfoJson.get("numberOfTracks").asLong();
 			} else {
 				title = itemInfoJson.get("title").text();
 				url = itemInfoJson.get("url").text();
 				coverUrl = itemInfoJson.get("cover").text();
 				artistName = itemInfoJson.get("artists").index(0).get("name").text();
-				totalTracks = itemInfoJson.get("numberOfTracks").as(Integer.class);
+				totalTracks = itemInfoJson.get("numberOfTracks").asLong();
 			}
 			if (title == null || url == null) {
 				return AudioReference.NO_TRACK;

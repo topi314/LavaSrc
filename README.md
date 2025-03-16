@@ -693,8 +693,6 @@ searchManager.registerSearchManager(vkmusic);
 
 ### Tidal
 
-To get a Tidal token you must go [here](https://developer.tidal.com/dashboard) and create a new application.
-
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
