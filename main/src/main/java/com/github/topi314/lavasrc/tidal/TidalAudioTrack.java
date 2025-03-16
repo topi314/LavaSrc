@@ -10,16 +10,16 @@ import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 public class TidalAudioTrack extends MirroringAudioTrack {
 
 	public TidalAudioTrack(AudioTrackInfo trackInfo, TidalSourceManager sourceManager) {
-		this(trackInfo, null, null, null, null, null, false, sourceManager);
+		this(trackInfo, null, null, null, null, sourceManager);
 	}
 
-	public TidalAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, TidalSourceManager sourceManager) {
-		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview, sourceManager);
+	public TidalAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, TidalSourceManager sourceManager) {
+		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, null, false, sourceManager);
 	}
 
 	@Override
 	protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream stream) {
-		return new Mp3AudioTrack(trackInfo, stream);
+		throw new UnsupportedOperationException("Creating audio track is not supported.");
 	}
 
 	@Override

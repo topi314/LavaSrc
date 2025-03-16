@@ -13,7 +13,7 @@ A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplay
 * [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
 * [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
 * [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
-* [Tidal](https://tidal.com) playlists/albums/songs/search results
+* [Tidal](https://tidal.com) playlists/albums/songs/search results (Thx to [Nansess](https://github.com/Nansess) and [InfNibor](https://github.com/infnibor) for implementing it)
 
 > [!IMPORTANT]
 > Tracks from Spotify & Apple Music & Tidal don't actually play from their sources, but are instead resolved via the configured providers
@@ -62,6 +62,8 @@ To get your Deezer arl cookie go [here](#deezer)
 To get your Yandex Music access token go [here](#yandex-music)
 
 To get your Vk Music user token go [here](#vk-music)
+
+To get your Tidal token go [here](#tidal)
 
 > [!WARNING]
 > YES `plugins` IS AT ROOT IN THE YAML
@@ -136,7 +138,7 @@ plugins:
     tidal:
       countryCode: "US"
       searchLimit: 6 # How many search results should be returned
-      token: "your tidal token" # the token used for accessing the tidal api.
+      token: "your tidal token" # the token used for accessing the tidal api. See https://github.com/topi314/LavaSrc#tidal
 ```
 
 ### Plugin Info
@@ -244,6 +246,7 @@ PATCH /v4/lavasrc/config
 | ?deezer      | [Deezer Config](#deezer-config-object)             | The Deezer settings       |
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
+| ?tidal       | [Tidal Config](#tidal-config-object)               | The Tidal settings        |
 
 ##### Spotify Config Object
 
@@ -289,6 +292,12 @@ PATCH /v4/lavasrc/config
 |------------|--------|-------------------------|
 | ?userToken | string | The Vk Music user token |
 
+##### Tidal Config Object
+
+| Field      | Type   | Description             |
+|------------|--------|-------------------------|
+| ?token     | string | The Tidal token         |
+
 <details>
 <summary>Example Payload</summary>
 
@@ -318,6 +327,9 @@ PATCH /v4/lavasrc/config
     },
     "vkMusic": {
         "userToken": "your user token"
+    },
+    "tidal": {
+        "token": "your tidal token"
     }
 }
 ```
@@ -679,6 +691,24 @@ searchManager.registerSearchManager(vkmusic);
 
 ---
 
+### Tidal
+
+To get a Tidal token you must go [here](https://developer.tidal.com/dashboard) and create a new application.
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new TidalSourceManager with the token and register it
+var tidal = new TidalSourceManager("your tidal token");
+playerManager.registerSourceManager(tidal);
+```
+#### LavaSearch
+
+> [!NOTE]
+> Tidal does not support LavaSearch.
+
+---
+
 ## Supported URLs and Queries
 
 ### Spotify
@@ -745,5 +775,13 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://vk.com/music/album/-2000228258_15228258
 * https://vk.com/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493%2Fbe3494d46d310b0d0d
 * https://vk.ru/audios700949584?q=phonk%20album&z=audio_playlist-2000933493_13933493
+
+### Tidal
+
+* `tdsearch:animals architects`
+* https://tidal.com/browse/track/12345678
+* https://tidal.com/browse/album/12345678
+* https://tidal.com/browse/playlist/12345678
+* https://tidal.com/browse/artist/12345678
 
 ---

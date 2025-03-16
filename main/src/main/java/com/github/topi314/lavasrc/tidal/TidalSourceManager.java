@@ -177,19 +177,16 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			var json = getApiResponse(apiUrl);
 
 			if (json == null || json.isNull()) {
-				log.info("Track not found for ID: {}", trackId);
 				return AudioReference.NO_TRACK;
 			}
 
 			var mixId = json.get("mixes").get("TRACK_MIX").text();
 			if (mixId == null) {
-				log.info("Mix not found for ID: {}", trackId);
 				return AudioReference.NO_TRACK;
 			}
 
 			return getMix(mixId);
 		} catch (SocketTimeoutException e) {
-			log.error("Socket timeout while fetching track with ID: {}", trackId, e);
 			return AudioReference.NO_TRACK;
 		}
 	}
@@ -303,53 +300,43 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 		return AudioReference.NO_TRACK;
 	}
 
+	@Override
+	public void encodeTrack(AudioTrack track, DataOutput output) {
+		// Do not override this method
+	}
+
 	public AudioItem getTrack(String trackId) throws IOException {
-		try {
-			String apiUrl = PUBLIC_API_BASE + "tracks/" + trackId + "?countryCode=" + countryCode;
-			var json = getApiResponse(apiUrl);
+		String apiUrl = PUBLIC_API_BASE + "tracks/" + trackId + "?countryCode=" + countryCode;
+		var json = getApiResponse(apiUrl);
 
-			if (json == null || json.isNull()) {
-				log.info("Track not found for ID: {}", trackId);
-				return AudioReference.NO_TRACK;
-			}
-
-			var track = parseTrack(json);
-
-			if (track == null) {
-				log.info("Failed to parse track for ID: {}", trackId);
-				return AudioReference.NO_TRACK;
-			}
-
-			log.info("Track loaded successfully for ID: {}", trackId);
-			return track;
-		} catch (SocketTimeoutException e) {
-			log.error("Socket timeout while fetching track with ID: {}", trackId, e);
+		if (json == null || json.isNull()) {
 			return AudioReference.NO_TRACK;
 		}
+
+		var track = parseTrack(json);
+
+		if (track == null) {
+			return AudioReference.NO_TRACK;
+		}
+
+		return track;
 	}
 
 	public AudioItem getMix(String mixId) throws IOException {
-		try {
-			String apiUrl = PUBLIC_API_BASE + "mixes/" + mixId + "/items?countryCode=" + countryCode;
-			var json = getApiResponse(apiUrl);
+		String apiUrl = PUBLIC_API_BASE + "mixes/" + mixId + "/items?countryCode=" + countryCode;
+		var json = getApiResponse(apiUrl);
 
-			if (json == null || json.get("items").isNull()) {
-				log.info("Mix not found for ID: {}", mixId);
-				return AudioReference.NO_TRACK;
-			}
-
-			var items = parseTrackItem(json);
-
-			if (items.isEmpty()) {
-				return AudioReference.NO_TRACK;
-			}
-
-			log.info("Mix loaded successfully for ID: {}", mixId);
-			return new BasicAudioPlaylist("Mix: " + mixId, items, null, false);
-		} catch (SocketTimeoutException e) {
-			log.error("Socket timeout while fetching track with ID: {}", mixId, e);
+		if (json == null || json.get("items").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
+
+		var items = parseTrackItem(json);
+
+		if (items.isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+
+		return new BasicAudioPlaylist("Mix: " + mixId, items, null, false);
 	}
 
 	private List<AudioTrack> parseTrackItem(JsonBrowser json) {
@@ -364,10 +351,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			}
 		}
 		return tracks;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) {
 	}
 
 	@Override

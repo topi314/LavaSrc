@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
@@ -67,27 +68,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
 		this.advancedMirrorConfig = advancedMirrorConfig;
 
-		MirroringAudioTrackResolver defaultresolver = new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders());
-		if (this.advancedMirrorConfig != null && this.advancedMirrorConfig.getSources() != null && this.advancedMirrorConfig.getSources().length > 0) {
-			defaultresolver = new StringCompareMirroringAudioTrackResolver(
-				this.advancedMirrorConfig.getSources(),
-				pluginConfig.getProviders(),
-				this.advancedMirrorConfig.getTitleThreshold(),
-				this.advancedMirrorConfig.getAuthorThreshold(),
-				this.advancedMirrorConfig.getTotalMatchThreshold(),
-				this.advancedMirrorConfig.isSkipSoundCloudGo(),
-				this.advancedMirrorConfig.getLevelOnePenalty(),
-				this.advancedMirrorConfig.getLevelTwoPenalty(),
-				this.advancedMirrorConfig.getLevelThreePenalty()
-			);
-
-			log.info("Advanced Mirroring resolver enabled for sources: " + Arrays.toString(this.advancedMirrorConfig.getSources()));
-		}
-
-
 		if (sourcesConfig.isSpotify() || lyricsSourcesConfig.isSpotify()) {
 			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.getSpDc(),
-				spotifyConfig.getCountryCode(), unused -> manager, defaultresolver);
+				spotifyConfig.getCountryCode(), unused -> manager, null);
 			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
 				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
 			}
@@ -102,7 +85,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 		if (sourcesConfig.isAppleMusic()) {
-			this.appleMusic = new AppleMusicSourceManager(appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager, defaultresolver);
+			this.appleMusic = new AppleMusicSourceManager(appleMusicConfig.getMediaAPIToken(), appleMusicConfig.getCountryCode(), unused -> manager, null);
 			if (appleMusicConfig.getPlaylistLoadLimit() > 0) {
 				appleMusic.setPlaylistPageLimit(appleMusicConfig.getPlaylistLoadLimit());
 			}
@@ -164,7 +147,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isTidal()) {
-			this.tidal = new TidalSourceManager(tidalConfig.getCountryCode(), unused -> this.manager, defaultresolver, tidalConfig.getToken());
+			this.tidal = new TidalSourceManager(tidalConfig.getCountryCode(), unused -> this.manager, null, tidalConfig.getToken());
 			if (tidalConfig.getSearchLimit() > 0) {
 				this.tidal.setSearchLimit(tidalConfig.getSearchLimit());
 			}
@@ -245,11 +228,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			manager.registerSearchManager(this.vkMusic);
 		}
 
-		if (this.tidal != null && this.sourcesConfig.isTidal()) {
-			log.info("Registering Tidal search manager...");
-			manager.registerSearchManager(this.tidal);
-		}
-
 		return manager;
 	}
 
@@ -281,7 +259,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	}
 
 	@PatchMapping("/v4/lavasrc/config")
-	public void updateConfig(Config config) {
+	public void updateConfig(@RequestBody Config config) {
 		var spotifyConfig = config.getSpotify();
 		if (spotifyConfig != null && this.spotify != null) {
 			if (spotifyConfig.getSpDc() != null) {
