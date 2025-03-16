@@ -73,7 +73,11 @@ public class SourcesConfig {
 		this.vkMusic = vkMusic;
 	}
 
-	public boolean isTidal() { return this.tidal; }
+	public boolean isTidal() {
+		return this.tidal;
+	}
 
-	public void setTidal(boolean tidal) { this.tidal = tidal; }
+	public void setTidal(boolean tidal) {
+		this.tidal = tidal;
+	}
 }

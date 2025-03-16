@@ -1,7 +1,6 @@
 package com.github.topi314.lavasrc.tidal;
 
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrack;
-import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;

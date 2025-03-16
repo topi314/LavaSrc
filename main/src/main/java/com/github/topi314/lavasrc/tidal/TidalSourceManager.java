@@ -1,6 +1,5 @@
 package com.github.topi314.lavasrc.tidal;
 
-import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
@@ -13,12 +12,9 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
-
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +26,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -46,12 +41,11 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	public static final int PLAYLIST_MAX_PAGE_ITEMS = 750;
 	public static final int ALBUM_MAX_PAGE_ITEMS = 120;
 	private static final String USER_AGENT = "TIDAL/3704 CFNetwork/1220.1 Darwin/20.3.0";
-	private final String tidalToken;
 	private static final Logger log = LoggerFactory.getLogger(TidalSourceManager.class);
-
+	private final String tidalToken;
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-	private int searchLimit = 6;
 	private final String countryCode;
+	private int searchLimit = 6;
 
 	public TidalSourceManager(String[] providers, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, String tidalToken) {
 		this(countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), tidalToken);

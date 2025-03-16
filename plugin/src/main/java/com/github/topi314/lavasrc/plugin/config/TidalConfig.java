@@ -10,15 +10,27 @@ public class TidalConfig {
 	private int searchLimit;
 	private String token;
 
-	public String getCountryCode() { return this.countryCode; }
+	public String getCountryCode() {
+		return this.countryCode;
+	}
 
-	public void setCountryCode(String countryCode) { this.countryCode = countryCode; }
+	public void setCountryCode(String countryCode) {
+		this.countryCode = countryCode;
+	}
 
-	public int getSearchLimit() { return this.searchLimit;}
+	public int getSearchLimit() {
+		return this.searchLimit;
+	}
 
-	public void setSearchLimit(int searchLimit) { this.searchLimit = searchLimit;}
+	public void setSearchLimit(int searchLimit) {
+		this.searchLimit = searchLimit;
+	}
 
-	public String getToken() { return token; }
+	public String getToken() {
+		return token;
+	}
 
-	public void setToken(String token) { this.token = token;}
+	public void setToken(String token) {
+		this.token = token;
+	}
 }

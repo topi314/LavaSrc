@@ -8,8 +8,6 @@ import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
-import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
-import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
@@ -26,8 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Arrays;
 
 @Service
 @RestController
