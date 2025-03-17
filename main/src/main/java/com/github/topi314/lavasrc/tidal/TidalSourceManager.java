@@ -93,20 +93,16 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 					default:
 						return null;
 				}
-			} else if (reference.identifier.startsWith(SEARCH_PREFIX)) {
+			}
+
+			if (reference.identifier.startsWith(SEARCH_PREFIX)) {
 				String query = reference.identifier.substring(SEARCH_PREFIX.length());
-				if (!query.isEmpty()) {
-					return getSearch(query);
-				} else {
-					return AudioReference.NO_TRACK;
-				}
-			} else if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
+				return query.isEmpty() ? AudioReference.NO_TRACK : getSearch(query);
+			}
+
+			if (reference.identifier.startsWith(RECOMMENDATIONS_PREFIX)) {
 				String trackId = reference.identifier.substring(RECOMMENDATIONS_PREFIX.length());
-				if (!trackId.isEmpty()) {
-					return getRecommendations(trackId);
-				} else {
-					return AudioReference.NO_TRACK;
-				}
+				return trackId.isEmpty() ? AudioReference.NO_TRACK : getRecommendations(trackId);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -160,36 +156,30 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	}
 
 	private AudioItem getRecommendations(String trackId) throws IOException {
-		try {
-			String apiUrl = PUBLIC_API_BASE + "tracks/" + trackId + "?countryCode=" + countryCode;
-			var json = getApiResponse(apiUrl);
+		String apiUrl = PUBLIC_API_BASE + "tracks/" + trackId + "?countryCode=" + countryCode;
+		var json = getApiResponse(apiUrl);
 
-			if (json == null || json.isNull()) {
-				return AudioReference.NO_TRACK;
-			}
-
-			var mixId = json.get("mixes").get("TRACK_MIX").text();
-			if (mixId == null) {
-				return AudioReference.NO_TRACK;
-			}
-
-			return getMix(mixId);
-		} catch (SocketTimeoutException e) {
+		if (json == null || json.isNull()) {
 			return AudioReference.NO_TRACK;
 		}
+
+		var mixId = json.get("mixes").get("TRACK_MIX").text();
+		if (mixId == null) {
+			return AudioReference.NO_TRACK;
+		}
+
+		return getMix(mixId);
 	}
 
 
 	private AudioTrack parseTrack(JsonBrowser audio) {
 		var id = audio.get("id").text();
-		var rawDuration = audio.get("duration").text();
-
-		if (rawDuration == null) {
+		var rawDuration = audio.get("duration").asLong(0) * 1000;
+		if (rawDuration == 0) {
 			log.warn("Skipping track with null duration. Audio JSON: {}", audio);
 			return null;
 		}
-
-		var duration = audio.get("duration").asLong(0) * 1000;
+		var duration = rawDuration;
 		var title = audio.get("title").text();
 		var originalUrl = audio.get("url").text();
 		var artistsArray = audio.get("artists");
@@ -281,11 +271,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 		}
 
 		return AudioReference.NO_TRACK;
-	}
-
-	@Override
-	public void encodeTrack(AudioTrack track, DataOutput output) {
-		// Do not override this method
 	}
 
 	public AudioItem getTrack(String trackId) throws IOException {
