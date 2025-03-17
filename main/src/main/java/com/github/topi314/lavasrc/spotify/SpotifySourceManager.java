@@ -279,7 +279,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public void requestSpToken() throws IOException {
-		var request = new HttpGet("https://open.spotify.com/get_access_token?reason=transport&productType=web_player");
+		var request = new HttpGet("https://open.spotify.com/get_access_token?reason=transport&productType=web_player"); // see idk how to handle this i saw this after modifying tokentracker for some reason this isnt done in token tracker cause i guess it needs something special? as this is used for lyrics?
 		request.addHeader("App-Platform", "WebPlayer");
 		request.addHeader("Cookie", "sp_dc=" + this.spDc);
 
@@ -555,5 +555,3 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
 		this.httpInterfaceManager.configureBuilder(configurator);
 	}
-
-}
