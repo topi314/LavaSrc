@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -128,30 +127,26 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	}
 
 	private AudioItem getSearch(String query) throws IOException {
-		try {
-			String apiUrl = PUBLIC_API_BASE +
-				"search?query=" +
-				URLEncoder.encode(query, StandardCharsets.UTF_8) +
-				"&offset=0&limit=" +
-				searchLimit +
-				"&countryCode=" +
-				countryCode;
-			var json = getApiResponse(apiUrl);
+		String apiUrl = PUBLIC_API_BASE +
+			"search?query=" +
+			URLEncoder.encode(query, StandardCharsets.UTF_8) +
+			"&offset=0&limit=" +
+			searchLimit +
+			"&countryCode=" +
+			countryCode;
+		var json = getApiResponse(apiUrl);
 
-			if (json.get("tracks").get("items").isNull()) {
-				return AudioReference.NO_TRACK;
-			}
-
-			var tracks = parseTracks(json.get("tracks").get("items"));
-
-			if (tracks.isEmpty()) {
-				return AudioReference.NO_TRACK;
-			}
-
-			return new BasicAudioPlaylist("Tidal Search: " + query, tracks, null, true);
-		} catch (SocketTimeoutException e) {
+		if (json.get("tracks").get("items").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
+
+		var tracks = parseTracks(json.get("tracks").get("items"));
+
+		if (tracks.isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+
+		return new BasicAudioPlaylist("Tidal Search: " + query, tracks, null, true);
 	}
 
 	private AudioItem getRecommendations(String trackId) throws IOException {
@@ -203,73 +198,65 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	}
 
 	private AudioItem getAlbumOrPlaylist(String itemId, String type, int maxPageItems) throws IOException {
-		try {
-			String apiUrl = PUBLIC_API_BASE +
-				type +
-				"s/" +
-				itemId +
-				"/tracks?countryCode=" +
-				countryCode +
-				"&limit=" +
-				maxPageItems;
-			var json = getApiResponse(apiUrl);
+		String apiUrl = PUBLIC_API_BASE +
+			type +
+			"s/" +
+			itemId +
+			"/tracks?countryCode=" +
+			countryCode +
+			"&limit=" +
+			maxPageItems;
+		var json = getApiResponse(apiUrl);
 
-			if (json == null || json.get("items").isNull()) {
-				return AudioReference.NO_TRACK;
-			}
-
-			var items = parseTrackItem(json);
-
-			if (items.isEmpty()) {
-				return AudioReference.NO_TRACK;
-			}
-			String itemInfoUrl = "";
-			ExtendedAudioPlaylist.Type trackType = type.equalsIgnoreCase("playlist") ? ExtendedAudioPlaylist.Type.PLAYLIST : ExtendedAudioPlaylist.Type.ALBUM;
-			if (trackType == ExtendedAudioPlaylist.Type.PLAYLIST) {
-				itemInfoUrl = PUBLIC_API_BASE + "playlists/" + itemId + "?countryCode=" + countryCode;
-			} else {
-				itemInfoUrl = PUBLIC_API_BASE + "albums/" + itemId + "?countryCode=" + countryCode;
-			}
-
-			var itemInfoJson = getApiResponse(itemInfoUrl);
-
-			if (itemInfoJson == null) {
-				return AudioReference.NO_TRACK;
-			}
-			String title = "";
-			String artistName = "";
-			String url = "";
-			String coverUrl = "";
-			long totalTracks = 0;
-
-			if (trackType == ExtendedAudioPlaylist.Type.PLAYLIST) {
-				title = itemInfoJson.get("title").text();
-				url = itemInfoJson.get("url").text();
-				coverUrl = itemInfoJson.get("squareImage").text();
-				artistName = itemInfoJson.get("promotedArtists").index(0).get("name").text();
-				totalTracks = itemInfoJson.get("numberOfTracks").asLong(0);
-			} else {
-				title = itemInfoJson.get("title").text();
-				url = itemInfoJson.get("url").text();
-				coverUrl = itemInfoJson.get("cover").text();
-				artistName = itemInfoJson.get("artists").index(0).get("name").text();
-				totalTracks = itemInfoJson.get("numberOfTracks").asLong(0);
-			}
-			if (title == null || url == null) {
-				return AudioReference.NO_TRACK;
-			}
-			var formattedCoverIdentifier = coverUrl.replaceAll("-", "/");
-			var artworkUrl = "https://resources.tidal.com/images/" +
-				formattedCoverIdentifier +
-				"/1080x1080.jpg";
-			return new TidalAudioPlaylist(title, items, type.equalsIgnoreCase("playlist") ? ExtendedAudioPlaylist.Type.PLAYLIST : ExtendedAudioPlaylist.Type.ALBUM, url, artworkUrl, artistName, (int) totalTracks);
-		} catch (SocketTimeoutException e) {
-			log.error("Socket timeout while fetching {} info for ID: {}", type, itemId, e);
-		} catch (Exception e) {
-			log.error("Error fetching {} info for ID: {}", type, itemId, e);
+		if (json == null || json.get("items").isNull()) {
+			return AudioReference.NO_TRACK;
 		}
 
-		return AudioReference.NO_TRACK;
+		var items = parseTrackItem(json);
+
+		if (items.isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+		String itemInfoUrl = "";
+		ExtendedAudioPlaylist.Type trackType = type.equalsIgnoreCase("playlist") ? ExtendedAudioPlaylist.Type.PLAYLIST : ExtendedAudioPlaylist.Type.ALBUM;
+		if (trackType == ExtendedAudioPlaylist.Type.PLAYLIST) {
+			itemInfoUrl = PUBLIC_API_BASE + "playlists/" + itemId + "?countryCode=" + countryCode;
+		} else {
+			itemInfoUrl = PUBLIC_API_BASE + "albums/" + itemId + "?countryCode=" + countryCode;
+		}
+
+		var itemInfoJson = getApiResponse(itemInfoUrl);
+
+		if (itemInfoJson == null) {
+			return AudioReference.NO_TRACK;
+		}
+		String title = "";
+		String artistName = "";
+		String url = "";
+		String coverUrl = "";
+		long totalTracks = 0;
+
+		if (trackType == ExtendedAudioPlaylist.Type.PLAYLIST) {
+			title = itemInfoJson.get("title").text();
+			url = itemInfoJson.get("url").text();
+			coverUrl = itemInfoJson.get("squareImage").text();
+			artistName = itemInfoJson.get("promotedArtists").index(0).get("name").text();
+			totalTracks = itemInfoJson.get("numberOfTracks").asLong(0);
+		} else {
+			title = itemInfoJson.get("title").text();
+			url = itemInfoJson.get("url").text();
+			coverUrl = itemInfoJson.get("cover").text();
+			artistName = itemInfoJson.get("artists").index(0).get("name").text();
+			totalTracks = itemInfoJson.get("numberOfTracks").asLong(0);
+		}
+		if (title == null || url == null) {
+			return AudioReference.NO_TRACK;
+		}
+		var formattedCoverIdentifier = coverUrl.replaceAll("-", "/");
+		var artworkUrl = "https://resources.tidal.com/images/" +
+			formattedCoverIdentifier +
+			"/1080x1080.jpg";
+		return new TidalAudioPlaylist(title, items, type.equalsIgnoreCase("playlist") ? ExtendedAudioPlaylist.Type.PLAYLIST : ExtendedAudioPlaylist.Type.ALBUM, url, artworkUrl, artistName, (int) totalTracks);
 	}
 
 	public AudioItem getTrack(String trackId) throws IOException {
