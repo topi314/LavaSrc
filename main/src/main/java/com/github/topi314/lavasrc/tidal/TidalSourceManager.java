@@ -43,7 +43,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 	private static final String USER_AGENT = "TIDAL/3704 CFNetwork/1220.1 Darwin/20.3.0";
 	private static final Logger log = LoggerFactory.getLogger(TidalSourceManager.class);
 	private final String tidalToken;
-	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
 	private final String countryCode;
 	private int searchLimit = 6;
 

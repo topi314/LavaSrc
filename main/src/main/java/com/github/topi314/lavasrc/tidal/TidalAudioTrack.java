@@ -18,7 +18,7 @@ public class TidalAudioTrack extends MirroringAudioTrack {
 
 	@Override
 	protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream stream) {
-		throw new UnsupportedOperationException("Creating audio track is not supported.");
+		throw new UnsupportedOperationException("Creating audio track is not supported. Previews aren't supported by Tidal.");
 	}
 
 	@Override

@@ -144,7 +144,7 @@ plugins:
       artistLoadLimit: 1 # The number of pages at 10 tracks each
       recommendationsLoadLimit: 10 # Number of tracks
     tidal:
-      countryCode: "US"
+      countryCode: "US" # the country code for accessing region-specific content on Tidal (ISO 3166-1 alpha-2).
       searchLimit: 6 # How many search results should be returned
       token: "your tidal token" # the token used for accessing the tidal api. See https://github.com/topi314/LavaSrc#tidal
 ```
@@ -254,7 +254,6 @@ PATCH /v4/lavasrc/config
 | ?deezer      | [Deezer Config](#deezer-config-object)             | The Deezer settings       |
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
-| ?tidal       | [Tidal Config](#tidal-config-object)               | The Tidal settings        |
 
 ##### Spotify Config Object
 
@@ -300,12 +299,6 @@ PATCH /v4/lavasrc/config
 |------------|--------|-------------------------|
 | ?userToken | string | The Vk Music user token |
 
-##### Tidal Config Object
-
-| Field  | Type   | Description     |
-|--------|--------|-----------------|
-| ?token | string | The Tidal token |
-
 <details>
 <summary>Example Payload</summary>
 
@@ -335,9 +328,6 @@ PATCH /v4/lavasrc/config
     },
     "vkMusic": {
         "userToken": "your user token"
-    },
-    "tidal": {
-        "token": "your tidal token"
     }
 }
 ```
@@ -703,6 +693,13 @@ searchManager.registerSearchManager(vkmusic);
 
 ### Tidal
 
+<details>
+<summary>How to get tidal token</summary>
+
+Use Google to get the tidal token.
+
+</details>
+
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
@@ -710,13 +707,6 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 var tidal = new TidalSourceManager("your tidal token");
 playerManager.registerSourceManager(tidal);
 ```
-
-#### LavaSearch
-
-> [!NOTE]
-> Tidal does not support LavaSearch.
-
----
 
 ## Supported URLs and Queries
 
@@ -789,6 +779,7 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 ### Tidal
 
 * `tdsearch:animals architects`
+* `tdrec:12345678` (`tdrec:{TRACK_ID}`)
 * https://tidal.com/browse/track/12345678
 * https://tidal.com/browse/album/12345678
 * https://tidal.com/browse/playlist/12345678
