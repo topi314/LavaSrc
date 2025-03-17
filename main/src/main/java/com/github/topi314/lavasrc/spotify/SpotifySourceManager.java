@@ -555,3 +555,4 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
 		this.httpInterfaceManager.configureBuilder(configurator);
 	}
+}
