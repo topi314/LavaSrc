@@ -153,7 +153,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 		String apiUrl = PUBLIC_API_BASE + "tracks/" + trackId + "?countryCode=" + countryCode;
 		var json = getApiResponse(apiUrl);
 
-		if (json == null || json.isNull()) {
+		if (json.isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 
@@ -164,7 +164,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 
 		return getMix(mixId);
 	}
-
 
 	private AudioTrack parseTrack(JsonBrowser audio) {
 		var id = audio.get("id").text();
