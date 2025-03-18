@@ -173,7 +173,6 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			log.warn("Skipping track with null duration. Audio JSON: {}", audio);
 			return null;
 		}
-		var duration = rawDuration;
 		var title = audio.get("title").text();
 		var originalUrl = audio.get("url").text();
 		var artistsArray = audio.get("artists");
@@ -193,7 +192,7 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 			formattedCoverIdentifier +
 			"/1280x1280.jpg";
 		return new TidalAudioTrack(
-			new AudioTrackInfo(title, artistName.toString(), duration, id, false, originalUrl, artworkUrl, isrc),
+			new AudioTrackInfo(title, artistName.toString(), rawDuration, id, false, originalUrl, artworkUrl, isrc),
 			this);
 	}
 
