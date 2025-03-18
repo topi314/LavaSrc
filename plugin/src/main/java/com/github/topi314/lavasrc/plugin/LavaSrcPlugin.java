@@ -73,11 +73,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				appleMusic.setAlbumPageLimit(appleMusicConfig.getAlbumLoadLimit());
 			}
 		}
-
 		if (sourcesConfig.isDeezer() || lyricsSourcesConfig.isDeezer()) {
 			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats());
 		}
-
 		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
 			if (yandexMusicConfig.getPlaylistLoadLimit() > 0) {
