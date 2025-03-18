@@ -44,19 +44,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private VkMusicSourceManager vkMusic;
 	private TidalSourceManager tidal;
 
-	public LavaSrcPlugin(
-		LavaSrcConfig pluginConfig,
-		SourcesConfig sourcesConfig,
-		LyricsSourcesConfig lyricsSourcesConfig,
-		SpotifyConfig spotifyConfig,
-		AppleMusicConfig appleMusicConfig,
-		DeezerConfig deezerConfig,
-		YandexMusicConfig yandexMusicConfig,
-		FloweryTTSConfig floweryTTSConfig,
-		YouTubeConfig youTubeConfig,
-		VkMusicConfig vkMusicConfig,
-		TidalConfig tidalConfig) {
-
+	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig, LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig, DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig, YouTubeConfig youTubeConfig, VkMusicConfig vkMusicConfig, TidalConfig tidalConfig) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
@@ -137,7 +125,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				vkMusic.setRecommendationsLoadLimit(vkMusicConfig.getRecommendationLoadLimit());
 			}
 		}
-
 		if (sourcesConfig.isTidal()) {
 			this.tidal = new TidalSourceManager(pluginConfig.getProviders(), tidalConfig.getCountryCode(), unused -> this.manager, tidalConfig.getToken());
 			if (tidalConfig.getSearchLimit() > 0) {
@@ -183,12 +170,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Vk Music audio source manager...");
 			manager.registerSourceManager(this.vkMusic);
 		}
-
 		if (this.tidal != null) {
 			log.info("Registering Tidal audio source manager...");
 			manager.registerSourceManager(this.tidal);
 		}
-
 		return manager;
 	}
 
@@ -219,7 +204,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering VK Music search manager...");
 			manager.registerSearchManager(this.vkMusic);
 		}
-
 		return manager;
 	}
 
@@ -246,7 +230,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering VK Music lyrics manager...");
 			manager.registerLyricsManager(this.vkMusic);
 		}
-
 		return manager;
 	}
 

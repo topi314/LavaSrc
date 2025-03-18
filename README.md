@@ -8,19 +8,13 @@
 A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer), [LavaSearch](https://github.com/topi314/LavaSearch) & [LavaLyrics](https://github.com/topi314/LavaLyrics)
 Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
 
-* [Spotify](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search
-  results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)
-* [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch) (Big thx
-  to [ryan5453](https://github.com/ryan5453) for helping me)
-* [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics) (Big
-  thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
-* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search
-  results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
+* [Spotify](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)
+* [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch) (Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
+* [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics) (Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
+* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
 * [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
-* [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx
-  to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
-* [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search
-  results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
+* [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
+* [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
 * [Tidal](https://tidal.com) playlists/albums/songs/search results (Thx to [Nansess](https://github.com/Nansess) and [InfNibor](https://github.com/infnibor) for implementing it)
 
 > [!IMPORTANT]
@@ -29,8 +23,8 @@ Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalin
 ## Summary
 
 * [Lavalink Usage](#lavalink-usage)
-    * [Configuration](#configuration)
-    * [Update Settings at Runtime](#update-settings-at-runtime)
+  * [Configuration](#configuration)
+  * [Update Settings at Runtime](#update-settings-at-runtime)
 * [Lavaplayer Usage](#lavaplayer-usage)
 * [Supported URLs and Queries](#supported-urls-and-queries)
 
@@ -169,21 +163,21 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 
 ```json
 {
-    "encoded": "...",
-    "info": {
-        ...
-    },
-    "pluginInfo": {
-        "albumName": "...",
-        "albumArtUrl": "...",
-        "artistUrl": "...",
-        "artistArtworkUrl": "...",
-        "previewUrl": "...",
-        "isPreview": false
-    },
-    "userData": {
-        ...
-    }
+  "encoded": "...",
+  "info": {
+    ...
+  },
+  "pluginInfo": {
+    "albumName": "...",
+    "albumArtUrl": "...",
+    "artistUrl": "...",
+    "artistArtworkUrl": "...",
+    "previewUrl": "...",
+    "isPreview": false
+  },
+  "userData": {
+    ...
+  }
 }
 ```
 
@@ -204,19 +198,19 @@ LavaSrc adds the following fields to tracks & playlists in Lavalink
 
 ```json
 {
-    "info": {
-        ...
-    },
-    "pluginInfo": {
-        "type": "playlist",
-        "url": "...",
-        "artworkUrl": "...",
-        "author": "...",
-        "totalTracks": 10
-    },
-    "tracks": [
-        ...
-    ]
+  "info": {
+    ...
+  },
+  "pluginInfo": {
+    "type": "playlist",
+    "url": "...",
+    "artworkUrl": "...",
+    "author": "...",
+    "totalTracks": 10
+  },
+  "tracks": [
+    ...
+  ]
 }
 ```
 
@@ -304,31 +298,31 @@ PATCH /v4/lavasrc/config
 
 ```json
 {
-    "spotify": {
-        "clientId": "your client id",
-        "clientSecret": "your client secret",
-        "spDc": "your sp dc cookie"
-    },
-    "applemusic": {
-        "mediaAPIToken": "your apple music api token"
-    },
-    "deezer": {
-        "arl": "your deezer arl",
-        "formats": [
-            "FLAC",
-            "MP3_320",
-            "MP3_256",
-            "MP3_128",
-            "MP3_64",
-            "AAC_64"
-        ]
-    },
-    "yandexMusic": {
-        "accessToken": "your access token"
-    },
-    "vkMusic": {
-        "userToken": "your user token"
-    }
+  "spotify": {
+    "clientId": "your client id",
+    "clientSecret": "your client secret",
+    "spDc": "your sp dc cookie"
+  },
+  "applemusic": {
+    "mediaAPIToken": "your apple music api token"
+  },
+  "deezer": {
+    "arl": "your deezer arl",
+    "formats": [
+      "FLAC",
+      "MP3_320",
+      "MP3_256",
+      "MP3_128",
+      "MP3_64",
+      "AAC_64"
+    ]
+  },
+  "yandexMusic": {
+    "accessToken": "your access token"
+  },
+  "vkMusic": {
+    "userToken": "your user token"
+  }
 }
 ```
 
@@ -383,9 +377,9 @@ dependencies {
     <version>x.y.z</version>
   </dependency>
   <dependency>
-      <groupId>com.github.topi314.lavasrc</groupId>
-      <artifactId>lavasrc-protocol-jvm</artifactId>
-      <version>x.y.z</version>
+    <groupId>com.github.topi314.lavasrc</groupId>
+    <artifactId>lavasrc-protocol-jvm</artifactId>
+    <version>x.y.z</version>
   </dependency>
 </dependencies>
 ```
@@ -467,7 +461,7 @@ follow [this guide](https://developer.apple.com/help/account/configure-app-capab
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new AppleMusicSourceManager with the standard providers, apple music api token, countrycode and AudioPlayerManager and register it
-var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken , "us", playerManager);
+var appleMusic = new AppleMusicSourceManager(null, mediaAPIToken, "us", playerManager);
 playerManager.registerSourceManager(appleMusic);
 ```
 
@@ -553,9 +547,8 @@ searchManager.registerSearchManager(deezer);
 1. (Optional) Open DevTools in your browser and on the Network tab enable trotlining.
 2. Go to https://oauth.yandex.ru/authorize?response_type=token&client_id=23cabbbdc6cd418abb4b39c32c41195d
 3. Authorize and grant access
-4. The browser will redirect to the address like `https://music.yandex.ru/#access_token=AQAAAAAYc***&token_type=bearer&expires_in=31535645`.
-   Very quickly there will be a redirect to another page, so you need to have time to copy the
-   link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
+4. The browser will redirect to the address like `https://music.yandex.ru/#access_token=AQAAAAAYc***&token_type=bearer&expires_in=31535645`. Very quickly there will be a redirect to another page, so you need to have time to copy the link.
+  ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
 5. Your accessToken, what is after `access_token`.
 
 Token expires in 1 year. You can get a new one by repeating the steps above.
@@ -644,8 +637,7 @@ playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
 
 #### Carefully, this token can be used to access your personal data. Use a newly created account specifically for LavaSrc. This source is designed mainly for the RU region, 80% of songs in other regions will not be played.
 
-1. Go to the authorization
-   page [Marusya application](https://oauth.vk.com/authorize?client_id=6463690&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1)
+1. Go to the authorization page [Marusya application](https://oauth.vk.com/authorize?client_id=6463690&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1)
 2. Authorize through your vk account.
 3. A link like this `https://oauth.vk.com/blank.html#access_token=$$$$$&expires_in=0&user_id=$$$$$@email=$$$$$@gmail.com`
 4. Copy your token and paste it into your config! Enjoy captcha-free vk music!
