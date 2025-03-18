@@ -5,7 +5,7 @@
 > [!IMPORTANT]
 > For LavaSrc v3 (Lavaplayer v1 & Lavalink v3) look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy)
 
-A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer), [LavaSearch](https://github.com/topi314/LavaSearch) & [LavaLyrics](https://github.com/topi314/LavaLyrics)Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
+A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer), [LavaSearch](https://github.com/topi314/LavaSearch) & [LavaLyrics](https://github.com/topi314/LavaLyrics) Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
 * [Spotify](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)
 * [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch) (Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
 * [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics) (Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
