@@ -15,6 +15,8 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
+import kotlinx.serialization.json.JsonObject;
+import kotlinx.serialization.json.JsonPrimitive;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
@@ -57,13 +59,13 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		return String.join(",", strFormats);
 	}
 
-	private JsonBrowser getJsonResponse(HttpUriRequest request, boolean useArl) throws IOException {
+	private JsonBrowser getJsonResponse(HttpUriRequest request, String arl) throws IOException {
 		try (HttpInterface httpInterface = this.sourceManager.getHttpInterface()) {
 			httpInterface.getContext().setRequestConfig(RequestConfig.custom().setCookieSpec("standard").build());
 			httpInterface.getContext().setCookieStore(cookieStore);
 
-			if (useArl && this.sourceManager.getArl() != null) {
-				request.setHeader("Cookie", "arl=" + this.sourceManager.getArl());
+			if (arl != null) {
+				request.setHeader("Cookie", "arl=" + arl);
 			}
 
 			return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
@@ -72,21 +74,21 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 	private String getSessionId() throws IOException {
 		var getSessionID = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.ping&input=3&api_version=1.0&api_token=");
-		var sessionIdJson = this.getJsonResponse(getSessionID, false);
+		var sessionIdJson = this.getJsonResponse(getSessionID, null);
 
 		DeezerAudioSourceManager.checkResponse(sessionIdJson, "Failed to get session ID: ");
 		return sessionIdJson.get("results").get("SESSION").text();
 	}
 
-	private LicenseToken generateLicenceToken(boolean useArl) throws IOException {
+	private LicenseToken generateLicenceToken(String arl) throws IOException {
 		var request = new HttpGet(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=deezer.getUserData&input=3&api_version=1.0&api_token=");
 
 		// session ID is not needed with ARL and vice-versa.
-		if (!useArl || this.sourceManager.getArl() == null) {
+		if (arl == null) {
 			request.setHeader("Cookie", "sid=" + this.getSessionId());
 		}
 
-		var json = this.getJsonResponse(request, useArl);
+		var json = this.getJsonResponse(request, arl);
 		DeezerAudioSourceManager.checkResponse(json, "Failed to get user token: ");
 
 		return new LicenseToken(
@@ -95,18 +97,18 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		);
 	}
 
-	public SourceWithFormat getSource(boolean useArl, boolean isRetry) throws IOException, URISyntaxException {
-		var licenseToken = this.generateLicenceToken(useArl);
+	public SourceWithFormat getSource(String arl, boolean isRetry) throws IOException, URISyntaxException {
+		var licenseToken = this.generateLicenceToken(arl);
 
 		var getTrackToken = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=song.getData&input=3&api_version=1.0&api_token=" + licenseToken.apiToken);
 		getTrackToken.setEntity(new StringEntity("{\"sng_id\":\"" + this.trackInfo.identifier + "\"}", ContentType.APPLICATION_JSON));
-		var trackTokenJson = this.getJsonResponse(getTrackToken, useArl);
+		var trackTokenJson = this.getJsonResponse(getTrackToken, arl);
 		DeezerAudioSourceManager.checkResponse(trackTokenJson, "Failed to get track token: ");
 
 		if (trackTokenJson.get("error").get("VALID_TOKEN_REQUIRED").text() != null && !isRetry) {
 			// "error":{"VALID_TOKEN_REQUIRED":"Invalid CSRF token"}
 			// seems to indicate an invalid API token?
-			return this.getSource(useArl, true);
+			return this.getSource(arl, true);
 		}
 
 		var trackToken = trackTokenJson.get("results").get("TRACK_TOKEN").text();
@@ -114,11 +116,11 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		var getMediaURL = new HttpPost(DeezerAudioSourceManager.MEDIA_BASE + "/get_url");
 		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + licenseToken.userLicenseToken + "\",\"media\":[{\"type\":\"FULL\",\"formats\":[" + formatFormats(this.sourceManager.getFormats()) + "]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
 
-		var json = this.getJsonResponse(getMediaURL, useArl);
+		var json = this.getJsonResponse(getMediaURL, arl);
 		for (var error : json.get("data").get("errors").values()) {
 			if (error.get("code").asLong(0) == 2000) {
 				// error code 2000 = failed to decode track token
-				return this.getSource(useArl, true);
+				return this.getSource(arl, true);
 			}
 		}
 		DeezerAudioSourceManager.checkResponse(json, "Failed to get media URL: ");
@@ -151,7 +153,19 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 				return;
 			}
 
-			var source = this.getSource(this.sourceManager.getArl() != null, false);
+			String arl = null;
+			var userData = this.getUserData(JsonObject.class);
+			if (userData != null && userData.containsKey("arl")) {
+				var userDataArl = userData.get("arl");
+				if (userDataArl instanceof JsonPrimitive && ((JsonPrimitive) userDataArl).isString()) {
+					arl = ((JsonPrimitive) userDataArl).getContent();
+				}
+			}
+			if (arl == null) {
+				arl = this.sourceManager.getArl();
+			}
+
+			var source = this.getSource(arl, false);
 			try (var stream = new DeezerPersistentHttpStream(httpInterface, source.url, source.contentLength, this.getTrackDecryptionKey())) {
 				processDelegate(source.format.trackFactory.apply(this.trackInfo, stream), executor);
 			}
