@@ -175,11 +175,13 @@ public class TidalSourceManager extends MirroringAudioSourceManager implements H
 		var artistName = audio.get("artists").values().stream().map(artist -> artist.get("name").text()).collect(Collectors.joining(", "));
 
 		var coverIdentifier = audio.get("album").get("cover").text();
+		String artworkUrl;
 		if (coverIdentifier == null) {
-			coverIdentifier = "https://tidal.com/_nuxt/img/logos.d8ce10b.jpg";
+			artworkUrl = "https://tidal.com/_nuxt/img/logos.d8ce10b.jpg";
+		} else {
+			artworkUrl = "https://resources.tidal.com/images/" + coverIdentifier.replaceAll("-", "/") + "/1280x1280.jpg";
 		}
 		var isrc = audio.get("isrc").text();
-		var artworkUrl = "https://resources.tidal.com/images/" + coverIdentifier.replaceAll("-", "/") + "/1280x1280.jpg";
 		return new TidalAudioTrack(new AudioTrackInfo(title, artistName, duration, id, false, originalUrl, artworkUrl, isrc), this);
 	}
 
