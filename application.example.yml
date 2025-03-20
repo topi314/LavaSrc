@@ -20,6 +20,7 @@ plugins:
       youtube: false # Enable YouTube lyrics source
       yandexmusic: false # Enable Yandex Music lyrics source
       vkmusic: false # Enable Vk Music lyrics source
+      tidal: false # Enable Tidal source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
@@ -55,6 +56,10 @@ plugins:
       playlistLoadLimit: 1 # The number of pages at 50 tracks each
       artistLoadLimit: 1 # The number of pages at 10 tracks each
       recommendationsLoadLimit: 10 # Number of tracks
+    tidal:
+      countryCode: "US" # the country code for accessing region-specific content on Tidal (ISO 3166-1 alpha-2).
+      searchLimit: 6 # How many search results should be returned
+      token: "your tidal token" # the token used for accessing the tidal api. See https://github.com/topi314/LavaSrc#tidal
 
 server: # REST and WS server
   port: 2333
