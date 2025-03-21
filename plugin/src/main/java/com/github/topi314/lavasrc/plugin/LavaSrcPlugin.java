@@ -219,10 +219,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			manager.registerSearchManager(this.vkMusic);
 		}
 
-		if (this.qobuz != null && this.sourcesConfig.isQobuz()) {
-			log.info("Registering Qobuz search manager...");
-			manager.registerSearchManager(this.qobuz);
-		}
 		return manager;
 	}
 
