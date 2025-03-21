@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,15 +57,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	private SpotifyTokenTracker tokenTracker;
-	private String spDc;
 	private final String countryCode;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;
 	private boolean localFiles;
 	private boolean resolveArtistsInSearch = true;
-
-	private String spToken;
-	private Instant spTokenExpire;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
 		this(clientId, clientSecret, null, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -87,8 +82,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public SpotifySourceManager(String clientId, String clientSecret, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 
-		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret);
-		this.spDc = spDc;
+		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc);
 
 		if (countryCode == null || countryCode.isEmpty()) {
 			countryCode = "US";
@@ -113,13 +107,11 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public void setClientIDSecret(String clientId, String clientSecret) {
-		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret);
+		this.tokenTracker.setClientIDS(clientId, clientSecret);
 	}
 
 	public void setSpDc(String spDc) {
-		this.spDc = spDc;
-		this.spToken = null;
-		this.spTokenExpire = null;
+		this.tokenTracker.setSpDc(spDc);
 	}
 
 	@NotNull
@@ -170,13 +162,13 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioLyrics getLyrics(String id) throws IOException {
-		if (this.spDc == null || this.spDc.isEmpty()) {
+		if (!this.tokenTracker.hasValidAccountCredentials()) {
 			throw new IllegalArgumentException("Spotify spDc must be set");
 		}
 
 		var request = new HttpGet(CLIENT_API_BASE + "color-lyrics/v2/track/" + id + "?format=json&vocalRemoval=false");
 		request.addHeader("App-Platform", "WebPlayer");
-		request.addHeader("Authorization", "Bearer " + this.getSpToken());
+		request.addHeader("Authorization", "Bearer " + this.tokenTracker.getAccountToken());
 		var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 		if (json == null) {
 			return null;
@@ -276,23 +268,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			throw new RuntimeException(e);
 		}
 		return null;
-	}
-
-	public void requestSpToken() throws IOException {
-		var request = new HttpGet("https://open.spotify.com/get_access_token?reason=transport&productType=web_player");
-		request.addHeader("App-Platform", "WebPlayer");
-		request.addHeader("Cookie", "sp_dc=" + this.spDc);
-
-		var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
-		this.spToken = json.get("accessToken").text();
-		this.spTokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
-	}
-
-	public String getSpToken() throws IOException {
-		if (this.spToken == null || this.spTokenExpire == null || this.spTokenExpire.isBefore(Instant.now())) {
-			this.requestSpToken();
-		}
-		return this.spToken;
 	}
 
 	public JsonBrowser getJson(String uri) throws IOException {
@@ -555,5 +530,4 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
 		this.httpInterfaceManager.configureBuilder(configurator);
 	}
-
 }

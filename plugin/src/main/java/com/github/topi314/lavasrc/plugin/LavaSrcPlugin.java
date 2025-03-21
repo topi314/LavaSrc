@@ -13,6 +13,7 @@ import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
 import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
+import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
@@ -42,12 +43,13 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private FloweryTTSSourceManager flowerytts;
 	private YoutubeSearchManager youtube;
 	private VkMusicSourceManager vkMusic;
+	private TidalSourceManager tidal;
 	private QobuzAudioSourceManager qobuz;
 
 	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig,
 			LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig,
 			DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig,
-			YouTubeConfig youTubeConfig, VkMusicConfig vkMusicConfig, QobuzConfig qobuzConfig) {
+			YouTubeConfig youTubeConfig, VkMusicConfig vkMusicConfig, TidalConfig tidalConfig, QobuzConfig qobuzConfig) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
@@ -127,6 +129,12 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				vkMusic.setRecommendationsLoadLimit(vkMusicConfig.getRecommendationLoadLimit());
 			}
 		}
+		if (sourcesConfig.isTidal()) {
+			this.tidal = new TidalSourceManager(pluginConfig.getProviders(), tidalConfig.getCountryCode(), unused -> this.manager, tidalConfig.getToken());
+			if (tidalConfig.getSearchLimit() > 0) {
+				this.tidal.setSearchLimit(tidalConfig.getSearchLimit());
+			}
+		}
 
 		if (sourcesConfig.isQobuz()) {
 			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(),
@@ -170,6 +178,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.vkMusic != null) {
 			log.info("Registering Vk Music audio source manager...");
 			manager.registerSourceManager(this.vkMusic);
+		}
+		if (this.tidal != null) {
+			log.info("Registering Tidal audio source manager...");
+			manager.registerSourceManager(this.tidal);
 		}
 
 		if (this.qobuz != null) {
