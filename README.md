@@ -16,6 +16,8 @@
 | VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct   | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
 | Tidal           | 📁💿🎵🗣️       | Mirror   | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/@InfNibor)                                      |
 
+## Features
+
 - 📁 playlists
 - 💿 albums
 - 🎵 tracks
@@ -24,8 +26,12 @@
 - 🔬 [LavaSearch](https://github.com/topi314/LavaSearch)
 - 📜 [LavaLyrics](https://github.com/topi314/LavaLyrics)
 
-> [!IMPORTANT]
-> Tracks resolved from sources with `Mirror` playback do not actually play from that source, but are instead resolved via the configured providers.
+### What is Mirroring?
+
+Mirroring is the process of taking the metadata resolved from one source and using it to retrieve a playable `AudioTrack` from another.
+
+For example, LavaSrc cannot directly play from Spotify, or any source marked as `Mirror` playback, so it must use a LavaSrc platform marked as `Direct`, like Deezer.
+You may also use any source manager registered to your `AudioPlayerManager`.
 
 ## Summary
 
