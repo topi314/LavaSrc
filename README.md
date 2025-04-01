@@ -27,7 +27,7 @@
 | Flowery TTS     |                 | Direct                       | [@bachtran02](https://github.com/bachtran02)                                                                           |
 | YouTube (Music) | 🔬📜            | N/A                          | [@topi314](https://github.com/topi314), [@DRSchlaubi](https://github.com/DRSchlaubi)                                   |
 | VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
-| Tidal           | 📁💿🎵🗣️       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/@InfNibor)                                      |
+| Tidal           | 📁💿🎵🗣️       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
 
 ### Features
 
