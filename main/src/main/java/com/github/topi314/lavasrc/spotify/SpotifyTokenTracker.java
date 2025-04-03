@@ -34,6 +34,8 @@ import java.util.regex.Pattern;
 public class SpotifyTokenTracker {
 	private static final Logger log = LoggerFactory.getLogger(SpotifyTokenTracker.class);
 
+	private static final Pattern SECRET_PATTERN = Pattern.compile("secret:function\\([^)]+\\)\\{.*?\\[(.*?)\\].*?\\}", Pattern.DOTALL);
+
 	private final SpotifySourceManager sourceManager;
 
 	private String clientId;
@@ -173,7 +175,7 @@ public class SpotifyTokenTracker {
 			mac.init(keySpec);
 			byte[] hash = mac.doFinal(timeBytes);
 			int offset = hash[hash.length - 1] & 0xF;
-			int binary = ((hash[offset] & 0x7F) << 24) | ((hash[offset + 1] & 0xFF) << 16) | // please no break
+			int binary = ((hash[offset] & 0x7F) << 24) | ((hash[offset + 1] & 0xFF) << 16) |
 				((hash[offset + 2] & 0xFF) << 8) | (hash[offset + 3] & 0xFF);
 			int otp = binary % (int) Math.pow(10, digits);
 			return String.format("%0" + digits + "d", otp);
@@ -187,11 +189,10 @@ public class SpotifyTokenTracker {
 		try (CloseableHttpResponse scriptResponse = client.execute(scriptRequest)) {
 			String scriptContent = EntityUtils.toString(scriptResponse.getEntity());
 
-			Pattern pattern = Pattern.compile("secret:function\\([^)]+\\)\\{.*?\\[(.*?)\\].*?\\}", Pattern.DOTALL); // fuck spotify
-			Matcher matcher = pattern.matcher(scriptContent);
+			Matcher matcher = SECRET_PATTERN.matcher(scriptContent);
 			if (matcher.find()) {
 				String secretArrayString = matcher.group(1);
-				String[] secretArray = secretArrayString.split(","); // gay asf that i did it like this but fuck it
+				String[] secretArray = secretArrayString.split(",");
 				byte[] secretByteArray = new byte[secretArray.length];
 				for (int i = 0; i < secretArray.length; i++) {
 					secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
