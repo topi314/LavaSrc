@@ -5,26 +5,47 @@
 > [!IMPORTANT]
 > For LavaSrc v3 (Lavaplayer v1 & Lavalink v3) look [here](https://github.com/topi314/LavaSrc/tree/v3-legacy)
 
-A collection of additional [Lavaplayer v2](https://github.com/sedmelluq/lavaplayer), [LavaSearch](https://github.com/topi314/LavaSearch) & [LavaLyrics](https://github.com/topi314/LavaLyrics) Audio Source Managers and [Lavalink v4](https://github.com/lavalink-devs/Lavalink) Plugin.
-* [Spotify](https://www.spotify.com) playlists/albums/songs/artists(top tracks)/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)
-* [Apple Music](https://www.apple.com/apple-music/) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch) (Big thx to [ryan5453](https://github.com/ryan5453) for helping me)
-* [Deezer](https://www.deezer.com) playlists/albums/songs/artists/search results/[LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics) (Big thx to [ryan5453](https://github.com/ryan5453) and [melike2d](https://github.com/melike2d) for helping me)
-* [Yandex Music](https://music.yandex.ru) playlists/albums/songs/artists/podcasts/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [AgutinVBoy](https://github.com/agutinvboy) for implementing it)
-* [Flowery TTS](https://flowery.pw/docs) (Thx to [bachtran02](https://github.com/bachtran02) for implementing it)
-* [YouTube](https://youtube.com) & [YouTubeMusic](https://music.youtube.com/) [LavaSearch](https://github.com/topi314/LavaSearch)/[LavaLyrics](https://github.com/topi314/LavaLyrics)  (Thx to [DRSchlaubi](https://github.com/DRSchlaubi) for helping me)
-* [Vk Music](https://music.vk.com/) playlists/albums/songs/artists(top tracks)/search results/[LavaLyrics](https://github.com/topi314/LavaLyrics)/[LavaSearch](https://github.com/topi314/LavaSearch) (Thx to [Krispeckt](https://github.com/Krispeckt) for implementing it)
-* [Tidal](https://tidal.com) playlists/albums/songs/search results (Thx to [Nansess](https://github.com/Nansess) and [InfNibor](https://github.com/infnibor) for implementing it)
-
-> [!IMPORTANT]
-> Tracks from Spotify & Apple Music & Tidal don't actually play from their sources, but are instead resolved via the configured providers
-
 ## Summary
 
+* [Sources](#sources)
+    * [Features](#features)
+    * [What is Mirroring?](#what-is-mirroring)
 * [Lavalink Usage](#lavalink-usage)
-  * [Configuration](#configuration)
-  * [Update Settings at Runtime](#update-settings-at-runtime)
+    * [Configuration](#configuration)
+    * [Update Settings at Runtime](#update-settings-at-runtime)
 * [Lavaplayer Usage](#lavaplayer-usage)
 * [Supported URLs and Queries](#supported-urls-and-queries)
+
+# Sources
+
+| Source          | Features        | Playback                     | Credits                                                                                                                |
+|-----------------|-----------------|------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| Spotify         | 📁💿🎵🧑🔍🔬📜  | [Mirror](#what-is-mirroring) | [@topi314](https://github.com/topi314)                                                                                 |
+| Apple Music     | 📁💿🎵🧑🔍🔬📜  | [Mirror](#what-is-mirroring) | [@ryan5453](https://github.com/ryan5453)                                                                               |
+| Deezer          | 📁💿🎵🧑🔍🔬📜  | Direct                       | [@topi314](https://github.com/topi314), [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea) |
+| Yandex          | 📁💿🎵🧑🔍🔬📜  | Direct                       | [@agutinvboy](https://github.com/agutinvboy)                                                                           |
+| Flowery TTS     |                 | Direct                       | [@bachtran02](https://github.com/bachtran02)                                                                           |
+| YouTube (Music) | 🔬📜            | N/A                          | [@topi314](https://github.com/topi314), [@DRSchlaubi](https://github.com/DRSchlaubi)                                   |
+| VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
+| Tidal           | 📁💿🎵🗣️       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
+
+### Features
+
+- 📁 playlists
+- 💿 albums
+- 🎵 tracks
+- 🧑 artist top tracks
+- 🔍 search results
+- 🔬 [LavaSearch](https://github.com/topi314/LavaSearch)
+- 📜 [LavaLyrics](https://github.com/topi314/LavaLyrics)
+
+> [!IMPORTANT]
+> ### What is Mirroring?
+>
+> Mirroring is the process of taking the metadata resolved from one source and using it to retrieve a playable `AudioTrack` from another.
+>
+> For example, LavaSrc cannot directly play from Spotify, or any source marked as `Mirror` playback, so it must use a LavaSrc platform marked as `Direct`, like Deezer.
+> You may also use any source manager registered to your `AudioPlayerManager`.
 
 ## Lavalink Usage
 
@@ -118,7 +139,7 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 300 tracks each
     deezer:
       masterDecryptionKey: "your master decryption key" # the master key used for decrypting the deezer tracks. (yes this is not here you need to get it from somewhere else)
-      arl: "your deezer arl" # the arl cookie used for accessing the deezer api this does not appear to be optional anymore
+      arl: "your deezer arl" # the arl cookie used for accessing the deezer api this is not optional anymore
       formats: [ "FLAC", "MP3_320", "MP3_256", "MP3_128", "MP3_64", "AAC_64" ] # the formats you want to use for the deezer tracks. "FLAC", "MP3_320", "MP3_256" & "AAC_64" are only available for premium users and require a valid arl
     yandexmusic:
       accessToken: "your access token" # the token used for accessing the yandex music api. See https://github.com/TopiSenpai/LavaSrc#yandex-music
