@@ -196,23 +196,26 @@ public class QobuzAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 	public static String fetchBundleString() throws IOException {
 		String loginPageUrl = WEB_PLAYER_BASE_URL + "/login";
-		CloseableHttpClient httpClient = HttpClients.createDefault();
-		HttpGet httpGet = new HttpGet(loginPageUrl);
-		HttpResponse response = httpClient.execute(httpGet);
-		HttpEntity entity = response.getEntity();
-		String loginPageHtml = EntityUtils.toString(entity);
-		Pattern bundlePattern = Pattern
-				.compile("<script src=\"(?<bundleJS>/resources/\\d+\\.\\d+\\.\\d+-[a-z]\\d{3}/bundle\\.js)\"");
-		Matcher bundleMatcher = bundlePattern.matcher(loginPageHtml);
-
-		if (!bundleMatcher.find()) {
-			throw new IllegalStateException("Failed to extract bundle.js URL");
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpGet httpGet = new HttpGet(loginPageUrl);
+			String bundleUrl;
+			try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+				HttpEntity entity = response.getEntity();
+				String loginPageHtml = EntityUtils.toString(entity);
+				Pattern bundlePattern = Pattern.compile(
+						"<script src=\"(?<bundleJS>/resources/\\d+\\.\\d+\\.\\d+-[a-z]\\d{3}/bundle\\.js)\"");
+				Matcher bundleMatcher = bundlePattern.matcher(loginPageHtml);
+				if (!bundleMatcher.find()) {
+					throw new IllegalStateException("Failed to extract bundle.js URL");
+				}
+				bundleUrl = WEB_PLAYER_BASE_URL + bundleMatcher.group("bundleJS");
+			}
+			HttpGet bundleRequest = new HttpGet(bundleUrl);
+			try (CloseableHttpResponse response = httpClient.execute(bundleRequest)) {
+				HttpEntity entity = response.getEntity();
+				return EntityUtils.toString(entity);
+			}
 		}
-		String bundleUrl = WEB_PLAYER_BASE_URL + bundleMatcher.group("bundleJS");
-		HttpGet bundleRequest = new HttpGet(bundleUrl);
-		response = httpClient.execute(bundleRequest);
-		entity = response.getEntity();
-		return EntityUtils.toString(entity);
 	}
 
 	public static String getWebPlayerAppId(String bundleJsContent) {
