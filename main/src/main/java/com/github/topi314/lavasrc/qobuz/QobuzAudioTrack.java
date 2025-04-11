@@ -22,16 +22,14 @@ public class QobuzAudioTrack extends ExtendedAudioTrack {
         this(trackInfo, null, null, null, null, null, false, sourceManager);
     }
 
-    public QobuzAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl,
-            String artistArtworkUrl, String previewUrl, boolean isPreview, QobuzAudioSourceManager sourceManager) {
+    public QobuzAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl,String artistArtworkUrl, String previewUrl, boolean isPreview, QobuzAudioSourceManager sourceManager) {
         super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview);
         this.sourceManager = sourceManager;
     }
 
     private URI getTrackMediaURI() throws Exception {
         long unixTs = System.currentTimeMillis() / 1000L;
-        String rSig = String.format("trackgetFileUrlformat_id%dintentstream" +
-                "track_id%d%d%s", 5, Integer.parseInt(this.getIdentifier()), unixTs, this.sourceManager.getAppSecret());
+        String rSig = String.format("trackgetFileUrlformat_id%dintentstream" + "track_id%d%d%s", 5, Integer.parseInt(this.getIdentifier()), unixTs, this.sourceManager.getAppSecret());
         String rSigHashed = getMd5Hash(rSig);
         Map<String, String> params = new HashMap<>();
         params.put("request_ts", String.valueOf(unixTs));
@@ -79,16 +77,13 @@ public class QobuzAudioTrack extends ExtendedAudioTrack {
         try (var httpInterface = this.sourceManager.getHttpInterface()) {
             if (this.isPreview) {
                 if (this.previewUrl == null) {
-                    throw new FriendlyException("No preview url found", FriendlyException.Severity.COMMON,
-                            new IllegalArgumentException());
+                    throw new FriendlyException("No preview url found", FriendlyException.Severity.COMMON,new IllegalArgumentException());
                 }
-                try (var stream = new PersistentHttpStream(httpInterface, new URI(this.previewUrl),
-                        this.trackInfo.length)) {
+                try (var stream = new PersistentHttpStream(httpInterface, new URI(this.previewUrl),null)) {
                     processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
                 }
             } else {
-                try (var stream = new PersistentHttpStream(httpInterface, this.getTrackMediaURI(),
-                        this.trackInfo.length)) {
+                try (var stream = new PersistentHttpStream(httpInterface, this.getTrackMediaURI(),null)) {
                     processDelegate(new Mp3AudioTrack(this.trackInfo, stream), executor);
                 }
             }
@@ -97,8 +92,7 @@ public class QobuzAudioTrack extends ExtendedAudioTrack {
 
     @Override
     protected AudioTrack makeShallowClone() {
-        return new QobuzAudioTrack(this.trackInfo, this.albumName, this.albumUrl, this.artistUrl, this.artistArtworkUrl,
-                this.previewUrl, this.isPreview, this.sourceManager);
+        return new QobuzAudioTrack(this.trackInfo, this.albumName, this.albumUrl, this.artistUrl, this.artistArtworkUrl,this.previewUrl, this.isPreview, this.sourceManager);
     }
 
     @Override
