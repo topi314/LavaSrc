@@ -80,7 +80,8 @@ public class SourcesConfig {
 
 	public void setQobuz(boolean qobuz) {
 		this.qobuz = qobuz;
-	}	
+	}
+
 	public boolean isTidal() {
 		return this.tidal;
 	}

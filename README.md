@@ -111,7 +111,7 @@ plugins:
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
       tidal: false # Enable Tidal source
-      qobuz : false # Enabled qobuz Music source
+      qobuz : false # Enabled qobuz source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -276,7 +276,7 @@ PATCH /v4/lavasrc/config
 | ?deezer      | [Deezer Config](#deezer-config-object)             | The Deezer settings       |
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
-| ?qobuz       | [Qobuz Music Config](#qobuz-music-config-object)   | The Qobuz Music settings  |
+| ?qobuz       | [Qobuz Config](#qobuz-config-object)               | The Qobuz settings        |
 
 ##### Spotify Config Object
 
@@ -322,13 +322,13 @@ PATCH /v4/lavasrc/config
 |------------|--------|-------------------------|
 | ?userToken | string | The Vk Music user token |
 
-#### Qobuz Music Config Object
+#### Qobuz Config Object
 
-| Field           | Type   | Description                |
-|-----------------|--------|----------------------------|
-| ?userOauthToken | string | The Qobuz Music user token |
-| ?appId          | String | The Qobuz Music App ID     |
-| ?appSecret      | string | The Qobuz Music App Secret |
+| Field           | Type   | Description          |
+|-----------------|--------|----------------------|
+| ?userOauthToken | string | The Qobuz user token |
+| ?appId          | String | The Qobuz App ID     |
+| ?appSecret      | string | The Qobuz App Secret |
 
 <details>
 <summary>Example Payload</summary>
@@ -359,11 +359,11 @@ PATCH /v4/lavasrc/config
   },
   "vkMusic": {
     "userToken": "your user token"
-    },
-    "qobuz": {
-      "userOauthToken" : "your user token",
-      "appId" : "your app ID",
-      "appSecret" : "your app Secret"
+  },
+  "qobuz": {
+    "userOauthToken": "your user token",
+    "appId": "your app ID",
+    "appSecret": "your app Secret"
   }
 }
 ```
@@ -766,20 +766,6 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 // create a new QobuzAudioSourceManager with the userOauthToken and register it
 playerManager.registerSourceManager(new QobuzAudioSourceManager("...");
 ```
-#### LavaSearch
-
-<details>
-<summary>Click to expand</summary>
-
-```java
-// create new search manager
-var searchManager = new SearchManager();
-
-// register source
-searchManager.registerSearchManager(qobuz);
-```
-
-</details>
 
 ---
 ## Supported URLs and Queries
