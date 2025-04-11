@@ -41,11 +41,10 @@ import java.util.Base64;
 public class QobuzAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable{
 	private static final Logger log = LoggerFactory.getLogger(QobuzAudioSourceManager.class);
 	private static final String WEB_PLAYER_BASE_URL = "https://play.qobuz.com";
-	public static final String API_URL = "https://www.qobuz.com/api.json/0.2/";
-	public static final String DEFAULT_APP_ID = "950096963";
-	public static final String DEFAULT_APP_SECRET = "979549437fcc4a3faad4867b5cd25dcb";
-	public static final Pattern URL_PATTERN = Pattern.compile(
-			"https?://(?:www\\.|play\\.|open\\.)?qobuz\\.com/(?:(?:[a-z]{2}-[a-z]{2}/)?(?<type>album|playlist|track|artist)/(?:.+?/)?(?<id>[a-zA-Z0-9]+)|(?<type2>playlist)/(?<id2>\\d+))");
+	private static final String API_URL = "https://www.qobuz.com/api.json/0.2/";
+	private static final String DEFAULT_APP_ID = "950096963";
+	private static final String DEFAULT_APP_SECRET = "979549437fcc4a3faad4867b5cd25dcb";
+	private static final Pattern URL_PATTERN = Pattern.compile("https?://(?:www\\.|play\\.|open\\.)?qobuz\\.com/(?:(?:[a-z]{2}-[a-z]{2}/)?(?<type>album|playlist|track|artist)/(?:.+?/)?(?<id>[a-zA-Z0-9]+)|(?<type2>playlist)/(?<id2>\\d+))");
 	public static final String SEARCH_PREFIX = "qbsearch:";
 	public static final String ISRC_PREFIX = "qbisrc:";
 	public static final String RECOMMENDATIONS_PREFIX = "qbrec:";
