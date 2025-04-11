@@ -46,10 +46,20 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private TidalSourceManager tidal;
 	private QobuzAudioSourceManager qobuz;
 
-	public LavaSrcPlugin(LavaSrcConfig pluginConfig, SourcesConfig sourcesConfig,
-	                     LyricsSourcesConfig lyricsSourcesConfig, SpotifyConfig spotifyConfig, AppleMusicConfig appleMusicConfig,
-	                     DeezerConfig deezerConfig, YandexMusicConfig yandexMusicConfig, FloweryTTSConfig floweryTTSConfig,
-	                     YouTubeConfig youTubeConfig, VkMusicConfig vkMusicConfig, TidalConfig tidalConfig, QobuzConfig qobuzConfig) {
+	public LavaSrcPlugin(
+		LavaSrcConfig pluginConfig,
+		SourcesConfig sourcesConfig,
+		LyricsSourcesConfig lyricsSourcesConfig,
+		SpotifyConfig spotifyConfig,
+		AppleMusicConfig appleMusicConfig,
+		DeezerConfig deezerConfig,
+		YandexMusicConfig yandexMusicConfig,
+		FloweryTTSConfig floweryTTSConfig,
+		YouTubeConfig youTubeConfig,
+		VkMusicConfig vkMusicConfig,
+		TidalConfig tidalConfig,
+		QobuzConfig qobuzConfig
+	) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
