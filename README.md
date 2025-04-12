@@ -750,7 +750,7 @@ playerManager.registerSourceManager(tidal);
 
 ### WARNING!
 
-#### If you are using an older userOauthToken, you must specify the `x-app-id` in the config. Each userOauthToken is associated with a specific app ID. If you don't specify the `x-app-id` in the config, the latest fetched one will be used, or it may not work.
+#### If you are using an older userOauthToken, you must specify the `x-app-id` in the config. Each userOauthToken is associated with a specific app ID. If you don't specify the `x-app-id` in the config, the latest fetched one will be used and it may not work.
 
 To retrieve the token:
 1. Open Qobuz in any web browser and log in with your Qobuz account.

@@ -15,8 +15,6 @@ public class QobuzTokenTracker {
 	private static final Pattern BUNDLE_PATTERN = Pattern.compile("<script src=\"(?<bundleJS>/resources/\\d+\\.\\d+\\.\\d+-[a-z]\\d{3}/bundle\\.js)\"");
 	private static final Pattern APP_ID_PATTERN = Pattern.compile("production:\\{api:\\{appId:\"(?<appID>.*?)\",appSecret:");
 	private static final Pattern SEED_PATTERN = Pattern.compile("\\):[a-z]\\.initialSeed\\(\"(?<seed>.*?)\",window\\.utimezone\\.(?<timezone>[a-z]+)\\)");
-	private static final String DEFAULT_APP_ID = "950096963";
-	private static final String DEFAULT_APP_SECRET = "979549437fcc4a3faad4867b5cd25dcb";
 	private static final String WEB_PLAYER_BASE_URL = "https://play.qobuz.com";
 
 	private final QobuzAudioSourceManager sourceManager;
@@ -123,10 +121,8 @@ public class QobuzTokenTracker {
 			this.appId = this.getWebPlayerAppId(bundleJsContent);
 			this.appSecret = this.getWebPlayerAppSecret(bundleJsContent);
 			log.info("Fetched Qobuz App ID :{} and App Secret :{}", this.appId, this.appSecret);
-		} catch (Exception e) {
-			this.appId = DEFAULT_APP_ID;
-			this.appSecret = DEFAULT_APP_SECRET;
-			log.error("Failed to fetch app info falling back to default values.", e);
+		} catch (IOException e) {
+			throw new IllegalStateException("Failed to extract app_id from bundle.js", e);
 		}
 	}
 
