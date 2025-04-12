@@ -13,7 +13,7 @@ fun musicContext(locale: Locale): InnerTubeContext {
             "WEB_REMIX",
             "1.20230102.01.00",
             safeLocale.language,
-            safeLocale.country!!
+            safeLocale.country
         )
     )
 }

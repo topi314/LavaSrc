@@ -2,7 +2,6 @@ package com.github.topi314.lavasrc.youtube
 
 import com.github.topi314.lavalyrics.AudioLyricsManager
 import com.github.topi314.lavalyrics.lyrics.AudioLyrics
-
 import com.github.topi314.lavasearch.AudioSearchManager
 import com.github.topi314.lavasearch.result.AudioSearchResult
 import com.github.topi314.lavasearch.result.AudioText
@@ -17,11 +16,12 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo
-import dev.schlaubi.lyrics.LyricsNotFoundException
 import dev.lavalink.youtube.YoutubeAudioSourceManager
 import dev.lavalink.youtube.track.YoutubeAudioTrack
+import dev.schlaubi.lyrics.LyricsNotFoundException
 import org.apache.http.client.methods.HttpGet
 import java.net.URLEncoder
+import java.util.*
 import com.github.topi314.lavasrc.youtube.innertube.MusicResponsiveListItemRenderer.NavigationEndpoint.BrowseEndpoint.Configs.Config.Type as PageType
 
 private val searchPattern = """\["([\w\s]+)",\s*\d+,\s*\[(?:\d+,?\s*)+]""".toRegex()
@@ -38,8 +38,15 @@ private fun MusicResponsiveListItemRenderer.NavigationEndpoint.toUrl() = when {
 
 class YoutubeSearchManager(
     private val playerManager: () -> AudioPlayerManager,
-    private val region: String
+    private val region: String,
+    private val language: String
 ) : AudioSearchManager, AudioLyricsManager {
+
+    constructor(
+        playerManager: () -> AudioPlayerManager,
+        region: String,
+    ) : this(playerManager, region, "en")
+
     companion object {
         const val SEARCH_PREFIX = "ytsearch:"
         const val MUSIC_SEARCH_PREFIX = "ytmsearch:"
@@ -73,7 +80,7 @@ class YoutubeSearchManager(
         val result = httpInterfaceManager.`interface`.use {
             when {
                 query.startsWith(MUSIC_SEARCH_PREFIX) ->
-                    it.requestMusicAutoComplete(query.removePrefix(MUSIC_SEARCH_PREFIX))
+                    it.requestMusicAutoComplete(query.removePrefix(MUSIC_SEARCH_PREFIX), locale = Locale(language, region))
 
                 query.startsWith(SEARCH_PREFIX) -> {
                     val response = requestYoutubeAutoComplete(query.removePrefix(SEARCH_PREFIX))
@@ -165,7 +172,7 @@ class YoutubeSearchManager(
         val input = httpInterfaceManager.`interface`.use {
             val encodedQuery = URLEncoder.encode(query, Charsets.UTF_8)
             val request =
-                HttpGet("https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&q=$encodedQuery")
+                HttpGet("https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&q=$encodedQuery&gl=$region&hl=$language")
             it.execute(request).entity.content.readAllBytes().decodeToString()
         }
 
