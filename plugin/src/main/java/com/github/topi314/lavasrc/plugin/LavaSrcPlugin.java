@@ -106,7 +106,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (sourcesConfig.isYoutube() || lyricsSourcesConfig.isYoutube()) {
 			if (hasNewYoutubeSource()) {
 				log.info("Registering Youtube Source audio source manager...");
-				this.youtube = new YoutubeSearchManager(() -> manager, youTubeConfig.getCountryCode());
+				this.youtube = new YoutubeSearchManager(() -> manager, youTubeConfig.getCountryCode(), youTubeConfig.getLanguage());
 			} else {
 				throw new IllegalStateException("Youtube LavaSearch requires the new Youtube Source plugin to be enabled.");
 			}
