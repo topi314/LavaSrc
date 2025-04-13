@@ -28,6 +28,8 @@
 | YouTube (Music) | 🔬📜            | N/A                          | [@topi314](https://github.com/topi314), [@DRSchlaubi](https://github.com/DRSchlaubi)                                   |
 | VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
 | Tidal           | 📁💿🎵🗣️       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
+| Qobuz           | 📁💿🎵🗣️       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
+ 
 
 ### Features
 
@@ -86,6 +88,8 @@ To get your Vk Music user token go [here](#vk-music)
 
 To get your Tidal token go [here](#tidal)
 
+To get your Qobuz userOauthToken go [here](#qobuz)
+
 > [!WARNING]
 > YES `plugins` IS AT ROOT IN THE YAML
 
@@ -107,6 +111,7 @@ plugins:
       youtube: false # Enable YouTube search source (https://github.com/topi314/LavaSearch)
       vkmusic: false # Enable Vk Music source
       tidal: false # Enable Tidal source
+      qobuz : false # Enabled qobuz source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -161,6 +166,10 @@ plugins:
       countryCode: "US" # the country code for accessing region-specific content on Tidal (ISO 3166-1 alpha-2).
       searchLimit: 6 # How many search results should be returned
       token: "your tidal token" # the token used for accessing the tidal api. See https://github.com/topi314/LavaSrc#tidal
+    qobuz:
+      userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc/tree/qobuz-rewrite#qobuz
+      #appId : optional (Only pass it when you are using an old userOauthToken)
+      #appSecret : optional (Only pass it when you are using an old userOauthToken)
 ```
 
 ### Plugin Info
@@ -268,6 +277,7 @@ PATCH /v4/lavasrc/config
 | ?deezer      | [Deezer Config](#deezer-config-object)             | The Deezer settings       |
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
+| ?qobuz       | [Qobuz Config](#qobuz-config-object)               | The Qobuz settings        |
 
 ##### Spotify Config Object
 
@@ -313,6 +323,14 @@ PATCH /v4/lavasrc/config
 |------------|--------|-------------------------|
 | ?userToken | string | The Vk Music user token |
 
+#### Qobuz Config Object
+
+| Field           | Type   | Description          |
+|-----------------|--------|----------------------|
+| ?userOauthToken | string | The Qobuz user token |
+| ?appId          | String | The Qobuz App ID     |
+| ?appSecret      | string | The Qobuz App Secret |
+
 <details>
 <summary>Example Payload</summary>
 
@@ -342,6 +360,11 @@ PATCH /v4/lavasrc/config
   },
   "vkMusic": {
     "userToken": "your user token"
+  },
+  "qobuz": {
+    "userOauthToken": "your user token",
+    "appId": "your app ID",
+    "appSecret": "your app Secret"
   }
 }
 ```
@@ -721,6 +744,31 @@ var tidal = new TidalSourceManager(countryCode, () -> playerManager, new Default
 playerManager.registerSourceManager(tidal);
 ```
 
+### Qobuz
+
+<details>
+<summary>How to get the userOauthToken</summary>
+
+### WARNING!
+
+#### If you are using an older userOauthToken, you must specify the `x-app-id` in the config. Each userOauthToken is associated with a specific app ID. If you don't specify the `x-app-id` in the config, the latest fetched one will be used and it may not work.
+
+To retrieve the token:
+1. Open Qobuz in any web browser and log in with your Qobuz account.
+2. Press **F12** to open the developer tools and navigate to the **Network** tab.
+3. Select any request and check the request headers.
+4. Copy the value of the `x-user-auth-token` and paste it into the config.
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new QobuzAudioSourceManager with the userOauthToken and register it
+playerManager.registerSourceManager(new QobuzAudioSourceManager("...");
+```
+
+---
 ## Supported URLs and Queries
 
 ### Spotify
@@ -797,4 +845,14 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://tidal.com/browse/playlist/12345678
 * https://tidal.com/browse/artist/12345678
 
+### Qobuz 
+
+* `qbsearch:animals architects`
+* `qbisrc:USEP42058010` (`qbisrc:ISRC`)
+* `qbrec:295210968` (`qbrec:{TRACK_ID}`)
+* https://open.qobuz.com/track/52151405
+* https://play.qobuz.com/album/c9wsrrjh49ftb
+* https://play.qobuz.com/playlist/24893079
+* https://play.qobuz.com/artist/2070395
+* https://www.qobuz.com/us-en/album/kesariya-pritam-arijit-singh-amitabh-bhattacharya/cxtiqss1up8ub
 ---
