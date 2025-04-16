@@ -21,6 +21,7 @@ plugins:
       yandexmusic: false # Enable Yandex Music lyrics source
       vkmusic: false # Enable Vk Music lyrics source
       tidal: false # Enable Tidal source
+      qobuz: false # Enable Qobuz source
     spotify:
       clientId: "your client id"
       clientSecret: "your client secret"
