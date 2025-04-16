@@ -167,7 +167,7 @@ plugins:
       searchLimit: 6 # How many search results should be returned
       token: "your tidal token" # the token used for accessing the tidal api. See https://github.com/topi314/LavaSrc#tidal
     qobuz:
-      userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc/tree/qobuz-rewrite#qobuz
+      userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc#qobuz
       #appId : optional (Only pass it when you are using an old userOauthToken)
       #appSecret : optional (Only pass it when you are using an old userOauthToken)
 ```
