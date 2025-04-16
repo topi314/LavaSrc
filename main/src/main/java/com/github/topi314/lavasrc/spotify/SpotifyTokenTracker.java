@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 public class SpotifyTokenTracker {
 	private static final Logger log = LoggerFactory.getLogger(SpotifyTokenTracker.class);
 
-	private static final Pattern SECRET_PATTERN = Pattern.compile("pI\s*\(\[(\d+(?:,\d+)*)]\)", Pattern.DOTALL);
+	private static final Pattern SECRET_PATTERN = Pattern.compile("\[(12\s*,\s*56\s*,\s*76(?:\s*,\s*\d+)*?)]", Pattern.DOTALL);
 
 	private final SpotifySourceManager sourceManager;
 
