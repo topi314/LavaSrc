@@ -23,22 +23,57 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
+public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable {
 
 	public static final String SEARCH_PREFIX = "ytsearch:";
 
 	private static final Pattern URL_PATTERN = Pattern.compile("https?://(?:www\\.|m\\.|music\\.|)youtube\\.com/.*");
 	private static final Pattern SHORT_URL_PATTERN = Pattern.compile("https?://(?:www\\.|)youtu\\.be/.*");
 
-	private static final Logger log = LoggerFactory.getLogger(YTDLPAudioSourceManager.class);
-
-	private final String path;
+	private static final Logger log = LoggerFactory.getLogger(YtdlpAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager;
+	private String path;
+	private String[] customLoadArgs;
+	private String[] customPlaybackArgs;
 
 
-	public YTDLPAudioSourceManager(String path) {
+	public YtdlpAudioSourceManager(String path, String[] customLoadArgs, String[] customPlaybackArgs) {
 		this.path = path;
+		if (customLoadArgs == null || customLoadArgs.length == 0) {
+			this.customLoadArgs = new String[]{"-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J"};
+		} else {
+			this.customLoadArgs = customLoadArgs;
+		}
+		if (customPlaybackArgs == null || customPlaybackArgs.length == 0) {
+			this.customPlaybackArgs = new String[]{"-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J"};
+		} else {
+			this.customPlaybackArgs = customPlaybackArgs;
+		}
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+	}
+
+	public String[] getCustomPlaybackArgs() {
+		return customPlaybackArgs;
+	}
+
+	public void setCustomPlaybackArgs(String[] customPlaybackArgs) {
+		this.customPlaybackArgs = customPlaybackArgs;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public String[] getCustomLoadArgs() {
+		return customLoadArgs;
+	}
+
+	public void setCustomLoadArgs(String[] customLoadArgs) {
+		this.customLoadArgs = customLoadArgs;
 	}
 
 	@NotNull
@@ -50,7 +85,7 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 	@Override
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
 		var extendedAudioTrackInfo = super.decodeTrack(input);
-		return new YTDLPAudioTrack(trackInfo,
+		return new YtdlpAudioTrack(trackInfo,
 			extendedAudioTrackInfo.albumName,
 			extendedAudioTrackInfo.albumUrl,
 			extendedAudioTrackInfo.artistUrl,
@@ -99,7 +134,7 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 		var url = json.get("webpage_url").text();
 		var thumbnailUrl = json.get("thumbnails").index(0).get("url").text();
-		return new YTDLPAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, url, thumbnailUrl, null, null);
+		return new YtdlpAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, url, thumbnailUrl, null, null);
 	}
 
 	public AudioTrack parseVideo(JsonBrowser json) {
@@ -111,7 +146,7 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 		var isLive = json.get("is_live").asBoolean(false);
 		var url = json.get("url").text();
 
-		return new YTDLPAudioTrack(
+		return new YtdlpAudioTrack(
 			new AudioTrackInfo(title, author, duration, identifier, isLive, url, thumbnailUrl, null),
 			null,
 			null,
@@ -124,7 +159,9 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 	}
 
 	public AudioItem getItem(String identifier) throws IOException {
-		var process = getProcess("-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J", identifier);
+		var args = new ArrayList<>(List.of(this.customLoadArgs));
+		args.add(identifier);
+		var process = getProcess(args);
 		var json = JsonBrowser.parse(process.getInputStream());
 
 		var type = json.get("_type").text();
@@ -138,10 +175,10 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 		return null;
 	}
 
-	Process getProcess(String... args) {
+	Process getProcess(List<String> args) {
 		var argList = new ArrayList<String>();
 		argList.add(this.path);
-		argList.addAll(List.of(args));
+		argList.addAll(args);
 
 		var processBuilder = new ProcessBuilder(argList);
 		processBuilder.redirectErrorStream(true);

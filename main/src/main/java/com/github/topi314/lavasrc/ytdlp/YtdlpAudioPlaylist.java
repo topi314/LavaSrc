@@ -5,9 +5,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import java.util.List;
 
-public class YTDLPAudioPlaylist extends ExtendedAudioPlaylist {
+public class YtdlpAudioPlaylist extends ExtendedAudioPlaylist {
 
-	public YTDLPAudioPlaylist(String name, List<AudioTrack> tracks, Type type, String url, String artworkURL, String author, Integer totalTracks) {
+	public YtdlpAudioPlaylist(String name, List<AudioTrack> tracks, Type type, String url, String artworkURL, String author, Integer totalTracks) {
 		super(name, tracks, type, url, artworkURL, author, totalTracks);
 	}
 

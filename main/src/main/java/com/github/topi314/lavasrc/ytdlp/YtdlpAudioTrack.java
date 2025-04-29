@@ -18,24 +18,28 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
-public class YTDLPAudioTrack extends ExtendedAudioTrack {
+public class YtdlpAudioTrack extends ExtendedAudioTrack {
 
-	private static final Logger log = LoggerFactory.getLogger(YTDLPAudioTrack.class);
+	private static final Logger log = LoggerFactory.getLogger(YtdlpAudioTrack.class);
 
-	private final YTDLPAudioSourceManager sourceManager;
+	private final YtdlpAudioSourceManager sourceManager;
 
-	public YTDLPAudioTrack(AudioTrackInfo trackInfo, YTDLPAudioSourceManager sourceManager) {
+	public YtdlpAudioTrack(AudioTrackInfo trackInfo, YtdlpAudioSourceManager sourceManager) {
 		this(trackInfo, null, null, null, null, null, false, sourceManager);
 	}
 
-	public YTDLPAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, YTDLPAudioSourceManager sourceManager) {
+	public YtdlpAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, YtdlpAudioSourceManager sourceManager) {
 		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview);
 		this.sourceManager = sourceManager;
 	}
 
 	private JsonBrowser getStreamUrl(String url) throws IOException {
-		var process = this.sourceManager.getProcess("-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J", url);
+		var args = new ArrayList<>(List.of(this.sourceManager.getCustomPlaybackArgs()));
+		args.add(url);
+		var process = this.sourceManager.getProcess(args);
 		try (var stream = new BufferedInputStream(process.getInputStream())) {
 			var data = IOUtils.toString(stream, StandardCharsets.UTF_8);
 
@@ -82,7 +86,7 @@ public class YTDLPAudioTrack extends ExtendedAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new YTDLPAudioTrack(this.trackInfo, this.albumName, this.albumUrl, this.artistUrl, this.artistArtworkUrl, this.previewUrl, this.isPreview, this.sourceManager);
+		return new YtdlpAudioTrack(this.trackInfo, this.albumName, this.albumUrl, this.artistUrl, this.artistArtworkUrl, this.previewUrl, this.isPreview, this.sourceManager);
 	}
 
 	@Override
