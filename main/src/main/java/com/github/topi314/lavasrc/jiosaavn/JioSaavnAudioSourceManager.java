@@ -5,7 +5,6 @@ import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.ExtendedAudioSourceManager;
 import com.github.topi314.lavasrc.LavaSrcTools;
-import com.github.topi314.lavasrc.proxy.ProxyConfig;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
@@ -43,7 +42,6 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	public static final Pattern URL_PATTERN = Pattern.compile(
 		"https://www\\.jiosaavn\\.com/(?<type>album|featured|song|s/playlist|artist)/[^/]+/(?<id>[A-Za-z0-9_,\\-]+)"
 	);
-	private final String httpProxy;
 	public static final String SEARCH_PREFIX = "jssearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "jsrec:";
 	public static final String PREVIEW_PREFIX = "jsprev:";
@@ -56,31 +54,10 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	public static final String ARTIST_RECOS_API_BASE = "https://www.jiosaavn.com/api.php?__call=search.artistOtherTopSongs&api_version=4&_format=json&_marker=0&ctx=wap6dot0&artist_ids=%s&song_id=%s&language=unknown";
 
 	private static final Logger log = LoggerFactory.getLogger(JioSaavnAudioSourceManager.class);
-	private final HttpInterfaceManager httpInterfaceManager;
-	private final ProxyManager proxyManager;
+	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
 	private final JioSaavnDecryptionConfig decryptionConfig;
 
-
-	public JioSaavnAudioSourceManager(ProxyConfig[] proxyConfigs, boolean useLocalNetwork, JioSaavnDecryptionConfig decryptionConfig) {
-		this(null, new ProxyManager(proxyConfigs, useLocalNetwork), decryptionConfig);
-	}
-
-	public JioSaavnAudioSourceManager(JioSaavnDecryptionConfig decryptionConfig) {
-		this(null, null, decryptionConfig);
-	}
-
-	public JioSaavnAudioSourceManager(@Nullable String httpProxy, JioSaavnDecryptionConfig decryptionConfig) {
-		this(httpProxy, null, decryptionConfig);
-	}
-
-	public JioSaavnAudioSourceManager(ProxyManager proxyManager, JioSaavnDecryptionConfig decryptionConfig) {
-		this(null, proxyManager, decryptionConfig);
-	}
-
-	public JioSaavnAudioSourceManager(@Nullable String httpProxy, ProxyManager proxyManager, JioSaavnDecryptionConfig decryptionConfig) {
-		this.httpProxy = httpProxy;
-		this.proxyManager = proxyManager;
-		this.httpInterfaceManager = this.proxyManager != null ? this.proxyManager.getNextHttpInterfaceManager() : HttpClientTools.createCookielessThreadLocalManager();
+	public JioSaavnAudioSourceManager(@NotNull JioSaavnDecryptionConfig decryptionConfig) {
 		this.decryptionConfig = decryptionConfig;
 	}
 
@@ -91,11 +68,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	}
 
 	private String buildSearchUrl(String query) {
-		String searchQuery = SEARCH_API_BASE + URLEncoder.encode(query, StandardCharsets.UTF_8);
-		if (httpProxy != null) {
-			return httpProxy.replace("%LINK%", searchQuery);
-		}
-		return searchQuery;
+		return SEARCH_API_BASE + URLEncoder.encode(query, StandardCharsets.UTF_8);
 	}
 
 	public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
@@ -165,7 +138,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	public JsonBrowser getJson(String uri) throws IOException {
 		HttpGet request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
-		return LavaSrcTools.fetchResponseAsJson(this.getHttpInterface(this.httpProxy != null), request);
+		return LavaSrcTools.fetchResponseAsJson(httpInterfaceManager.getInterface(), request);
 	}
 
 	private List<AudioTrack> localParseTracks(JsonBrowser json, boolean preview, boolean metadataType) {
@@ -273,7 +246,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 
 		JsonBrowser metadata = this.getJson(MEDIA_API_BASE + URLEncoder.encode(id, StandardCharsets.UTF_8));
 		if (metadata == null || metadata.get(id).isNull()) {
-			log.error("Failed to get metadata for id: " + id);
+			log.error("Failed to get metadata for id: {}", id);
 			return AudioReference.NO_TRACK;
 		}
 
@@ -295,11 +268,11 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	}
 
 	private AudioItem getSearch(String query, boolean preview) throws IOException {
-		log.debug("Searching text based query on JioSaavn : " + query);
+		log.debug("Searching text based query on JioSaavn : {}", query);
 
 		JsonBrowser json = this.getJson(this.buildSearchUrl(query));
 		if (json == null || json.get("results").values().isEmpty()) {
-			log.debug("Failed to get search results for query: " + query);
+			log.debug("Failed to get search results for query: {}", query);
 			return AudioReference.NO_TRACK;
 		}
 
@@ -312,7 +285,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		JsonBrowser json = this.getJson(String.format(METADATA_API_BASE, URLEncoder.encode(id, StandardCharsets.UTF_8), "album"));
 
 		if (json == null || json.get("list").values().isEmpty()) {
-			log.debug("Failed to get album for id: %s", id);
+			log.debug("Failed to get album for id: {}", id);
 			return AudioReference.NO_TRACK;
 		}
 
@@ -330,7 +303,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		JsonBrowser json = this.getJson(String.format(METADATA_API_BASE, URLEncoder.encode(id, StandardCharsets.UTF_8), "song"));
 
 		if (json == null || json.get("songs").values().isEmpty()) {
-			log.debug("Failed to get track for id: %s", id);
+			log.debug("Failed to get track for id: {}", id);
 			return AudioReference.NO_TRACK;
 		}
 
@@ -343,7 +316,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		JsonBrowser json = this.getJson(String.format(METADATA_API_BASE, URLEncoder.encode(id, StandardCharsets.UTF_8), "playlist") + "&n=10000");
 
 		if (json == null || json.get("list").values().isEmpty()) {
-			log.debug("Failed to get playlist for id: %s", id);
+			log.debug("Failed to get playlist for id: {}", id);
 			return AudioReference.NO_TRACK;
 		}
 
@@ -371,7 +344,7 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		JsonBrowser json = this.getJson(String.format(METADATA_API_BASE, URLEncoder.encode(id, StandardCharsets.UTF_8), "artist"));
 
 		if (json == null || json.get("topSongs").values().isEmpty()) {
-			log.debug("Failed to get artist for id: %s", id);
+			log.debug("Failed to get artist for id: {}", id);
 			return AudioReference.NO_TRACK;
 		}
 
@@ -390,31 +363,27 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	@Override
 	public void shutdown() {
 		try {
-			if (proxyManager != null) httpInterfaceManager.close();
-			if (this.httpInterfaceManager != null) httpInterfaceManager.close();
-		} catch (IOException var2) {
-			log.error("Failed to close HTTP interface manager", var2);
+			httpInterfaceManager.close();
+		} catch (IOException e) {
+			log.error("Failed to close HTTP interface manager", e);
 		}
 	}
 
+	@Override
 	public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-		if (proxyManager != null) httpInterfaceManager.configureRequests(configurator);
-		if (this.httpInterfaceManager != null) httpInterfaceManager.configureRequests(configurator);
+		this.httpInterfaceManager.configureRequests(configurator);
 	}
 
+	@Override
 	public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-		if (proxyManager != null) httpInterfaceManager.configureBuilder(configurator);
-		if (this.httpInterfaceManager != null) httpInterfaceManager.configureBuilder(configurator);
-	}
-
-	public HttpInterface getHttpInterface(boolean useLocalNetwork) {
-		if (this.proxyManager == null) {
-			return this.httpInterfaceManager.getInterface();
-		}
-		return useLocalNetwork ? this.proxyManager.getLocalManager().getInterface() : this.proxyManager.getInterface();
+		this.httpInterfaceManager.configureBuilder(configurator);
 	}
 
 	public JioSaavnDecryptionConfig getDecryptionConfig() {
 		return this.decryptionConfig;
+	}
+
+	HttpInterface getHttpInterface() {
+		return httpInterfaceManager.getInterface();
 	}
 }

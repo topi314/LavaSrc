@@ -9,10 +9,10 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.jiosaavn.JioSaavnAudioSourceManager;
+import com.github.topi314.lavasrc.jiosaavn.JioSaavnDecryptionConfig;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
-import com.github.topi314.lavasrc.proxy.ProxyConfig;
 import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
@@ -150,12 +150,19 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isJiosaavn()) {
-			if(jioSaavnConfig.getDecryption() == null || jioSaavnConfig.getDecryption().getSecretKey() == null) {
-				log.warn("JioSaavn decryption config is missing, JioSaavn will not work properly");
+			JioSaavnDecryptionConfig decryptionConfig = jioSaavnConfig.getDecryption();
+			if (decryptionConfig == null) {
+				log.warn("JioSaavn is enabled, but JioSaavn decryption config is missing. Skipping...");
+			} else if (decryptionConfig.getSecretKey() == null) {
+				log.warn("JioSaavn is enabled, but JioSaavn secret key is missing. Skipping...");
+			} else {
+				this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getDecryption());
+
+				this.jioSaavn.configureBuilder(httpClientBuilder -> {
+						// TODO
+					}
+				);
 			}
-			ProxyConfig[] proxies = jioSaavnConfig.getProxies();
-			ProxyManager proxyManager = (proxies != null && proxies.length > 0) ? new ProxyManager(proxies, jioSaavnConfig.isUseLocalNetwork()) : null;
-			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getGenericProxy(), proxyManager, jioSaavnConfig.getDecryption());
 		}
 
 		if (sourcesConfig.isQobuz()) {

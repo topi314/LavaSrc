@@ -52,7 +52,7 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 		String requestUrl = String.format("https://www.jiosaavn.com/api.php?__call=song.getDetails&cc=in&_marker=0&_format=json&pids=%s", identifier);
 		HttpGet dataRequest = new HttpGet(requestUrl);
 
-		JsonBrowser jsonResponse = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(true), dataRequest);
+		JsonBrowser jsonResponse = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), dataRequest);
 		checkResponse(jsonResponse, "Failed to get track details: ");
 
 		JsonBrowser trackData = jsonResponse.get(identifier);
@@ -75,7 +75,7 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 	}
 
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
-		try (HttpInterface httpInterface = this.sourceManager.getHttpInterface(true)) {
+		try (HttpInterface httpInterface = this.sourceManager.getHttpInterface()) {
 			if (this.isPreview) {
 				if (this.previewUrl == null) {
 					throw new FriendlyException("No preview url found", Severity.COMMON, new IllegalArgumentException());
