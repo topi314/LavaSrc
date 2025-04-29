@@ -36,6 +36,13 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	private String[] customLoadArgs;
 	private String[] customPlaybackArgs;
 
+	public YtdlpAudioSourceManager() {
+		this("yt-dlp", null, null);
+	}
+
+	public YtdlpAudioSourceManager(String path) {
+		this(path, null, null);
+	}
 
 	public YtdlpAudioSourceManager(String path, String[] customLoadArgs, String[] customPlaybackArgs) {
 		this.path = path;
