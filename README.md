@@ -18,18 +18,18 @@
 
 # Sources
 
-| Source          | Features        | Playback                     | Credits                                                                                                                |
-|-----------------|-----------------|------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| Spotify         | 📁💿🎵🧑🔍🔬📜  | [Mirror](#what-is-mirroring) | [@topi314](https://github.com/topi314)                                                                                 |
-| Apple Music     | 📁💿🎵🧑🔍🔬📜  | [Mirror](#what-is-mirroring) | [@ryan5453](https://github.com/ryan5453)                                                                               |
-| Deezer          | 📁💿🎵🧑🔍🔬📜  | Direct                       | [@topi314](https://github.com/topi314), [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea) |
-| Yandex          | 📁💿🎵🧑🔍🔬📜  | Direct                       | [@agutinvboy](https://github.com/agutinvboy)                                                                           |
-| Flowery TTS     |                 | Direct                       | [@bachtran02](https://github.com/bachtran02)                                                                           |
-| YouTube (Music) | 🔬📜            | N/A                          | [@topi314](https://github.com/topi314), [@DRSchlaubi](https://github.com/DRSchlaubi)                                   |
-| VK Music        | 📁💿🎵🗣️🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
-| Tidal           | 📁💿🎵🗣️       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
-| Qobuz           | 📁💿🎵🗣️       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
- 
+| Source                                              | Features       | Playback                     | Credits                                                                                                                |
+|-----------------------------------------------------|----------------|------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| Spotify                                             | 📁💿🎵🧑🔍🔬📜 | [Mirror](#what-is-mirroring) | [@topi314](https://github.com/topi314)                                                                                 |
+| Apple Music                                         | 📁💿🎵🧑🔍🔬📜 | [Mirror](#what-is-mirroring) | [@ryan5453](https://github.com/ryan5453)                                                                               |
+| Deezer                                              | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@topi314](https://github.com/topi314), [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea) |
+| Yandex                                              | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@agutinvboy](https://github.com/agutinvboy)                                                                           |
+| Flowery TTS                                         |                | Direct                       | [@bachtran02](https://github.com/bachtran02)                                                                           |
+| YouTube (Music)                                     | 🔬📜           | N/A                          | [@topi314](https://github.com/topi314), [@DRSchlaubi](https://github.com/DRSchlaubi)                                   |
+| VK Music                                            | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
+| Tidal                                               | 📁💿🎵🧑       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
+| Qobuz                                               | 📁💿🎵🧑       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
+| YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](                                                                                                            |
 
 ### Features
 
@@ -168,8 +168,12 @@ plugins:
       token: "your tidal token" # the token used for accessing the tidal api. See https://github.com/topi314/LavaSrc#tidal
     qobuz:
       userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc#qobuz
-      #appId : optional (Only pass it when you are using an old userOauthToken)
-      #appSecret : optional (Only pass it when you are using an old userOauthToken)
+      #      appId : optional (Only pass it when you are using an old userOauthToken)
+      #      appSecret : optional (Only pass it when you are using an old userOauthToken)
+    ytdlp:
+        path: "yt-dlp" # the path to the yt-dlp executable.
+#      customLoadArgs: ["-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
+#      customPlaybackArgs: ["-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
 ```
 
 ### Plugin Info
@@ -365,6 +369,11 @@ PATCH /v4/lavasrc/config
     "userOauthToken": "your user token",
     "appId": "your app ID",
     "appSecret": "your app Secret"
+  },
+  "ytdlp": {
+    "path": "yt-dlp",
+    "customLoadArgs": ["-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J"],
+    "customPlaybackArgs": ["-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J"]
   }
 }
 ```
@@ -768,6 +777,16 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 playerManager.registerSourceManager(new QobuzAudioSourceManager("...");
 ```
 
+### yt-dlp
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new YTDLPSourceManager with the path to the yt-dlp executable and register it
+playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
+```
+
+
 ---
 ## Supported URLs and Queries
 
@@ -855,4 +874,13 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://play.qobuz.com/playlist/24893079
 * https://play.qobuz.com/artist/2070395
 * https://www.qobuz.com/us-en/album/kesariya-pritam-arijit-singh-amitabh-bhattacharya/cxtiqss1up8ub
+
+### yt-dlp
+
+* `ytsearch:animals architects`
+* `ytsearch:"USEP42058010"` (`ytsearch:"{ISRC}"`)
+* https://www.youtube.com/watch?v=jdWhJcrrjQs
+* https://www.youtube.com/watch?v=yEBEg4NGVrw&list=PLcZMZxR9uxC8EGrCPopQT1JjNTV6nnQ1G
+* https://youtu.be/jdWhJcrrjQs
+
 ---

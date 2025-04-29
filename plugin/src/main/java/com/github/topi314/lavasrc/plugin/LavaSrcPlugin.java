@@ -17,6 +17,7 @@ import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
+import com.github.topi314.lavasrc.ytdlp.YtdlpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private VkMusicSourceManager vkMusic;
 	private TidalSourceManager tidal;
 	private QobuzAudioSourceManager qobuz;
+	private YtdlpAudioSourceManager ytdlp;
 
 	public LavaSrcPlugin(
 		LavaSrcConfig pluginConfig,
@@ -58,7 +60,8 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		YouTubeConfig youTubeConfig,
 		VkMusicConfig vkMusicConfig,
 		TidalConfig tidalConfig,
-		QobuzConfig qobuzConfig
+		QobuzConfig qobuzConfig,
+		YtdlpConfig ytdlpConfig
 	) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
@@ -144,9 +147,11 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				this.tidal.setSearchLimit(tidalConfig.getSearchLimit());
 			}
 		}
-
 		if (sourcesConfig.isQobuz()) {
 			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(), qobuzConfig.getAppSecret());
+		}
+		if (sourcesConfig.isYtdlp()) {
+			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
 		}
 	}
 
@@ -191,10 +196,13 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Tidal audio source manager...");
 			manager.registerSourceManager(this.tidal);
 		}
-
 		if (this.qobuz != null) {
 			log.info("Registering Qobuz audio source manager...");
 			manager.registerSourceManager(this.qobuz);
+		}
+		if (this.ytdlp != null) {
+			log.info("Registering YTDLP audio source manager...");
+			manager.registerSourceManager(this.ytdlp);
 		}
 		return manager;
 	}
@@ -308,6 +316,19 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (qobuzConfig.getAppId() != null && qobuzConfig.getAppSecret() != null) {
 				this.qobuz.setAppId(qobuzConfig.getAppId());
 				this.qobuz.setAppSecret(qobuzConfig.getAppSecret());
+			}
+		}
+
+		var ytdlpConfig = config.getYtdlp();
+		if (ytdlpConfig != null && this.ytdlp != null) {
+			if (ytdlpConfig.getPath() != null) {
+				this.ytdlp.setPath(ytdlpConfig.getPath());
+			}
+			if (ytdlpConfig.getCustomLoadArgs() != null) {
+				this.ytdlp.setCustomLoadArgs(ytdlpConfig.getCustomLoadArgs().toArray(String[]::new));
+			}
+			if (ytdlpConfig.getCustomPlaybackArgs() != null) {
+				this.ytdlp.setCustomPlaybackArgs(ytdlpConfig.getCustomPlaybackArgs().toArray(String[]::new));
 			}
 		}
 	}
