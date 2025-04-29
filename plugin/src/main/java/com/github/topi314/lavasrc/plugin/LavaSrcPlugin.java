@@ -17,6 +17,7 @@ import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
+import com.github.topi314.lavasrc.ytdlp.YTDLPAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private VkMusicSourceManager vkMusic;
 	private TidalSourceManager tidal;
 	private QobuzAudioSourceManager qobuz;
+	private YTDLPAudioSourceManager ytdlp;
 
 	public LavaSrcPlugin(
 		LavaSrcConfig pluginConfig,
@@ -58,7 +60,8 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		YouTubeConfig youTubeConfig,
 		VkMusicConfig vkMusicConfig,
 		TidalConfig tidalConfig,
-		QobuzConfig qobuzConfig
+		QobuzConfig qobuzConfig,
+		YTDLPConfig ytdlpConfig
 	) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
@@ -144,9 +147,11 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 				this.tidal.setSearchLimit(tidalConfig.getSearchLimit());
 			}
 		}
-
 		if (sourcesConfig.isQobuz()) {
 			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(), qobuzConfig.getAppSecret());
+		}
+		if (sourcesConfig.isYtdlp()) {
+			this.ytdlp = new YTDLPAudioSourceManager(ytdlpConfig.getPath());
 		}
 	}
 
@@ -191,10 +196,13 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Tidal audio source manager...");
 			manager.registerSourceManager(this.tidal);
 		}
-
 		if (this.qobuz != null) {
 			log.info("Registering Qobuz audio source manager...");
 			manager.registerSourceManager(this.qobuz);
+		}
+		if (this.ytdlp != null) {
+			log.info("Registering YTDLP audio source manager...");
+			manager.registerSourceManager(this.ytdlp);
 		}
 		return manager;
 	}
