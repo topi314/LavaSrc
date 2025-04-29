@@ -8,9 +8,11 @@ import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
+import com.github.topi314.lavasrc.jiosaavn.JioSaavnAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
+import com.github.topi314.lavasrc.proxy.ProxyConfig;
 import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
@@ -44,6 +46,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private YoutubeSearchManager youtube;
 	private VkMusicSourceManager vkMusic;
 	private TidalSourceManager tidal;
+	private JioSaavnAudioSourceManager jioSaavn;
 	private QobuzAudioSourceManager qobuz;
 
 	public LavaSrcPlugin(
@@ -58,6 +61,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		YouTubeConfig youTubeConfig,
 		VkMusicConfig vkMusicConfig,
 		TidalConfig tidalConfig,
+		JioSaavnConfig jioSaavnConfig,
 		QobuzConfig qobuzConfig
 	) {
 		log.info("Loading LavaSrc plugin...");
@@ -145,6 +149,15 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 
+		if (sourcesConfig.isJiosaavn()) {
+			if(jioSaavnConfig.getDecryption() == null || jioSaavnConfig.getDecryption().getSecretKey() == null) {
+				log.warn("JioSaavn decryption config is missing, JioSaavn will not work properly");
+			}
+			ProxyConfig[] proxies = jioSaavnConfig.getProxies();
+			ProxyManager proxyManager = (proxies != null && proxies.length > 0) ? new ProxyManager(proxies, jioSaavnConfig.isUseLocalNetwork()) : null;
+			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getGenericProxy(), proxyManager, jioSaavnConfig.getDecryption());
+		}
+
 		if (sourcesConfig.isQobuz()) {
 			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(), qobuzConfig.getAppSecret());
 		}
@@ -191,7 +204,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Tidal audio source manager...");
 			manager.registerSourceManager(this.tidal);
 		}
-
+		if (this.jioSaavn != null) {
+			log.info("Registering JioSaavn audio source manager...");
+			manager.registerSourceManager(this.jioSaavn);
+		}
 		if (this.qobuz != null) {
 			log.info("Registering Qobuz audio source manager...");
 			manager.registerSourceManager(this.qobuz);
@@ -225,6 +241,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.vkMusic != null && this.sourcesConfig.isVkMusic()) {
 			log.info("Registering VK Music search manager...");
 			manager.registerSearchManager(this.vkMusic);
+		}
+		if (this.jioSaavn != null && this.sourcesConfig.isJiosaavn()) {
+			log.info("Registering JioSaavn search manager...");
+			manager.registerSearchManager(this.jioSaavn);
 		}
 		return manager;
 	}
