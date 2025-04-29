@@ -8,10 +8,7 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -83,9 +80,11 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 	public AudioItem parsePlaylist(JsonBrowser json) {
 		var title = json.get("title").text();
-		var url = json.get("url").text();
-		var thumbnailUrl = json.get("thumbnails").index(0).get("url").text();
 		var entries = json.get("entries").values();
+		if (entries.isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+
 		var tracks = new ArrayList<AudioTrack>();
 		for (var entry : entries) {
 			entry.put("extractor", json.get("extractor").text());
@@ -94,8 +93,13 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 				tracks.add(track);
 			}
 		}
+		if (json.get("extractor").text().equals("youtube:search")) {
+			return new BasicAudioPlaylist("Youtube Search: " + title, tracks, null, true);
+		}
 
-		return new YTDLPAudioPlaylist("Youtube Search: " + title, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, url, thumbnailUrl, null, null);
+		var url = json.get("webpage_url").text();
+		var thumbnailUrl = json.get("thumbnails").index(0).get("url").text();
+		return new YTDLPAudioPlaylist(title, tracks, ExtendedAudioPlaylist.Type.PLAYLIST, url, thumbnailUrl, null, null);
 	}
 
 	public AudioTrack parseVideo(JsonBrowser json) {
@@ -120,7 +124,7 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 	}
 
 	public AudioItem getItem(String identifier) throws IOException {
-		var process = getProcess("--flat-playlist", "-J", identifier);
+		var process = getProcess("-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J", identifier);
 		var json = JsonBrowser.parse(process.getInputStream());
 
 		var type = json.get("_type").text();
@@ -134,7 +138,7 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 		return null;
 	}
 
-	Process getProcess(String... args) throws IOException {
+	Process getProcess(String... args) {
 		var argList = new ArrayList<String>();
 		argList.add(this.path);
 		argList.addAll(List.of(args));
@@ -142,7 +146,12 @@ public class YTDLPAudioSourceManager extends ExtendedAudioSourceManager implemen
 		var processBuilder = new ProcessBuilder(argList);
 		processBuilder.redirectErrorStream(true);
 
-		return processBuilder.start();
+		try {
+			return processBuilder.start();
+		} catch (IOException e) {
+			log.error("Failed to start yt-dlp process", e);
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

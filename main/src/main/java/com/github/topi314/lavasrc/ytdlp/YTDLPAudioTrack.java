@@ -2,16 +2,22 @@ package com.github.topi314.lavasrc.ytdlp;
 
 import com.github.topi314.lavasrc.ExtendedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.container.matroska.MatroskaAudioTrack;
+import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.tools.io.NonSeekableInputStream;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 public class YTDLPAudioTrack extends ExtendedAudioTrack {
 
@@ -28,17 +34,49 @@ public class YTDLPAudioTrack extends ExtendedAudioTrack {
 		this.sourceManager = sourceManager;
 	}
 
-	private InputStream getStream(String url) throws Exception {
-		var process = this.sourceManager.getProcess("-q", "-f", "webm", "-o", "-", url);
-		var inputStream = process.getInputStream();
-		return new BufferedInputStream(inputStream);
+	private JsonBrowser getStreamUrl(String url) throws IOException {
+		var process = this.sourceManager.getProcess("-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J", url);
+		try (var stream = new BufferedInputStream(process.getInputStream())) {
+			var data = IOUtils.toString(stream, StandardCharsets.UTF_8);
+
+			int exitCode;
+			try {
+				exitCode = process.waitFor();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IOException("yt-dlp process was interrupted", e);
+			}
+			if (exitCode == 0) {
+				return JsonBrowser.parse(data);
+			} else {
+				throw new RuntimeException("Failed to retrieve stream URL, error: " + data);
+			}
+		}
 	}
 
 	@Override
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
-		log.debug("Fetching yt-dlp stream URL: {}", trackInfo.uri);
-		try (var stream = this.getStream(trackInfo.uri)) {
-			processDelegate(new MatroskaAudioTrack(this.trackInfo, new NonSeekableInputStream(stream)), executor);
+		var streamJson = this.getStreamUrl(trackInfo.uri);
+
+		var streamUrl = new URI(streamJson.get("url").text());
+		var format = streamJson.get("ext").text();
+		var contentLength = streamJson.get("filesize").asLong(Units.CONTENT_LENGTH_UNKNOWN);
+		try (var httpInterface = this.sourceManager.getHttpInterface()) {
+			if (trackInfo.isStream) {
+				if (format.equals("webm")) {
+					throw new FriendlyException("YouTube WebM streams are currently not supported.", FriendlyException.Severity.COMMON, null);
+				}
+				processDelegate(new YoutubeMpegStreamAudioTrack(trackInfo, httpInterface, streamUrl), executor);
+				return;
+			}
+
+			try (var stream = new YoutubePersistentHttpStream(httpInterface, streamUrl, contentLength)) {
+				if (format.equals("webm")) {
+					processDelegate(new MatroskaAudioTrack(this.trackInfo, stream), executor);
+				} else {
+					processDelegate(new MpegAudioTrack(this.trackInfo, stream), executor);
+				}
+			}
 		}
 	}
 
