@@ -29,7 +29,7 @@
 | VK Music                                            | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
 | Tidal                                               | 📁💿🎵🧑       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
 | Qobuz                                               | 📁💿🎵🧑       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
-| YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](                                                                                                            |
+| YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                                            |
 
 ### Features
 
@@ -761,12 +761,13 @@ playerManager.registerSourceManager(tidal);
 
 ### WARNING!
 
-#### If you are using an older userOauthToken, you must specify the `x-app-id` in the config. Each userOauthToken is associated with a specific app ID. If you don't specify the `x-app-id` in the config, the latest fetched one will be used and it may not work.
+#### If you are using an older userOauthToken, you must specify the `x-app-id` in the config. Each userOauthToken is associated with a specific app ID. If you don't specify the `x-app-id` in the config, the latest fetched one will be used and it may not work. Remember that Qobuz requires a premium account to work properly.
 
 To retrieve the token:
 1. Open Qobuz in any web browser and log in with your Qobuz account.
 2. Press **F12** to open the developer tools and navigate to the **Network** tab.
 3. Select any request and check the request headers.
+> When looking for a request, you must find a POST request - not OPTIONS! 
 4. Copy the value of the `x-user-auth-token` and paste it into the config.
 
 </details>
