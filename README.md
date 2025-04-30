@@ -112,6 +112,7 @@ plugins:
       vkmusic: false # Enable Vk Music source
       tidal: false # Enable Tidal source
       qobuz : false # Enabled qobuz source
+      ytdlp: false # Enable yt-dlp source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
