@@ -13,6 +13,7 @@ import com.github.topi314.lavasrc.jiosaavn.JioSaavnDecryptionConfig;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
+import com.github.topi314.lavasrc.plugin.config.HttpProxyConfig;
 import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
@@ -21,6 +22,8 @@ import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
+import org.apache.http.HttpHost;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,12 +159,28 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			} else if (decryptionConfig.getSecretKey() == null) {
 				log.warn("JioSaavn is enabled, but JioSaavn secret key is missing. Skipping...");
 			} else {
-				this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.getDecryption());
+				this.jioSaavn = new JioSaavnAudioSourceManager(decryptionConfig);
 
-				this.jioSaavn.configureBuilder(httpClientBuilder -> {
-						// TODO
+				HttpProxyConfig proxyConfig = jioSaavnConfig.getProxy();
+				if (proxyConfig != null && proxyConfig.getUrl() != null) {
+					HttpHost httpHost = HttpHost.create(proxyConfig.getUrl());
+
+					BasicCredentialsProvider credentialsProvider;
+					if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
+						credentialsProvider = new BasicCredentialsProvider();
+					} else {
+						credentialsProvider = null;
 					}
-				);
+
+					log.info("Using {} as http proxy for JioSaavn. With basic auth: {}", httpHost, credentialsProvider != null);
+
+					this.jioSaavn.configureBuilder(builder -> {
+						builder.setProxy(httpHost);
+						if (credentialsProvider != null) {
+							builder.setDefaultCredentialsProvider(credentialsProvider);
+						}
+					});
+				}
 			}
 		}
 

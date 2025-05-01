@@ -1,7 +1,6 @@
 package com.github.topi314.lavasrc.plugin.config;
 
 import com.github.topi314.lavasrc.jiosaavn.JioSaavnDecryptionConfig;
-import com.github.topi314.lavasrc.proxy.ProxyConfig;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -10,15 +9,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class JioSaavnConfig {
 	@Nullable
-	private ProxyConfig proxy;
+	private HttpProxyConfig proxy;
 	private JioSaavnDecryptionConfig decryption;
 
 	@Nullable
-	public ProxyConfig getProxy() {
+	public HttpProxyConfig getProxy() {
 		return this.proxy;
 	}
 
-	public void setProxy(@Nullable ProxyConfig proxy) {
+	@SuppressWarnings("unused")
+	public void setProxy(@Nullable HttpProxyConfig proxy) {
 		this.proxy = proxy;
 	}
 
@@ -26,6 +26,7 @@ public class JioSaavnConfig {
 		return decryption;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDecryption(JioSaavnDecryptionConfig decryption) {
 		this.decryption = decryption;
 	}
