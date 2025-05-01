@@ -9,14 +9,17 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.DataInput;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -169,7 +172,7 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 		var args = new ArrayList<>(List.of(this.customLoadArgs));
 		args.add(identifier);
 		var process = getProcess(args);
-		var json = JsonBrowser.parse(process.getInputStream());
+		var json = getProcessJsonOutput(process);
 
 		var type = json.get("_type").text();
 		switch (type) {
@@ -187,6 +190,7 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 		argList.add(this.path);
 		argList.addAll(args);
 
+		log.debug("Starting yt-dlp with args: {}", argList);
 		var processBuilder = new ProcessBuilder(argList);
 		processBuilder.redirectErrorStream(true);
 
@@ -195,6 +199,28 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 		} catch (IOException e) {
 			log.error("Failed to start yt-dlp process", e);
 			throw new RuntimeException(e);
+		}
+	}
+
+	JsonBrowser getProcessJsonOutput(Process process) throws IOException {
+		try (var stream = new BufferedInputStream(process.getInputStream())) {
+			var data = IOUtils.toString(stream, StandardCharsets.UTF_8);
+			log.debug("yt-dlp process output: {}", data);
+			int exitCode;
+			try {
+				exitCode = process.waitFor();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IOException("yt-dlp process was interrupted", e);
+			}
+			if (exitCode != 0) {
+				throw new RuntimeException("Failed to retrieve item, error: " + data);
+			}
+			try {
+				return JsonBrowser.parse(data);
+			} catch (IOException e) {
+				throw new IOException("Failed to parse yt-dlp output as JSON: " + data, e);
+			}
 		}
 	}
 

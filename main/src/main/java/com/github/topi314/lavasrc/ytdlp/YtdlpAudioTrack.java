@@ -10,14 +10,11 @@ import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,22 +37,7 @@ public class YtdlpAudioTrack extends ExtendedAudioTrack {
 		var args = new ArrayList<>(List.of(this.sourceManager.getCustomPlaybackArgs()));
 		args.add(url);
 		var process = this.sourceManager.getProcess(args);
-		try (var stream = new BufferedInputStream(process.getInputStream())) {
-			var data = IOUtils.toString(stream, StandardCharsets.UTF_8);
-
-			int exitCode;
-			try {
-				exitCode = process.waitFor();
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw new IOException("yt-dlp process was interrupted", e);
-			}
-			if (exitCode == 0) {
-				return JsonBrowser.parse(data);
-			} else {
-				throw new RuntimeException("Failed to retrieve stream URL, error: " + data);
-			}
-		}
+		return this.sourceManager.getProcessJsonOutput(process);
 	}
 
 	@Override
