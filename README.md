@@ -796,7 +796,7 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 
 * `spsearch:animals architects` (check out [Spotify Search Docs](https://developer.spotify.com/documentation/web-api/reference/search) for advanced search queries like isrc & co)
 * `sprec:seed_artists=3ZztVuWxHzNpl0THurTFCv,4MzJMcHQBl9SIYSjwWn8QW&seed_genres=metalcore&seed_tracks=5ofoB8PFmocBXFBEWVb6Vz,6I5zXzSDByTEmYZ7ePVQeB`
-  (check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/get-recommendations) for the full query parameter list)
+  (only works in [Extended quota mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes#extended-quota-mode), check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/get-recommendations) for the full query parameter list)
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
 * https://open.spotify.com/playlist/7HAO9R9v203gkaPAgknOMp (playlists can include local files if you enabled this via: `plugins.lavasrc.spotify.localFiles: true`. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`)
@@ -816,7 +816,7 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 
 * `dzsearch:animals architects`
 * `dzisrc:USEP42058010`
-* `dzrec:1090538082` (`dzrec:{TRACK_ID}`, `dzrec:track={TRACK_ID}` or `dzrec:artist={ARTIST_ID}`) (only works in [Extended quota mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes#extended-quota-mode))
+* `dzrec:1090538082` (`dzrec:{TRACK_ID}`, `dzrec:track={TRACK_ID}` or `dzrec:artist={ARTIST_ID}`)
 * https://deezer.page.link/U6BTQ2Q1KpmNt2yh8
 * https://www.deezer.com/track/1090538082
 * https://www.deezer.com/album/175537082
