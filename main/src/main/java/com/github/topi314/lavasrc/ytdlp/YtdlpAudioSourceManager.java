@@ -50,12 +50,12 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	public YtdlpAudioSourceManager(String path, String[] customLoadArgs, String[] customPlaybackArgs) {
 		this.path = path;
 		if (customLoadArgs == null || customLoadArgs.length == 0) {
-			this.customLoadArgs = new String[]{"-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J"};
+			this.customLoadArgs = new String[]{"-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"};
 		} else {
 			this.customLoadArgs = customLoadArgs;
 		}
 		if (customPlaybackArgs == null || customPlaybackArgs.length == 0) {
-			this.customPlaybackArgs = new String[]{"-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J"};
+			this.customPlaybackArgs = new String[]{"-q", "--no-warnings", "-f", "bestaudio", "-J"};
 		} else {
 			this.customPlaybackArgs = customPlaybackArgs;
 		}

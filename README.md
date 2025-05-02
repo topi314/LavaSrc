@@ -173,8 +173,8 @@ plugins:
       #      appSecret : optional (Only pass it when you are using an old userOauthToken)
     ytdlp:
         path: "yt-dlp" # the path to the yt-dlp executable.
-#      customLoadArgs: ["-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
-#      customPlaybackArgs: ["-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
+#      customLoadArgs: ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
+#      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
 ```
 
 ### Plugin Info
@@ -373,8 +373,8 @@ PATCH /v4/lavasrc/config
   },
   "ytdlp": {
     "path": "yt-dlp",
-    "customLoadArgs": ["-q", "--no-warnings", "--extractor-args", "youtube:only", "--flat-playlist", "--skip-download", "-J"],
-    "customPlaybackArgs": ["-q", "--no-warnings", "--extractor-args", "youtube:only", "-f", "bestaudio", "-J"]
+    "customLoadArgs": ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"],
+    "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "-J"]
   }
 }
 ```
