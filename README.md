@@ -29,7 +29,7 @@
 | VK Music                                            | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
 | Tidal                                               | 📁💿🎵🧑       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
 | Qobuz                                               | 📁💿🎵🧑       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
-| YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                                            |
+| YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                 |
 
 ### Features
 
@@ -816,7 +816,7 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 
 * `dzsearch:animals architects`
 * `dzisrc:USEP42058010`
-* `dzrec:1090538082` (`dzrec:{TRACK_ID}`, `dzrec:track={TRACK_ID}` or `dzrec:artist={ARTIST_ID}`)
+* `dzrec:1090538082` (`dzrec:{TRACK_ID}`, `dzrec:track={TRACK_ID}` or `dzrec:artist={ARTIST_ID}`) (only works in [Extended quota mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes#extended-quota-mode))
 * https://deezer.page.link/U6BTQ2Q1KpmNt2yh8
 * https://www.deezer.com/track/1090538082
 * https://www.deezer.com/album/175537082
