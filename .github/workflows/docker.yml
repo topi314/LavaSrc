@@ -37,13 +37,13 @@ jobs:
           LOCAL_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $UPSTREAM_IMAGE || echo "none")
           REMOTE_DIGEST=$(docker pull $UPSTREAM_IMAGE > /dev/null && docker inspect --format='{{index .RepoDigests 0}}' $UPSTREAM_IMAGE)
           if [ "$LOCAL_DIGEST" != "$REMOTE_DIGEST" ]; then
-            echo "new_version=true" >> $GITHUB_ENV
+            echo "::set-output name=new_version::true"
           else
-            echo "new_version=false" >> $GITHUB_ENV
+            echo "::set-output name=new_version::false"
 
   build-and-push:
     needs: check-upstream
-    if: env.new_version == 'true'
+    if: ${{ needs.check-upstream.outputs.new_version == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
