@@ -1,6 +1,11 @@
 name: Publish
 on:
   push:
+    branches: [ '**' ]
+    paths-ignore:
+      - '**.md'
+      - 'docker/**'
+      - '.github/workflows/docker.yml'
   release:
     types: [ published ]
 jobs:
