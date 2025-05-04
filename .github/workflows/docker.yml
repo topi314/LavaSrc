@@ -44,6 +44,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log stuff
+        run: |
+          echo "Dockerfile: ${{ matrix.dockerfile }}"
+          echo "Tag: ${{ matrix.tag }}"
+          echo "Name: ${{ matrix.name }}"
+          echo "Platforms: ${{ matrix.platforms }}"
+
       - name: Docker Build ${{ matrix.name }} and Push
         uses: docker/build-push-action@v6
         with:
