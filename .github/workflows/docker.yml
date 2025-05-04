@@ -20,7 +20,7 @@ jobs:
             platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
             dockerfile: docker/Dockerfile
           - name: Latest Alpine
-            tag: alpine
+            tag: latest-alpine
             platforms: linux/amd64,linux/arm64/v8
             dockerfile: docker/alpine.Dockerfile
           - name: Dev Ubuntu
