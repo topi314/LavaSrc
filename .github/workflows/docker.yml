@@ -1,0 +1,72 @@
+name: Build Image
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [ '**' ]
+    paths:
+      - 'docker/**'
+      - '.github/workflows/docker.yml'
+
+jobs:
+  check-upstream:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Latest Ubuntu
+            tag: latest
+            dockerfile: docker/Dockerfile
+          - name: Latest Alpine
+            tag: alpine
+            dockerfile: docker/alpine.Dockerfile
+          - name: Dev Ubuntu
+            tag: dev
+            dockerfile: docker/Dockerfile
+          - name: Dev Alpine
+            tag: dev-alpine
+            dockerfile: docker/alpine.Dockerfile
+    steps:
+      - name: Check for new upstream version
+        id: check
+        run: |
+          UPSTREAM_IMAGE="ghcr.io/lavalink-devs/lavalink:${{ matrix.tag }}"
+          LOCAL_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $UPSTREAM_IMAGE || echo "none")
+          REMOTE_DIGEST=$(docker pull $UPSTREAM_IMAGE > /dev/null && docker inspect --format='{{index .RepoDigests 0}}' $UPSTREAM_IMAGE)
+          if [ "$LOCAL_DIGEST" != "$REMOTE_DIGEST" ]; then
+            echo "new_version=true" >> $GITHUB_ENV
+          else
+            echo "new_version=false" >> $GITHUB_ENV
+
+  build-and-push:
+    needs: check-upstream
+    if: env.new_version == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Build ${{ matrix.name }} and Push
+        uses: docker/build-push-action@v6
+        with:
+          file: ${{ matrix.dockerfile }}
+          context: .
+          platforms: ${{ matrix.platforms }}
+          push: true
+          tags: ghcr.io/topi314/lavasrc:${{ matrix.tag }}
