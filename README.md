@@ -172,7 +172,8 @@ plugins:
       #      appId : optional (Only pass it when you are using an old userOauthToken)
       #      appSecret : optional (Only pass it when you are using an old userOauthToken)
     ytdlp:
-        path: "yt-dlp" # the path to the yt-dlp executable.
+      path: "yt-dlp" # the path to the yt-dlp executable.
+      searchLimit: 10 # How many search results should be returned
 #      customLoadArgs: ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
 #      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
 ```
