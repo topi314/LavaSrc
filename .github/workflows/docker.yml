@@ -52,5 +52,5 @@ jobs:
           platforms: ${{ matrix.platforms }}
           push: true
           tags: ghcr.io/topi314/lavasrc:${{ matrix.tag }}
-          build-args:
-            TAG: ${{ matrix.tag }}
+          build-args: |
+            TAG=${{ matrix.tag }}
