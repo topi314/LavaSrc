@@ -142,6 +142,11 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 		var tracks = new ArrayList<AudioTrack>();
 		for (var entry : entries) {
+			var ieKey = entry.get("ie_key").text();
+			if (ieKey == null || !ieKey.equalsIgnoreCase("youtube")) {
+				continue;
+			}
+
 			entry.put("extractor", json.get("extractor").text());
 			var track = this.parseVideo(entry);
 			if (track != null) {
@@ -158,11 +163,6 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	}
 
 	public AudioTrack parseVideo(JsonBrowser json) {
-		var ieKey = json.get("ie_key").text();
-		if (ieKey == null || !ieKey.equalsIgnoreCase("youtube")) {
-			return null;
-		}
-
 		var title = json.get("title").text();
 		var author = json.get("uploader").text();
 		var identifier = json.get("id").text();
