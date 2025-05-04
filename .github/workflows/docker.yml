@@ -17,15 +17,19 @@ jobs:
         include:
           - name: Latest Ubuntu
             tag: latest
+            platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
             dockerfile: docker/Dockerfile
           - name: Latest Alpine
             tag: alpine
+            platforms: linux/amd64,linux/arm64/v8
             dockerfile: docker/alpine.Dockerfile
           - name: Dev Ubuntu
             tag: dev
+            platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
             dockerfile: docker/Dockerfile
           - name: Dev Alpine
             tag: dev-alpine
+            platforms: linux/amd64,linux/arm64/v8
             dockerfile: docker/alpine.Dockerfile
     steps:
       - name: Checkout
