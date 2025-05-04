@@ -36,19 +36,21 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	private static final Logger log = LoggerFactory.getLogger(YtdlpAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager;
 	private String path;
+	private int searchLimit;
 	private String[] customLoadArgs;
 	private String[] customPlaybackArgs;
 
 	public YtdlpAudioSourceManager() {
-		this("yt-dlp", null, null);
+		this("yt-dlp", 0, null, null);
 	}
 
 	public YtdlpAudioSourceManager(String path) {
-		this(path, null, null);
+		this(path, 0, null, null);
 	}
 
-	public YtdlpAudioSourceManager(String path, String[] customLoadArgs, String[] customPlaybackArgs) {
+	public YtdlpAudioSourceManager(String path, int searchLimit, String[] customLoadArgs, String[] customPlaybackArgs) {
 		this.path = path;
+		this.searchLimit = searchLimit == 0 ? 10 : searchLimit;
 		if (customLoadArgs == null || customLoadArgs.length == 0) {
 			this.customLoadArgs = new String[]{"-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"};
 		} else {
@@ -62,14 +64,6 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
 	}
 
-	public String[] getCustomPlaybackArgs() {
-		return customPlaybackArgs;
-	}
-
-	public void setCustomPlaybackArgs(String[] customPlaybackArgs) {
-		this.customPlaybackArgs = customPlaybackArgs;
-	}
-
 	public String getPath() {
 		return path;
 	}
@@ -78,12 +72,28 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 		this.path = path;
 	}
 
+	public int getSearchLimit() {
+		return searchLimit;
+	}
+
+	public void setSearchLimit(int searchLimit) {
+		this.searchLimit = searchLimit;
+	}
+
 	public String[] getCustomLoadArgs() {
 		return customLoadArgs;
 	}
 
 	public void setCustomLoadArgs(String[] customLoadArgs) {
 		this.customLoadArgs = customLoadArgs;
+	}
+
+	public String[] getCustomPlaybackArgs() {
+		return customPlaybackArgs;
+	}
+
+	public void setCustomPlaybackArgs(String[] customPlaybackArgs) {
+		this.customPlaybackArgs = customPlaybackArgs;
 	}
 
 	@NotNull
@@ -111,7 +121,7 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 		var identifier = reference.identifier;
 		try {
 			if (identifier.startsWith(SEARCH_PREFIX)) {
-				return this.getItem(identifier);
+				return this.getItem(String.format("ytsearch%d:%s", searchLimit, identifier.substring(SEARCH_PREFIX.length())));
 			}
 
 			if (URL_PATTERN.matcher(identifier).matches() || SHORT_URL_PATTERN.matcher(identifier).matches()) {
@@ -148,6 +158,11 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	}
 
 	public AudioTrack parseVideo(JsonBrowser json) {
+		var ieKey = json.get("ie_key").text();
+		if (ieKey == null || !ieKey.equalsIgnoreCase("youtube")) {
+			return null;
+		}
+
 		var title = json.get("title").text();
 		var author = json.get("uploader").text();
 		var identifier = json.get("id").text();

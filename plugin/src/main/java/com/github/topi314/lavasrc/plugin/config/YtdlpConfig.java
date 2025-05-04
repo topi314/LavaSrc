@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class YtdlpConfig {
 
 	private String path;
+	private int searchLimit = 10;
 	private String[] customLoadArgs;
 	private String[] customPlaybackArgs;
 
@@ -17,6 +18,14 @@ public class YtdlpConfig {
 
 	public void setPath(String path) {
 		this.path = path;
+	}
+
+	public int getSearchLimit() {
+		return searchLimit;
+	}
+
+	public void setSearchLimit(int searchLimit) {
+		this.searchLimit = searchLimit;
 	}
 
 	public String[] getCustomLoadArgs() {

@@ -151,7 +151,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(), qobuzConfig.getAppSecret());
 		}
 		if (sourcesConfig.isYtdlp()) {
-			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
+			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getSearchLimit(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
 		}
 	}
 
@@ -323,6 +323,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (ytdlpConfig != null && this.ytdlp != null) {
 			if (ytdlpConfig.getPath() != null) {
 				this.ytdlp.setPath(ytdlpConfig.getPath());
+			}
+			if (ytdlpConfig.getSearchLimit() > 0) {
+				this.ytdlp.setSearchLimit(ytdlpConfig.getSearchLimit());
 			}
 			if (ytdlpConfig.getCustomLoadArgs() != null) {
 				this.ytdlp.setCustomLoadArgs(ytdlpConfig.getCustomLoadArgs().toArray(String[]::new));
