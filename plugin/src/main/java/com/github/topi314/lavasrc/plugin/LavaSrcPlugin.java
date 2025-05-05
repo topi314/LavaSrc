@@ -156,37 +156,35 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 		if (sourcesConfig.isJiosaavn()) {
 			JioSaavnDecryptionConfig decryptionConfig = jioSaavnConfig.getDecryption();
-			if (decryptionConfig == null) {
-				log.warn("JioSaavn is enabled, but JioSaavn decryption config is missing. Skipping...");
-			} else if (decryptionConfig.getSecretKey() == null) {
-				log.warn("JioSaavn is enabled, but JioSaavn secret key is missing. Skipping...");
-			} else {
-				this.jioSaavn = new JioSaavnAudioSourceManager(decryptionConfig);
+			if (decryptionConfig == null || decryptionConfig.getSecretKey() == null) {
+				throw new IllegalStateException("JioSaavn is enabled, but JioSaavn secret key is not provided");
+			}
 
-				HttpProxyConfig proxyConfig = jioSaavnConfig.getProxy();
-				if (proxyConfig != null && proxyConfig.getUrl() != null) {
-					HttpHost httpHost = HttpHost.create(proxyConfig.getUrl());
+			this.jioSaavn = new JioSaavnAudioSourceManager(decryptionConfig);
 
-					BasicCredentialsProvider credentialsProvider;
-					if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
-						credentialsProvider = new BasicCredentialsProvider();
-						credentialsProvider.setCredentials(
-							new AuthScope(httpHost),
-							new UsernamePasswordCredentials(proxyConfig.getUsername(), proxyConfig.getPassword())
-						);
-					} else {
-						credentialsProvider = null;
-					}
+			HttpProxyConfig proxyConfig = jioSaavnConfig.getProxy();
+			if (proxyConfig != null && proxyConfig.getUrl() != null) {
+				HttpHost httpHost = HttpHost.create(proxyConfig.getUrl());
 
-					log.info("Using {} as http proxy for JioSaavn. With basic auth: {}", httpHost, credentialsProvider != null);
-
-					this.jioSaavn.configureBuilder(builder -> {
-						builder.setProxy(httpHost);
-						if (credentialsProvider != null) {
-							builder.setDefaultCredentialsProvider(credentialsProvider);
-						}
-					});
+				BasicCredentialsProvider credentialsProvider;
+				if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
+					credentialsProvider = new BasicCredentialsProvider();
+					credentialsProvider.setCredentials(
+						new AuthScope(httpHost),
+						new UsernamePasswordCredentials(proxyConfig.getUsername(), proxyConfig.getPassword())
+					);
+				} else {
+					credentialsProvider = null;
 				}
+
+				log.info("Using {} as http proxy for JioSaavn. With basic auth: {}", httpHost, credentialsProvider != null);
+
+				this.jioSaavn.configureBuilder(builder -> {
+					builder.setProxy(httpHost);
+					if (credentialsProvider != null) {
+						builder.setDefaultCredentialsProvider(credentialsProvider);
+					}
+				});
 			}
 		}
 
