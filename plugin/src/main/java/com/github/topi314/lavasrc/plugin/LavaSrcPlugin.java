@@ -23,6 +23,8 @@ import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -168,6 +170,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 					BasicCredentialsProvider credentialsProvider;
 					if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
 						credentialsProvider = new BasicCredentialsProvider();
+						credentialsProvider.setCredentials(
+							new AuthScope(httpHost),
+							new UsernamePasswordCredentials(proxyConfig.getUsername(), proxyConfig.getPassword())
+						);
 					} else {
 						credentialsProvider = null;
 					}
