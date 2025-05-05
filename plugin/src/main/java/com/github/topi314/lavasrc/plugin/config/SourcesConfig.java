@@ -17,6 +17,7 @@ public class SourcesConfig {
 	private boolean vkMusic = false;
 	private boolean qobuz = false;
 	private boolean tidal = false;
+	private boolean ytdlp = false;
 	private boolean jiosaavn = false;
 
 	public boolean isSpotify() {
@@ -89,6 +90,14 @@ public class SourcesConfig {
 
 	public void setTidal(boolean tidal) {
 		this.tidal = tidal;
+	}
+
+	public boolean isYtdlp() {
+		return this.ytdlp;
+	}
+
+	public void setYtdlp(boolean ytdlp) {
+		this.ytdlp = ytdlp;
 	}
 
 	public boolean isJiosaavn() {

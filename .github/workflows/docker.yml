@@ -1,0 +1,67 @@
+name: Build Image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ '**' ]
+    paths:
+      - 'docker/**'
+      - '.github/workflows/docker.yml'
+
+jobs:
+  check-upstream:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Latest Ubuntu
+            tag: latest
+            platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+            dockerfile: docker/Dockerfile
+          - name: Latest Alpine
+            tag: latest-alpine
+            platforms: linux/amd64,linux/arm64/v8
+            dockerfile: docker/alpine.Dockerfile
+          - name: Dev Ubuntu
+            tag: dev
+            platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+            dockerfile: docker/Dockerfile
+          - name: Dev Alpine
+            tag: dev-alpine
+            platforms: linux/amd64,linux/arm64/v8
+            dockerfile: docker/alpine.Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log stuff
+        run: |
+          echo "Dockerfile: ${{ matrix.dockerfile }}"
+          echo "Tag: ${{ matrix.tag }}"
+          echo "Name: ${{ matrix.name }}"
+          echo "Platforms: ${{ matrix.platforms }}"
+
+      - name: Docker Build ${{ matrix.name }} and Push
+        uses: docker/build-push-action@v6
+        with:
+          file: ${{ matrix.dockerfile }}
+          context: .
+          platforms: ${{ matrix.platforms }}
+          push: true
+          tags: ghcr.io/topi314/lavasrc:${{ matrix.tag }}
+          build-args: |
+            TAG=${{ matrix.tag }}

@@ -20,6 +20,7 @@ import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
+import com.github.topi314.lavasrc.ytdlp.YtdlpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.apache.http.HttpHost;
@@ -53,6 +54,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private TidalSourceManager tidal;
 	private JioSaavnAudioSourceManager jioSaavn;
 	private QobuzAudioSourceManager qobuz;
+	private YtdlpAudioSourceManager ytdlp;
 
 	public LavaSrcPlugin(
 		LavaSrcConfig pluginConfig,
@@ -66,8 +68,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		YouTubeConfig youTubeConfig,
 		VkMusicConfig vkMusicConfig,
 		TidalConfig tidalConfig,
-		JioSaavnConfig jioSaavnConfig,
-		QobuzConfig qobuzConfig
+		QobuzConfig qobuzConfig,
+		YtdlpConfig ytdlpConfig,
+		JioSaavnConfig jioSaavnConfig
 	) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
@@ -154,6 +157,13 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 		}
 
+		if (sourcesConfig.isQobuz()) {
+			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(), qobuzConfig.getAppSecret());
+		}
+		if (sourcesConfig.isYtdlp()) {
+			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getSearchLimit(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
+		}
+
 		if (sourcesConfig.isJiosaavn()) {
 			JioSaavnDecryptionConfig decryptionConfig = jioSaavnConfig.getDecryption();
 			if (decryptionConfig == null || decryptionConfig.getSecretKey() == null) {
@@ -186,10 +196,6 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 					}
 				});
 			}
-		}
-
-		if (sourcesConfig.isQobuz()) {
-			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(), qobuzConfig.getAppSecret());
 		}
 	}
 
@@ -234,13 +240,17 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering Tidal audio source manager...");
 			manager.registerSourceManager(this.tidal);
 		}
-		if (this.jioSaavn != null) {
-			log.info("Registering JioSaavn audio source manager...");
-			manager.registerSourceManager(this.jioSaavn);
-		}
 		if (this.qobuz != null) {
 			log.info("Registering Qobuz audio source manager...");
 			manager.registerSourceManager(this.qobuz);
+		}
+		if (this.ytdlp != null) {
+			log.info("Registering YTDLP audio source manager...");
+			manager.registerSourceManager(this.ytdlp);
+		}
+		if (this.jioSaavn != null) {
+			log.info("Registering JioSaavn audio source manager...");
+			manager.registerSourceManager(this.jioSaavn);
 		}
 		return manager;
 	}
@@ -358,6 +368,22 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (qobuzConfig.getAppId() != null && qobuzConfig.getAppSecret() != null) {
 				this.qobuz.setAppId(qobuzConfig.getAppId());
 				this.qobuz.setAppSecret(qobuzConfig.getAppSecret());
+			}
+		}
+
+		var ytdlpConfig = config.getYtdlp();
+		if (ytdlpConfig != null && this.ytdlp != null) {
+			if (ytdlpConfig.getPath() != null) {
+				this.ytdlp.setPath(ytdlpConfig.getPath());
+			}
+			if (ytdlpConfig.getSearchLimit() > 0) {
+				this.ytdlp.setSearchLimit(ytdlpConfig.getSearchLimit());
+			}
+			if (ytdlpConfig.getCustomLoadArgs() != null) {
+				this.ytdlp.setCustomLoadArgs(ytdlpConfig.getCustomLoadArgs().toArray(String[]::new));
+			}
+			if (ytdlpConfig.getCustomPlaybackArgs() != null) {
+				this.ytdlp.setCustomPlaybackArgs(ytdlpConfig.getCustomPlaybackArgs().toArray(String[]::new));
 			}
 		}
 	}
