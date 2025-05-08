@@ -1,4 +1,4 @@
-package com.github.topi314.lavasrc.jiosaavn;
+package com.github.topi314.lavasrc.plugin.config;
 
 public class JioSaavnDecryptionConfig {
 
@@ -16,8 +16,7 @@ public class JioSaavnDecryptionConfig {
 		this.secretKey = secretKey;
 	}
 
-	public JioSaavnDecryptionConfig(){
-
+	public JioSaavnDecryptionConfig() {
 	}
 
 	public String getAlgorithm() {
@@ -43,6 +42,5 @@ public class JioSaavnDecryptionConfig {
 	public void setSecretKey(String secretKey) {
 		this.secretKey = secretKey;
 	}
-
 
 }

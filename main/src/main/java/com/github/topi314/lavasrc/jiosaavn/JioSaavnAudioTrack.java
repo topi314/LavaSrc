@@ -38,11 +38,11 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 		}
 	}
 
-	public static String decryptUrl(String url, JioSaavnDecryptionConfig decryptionConfig) {
+	public static String decryptUrl(String url, JioSaavnAudioSourceManager.JioSaavnConfig config) {
 		try {
 			byte[] encryptedBytes = Base64.getDecoder().decode(url);
-			SecretKeySpec keySpec = new SecretKeySpec(decryptionConfig.getSecretKey().getBytes(), decryptionConfig.getAlgorithm());
-			Cipher cipher = Cipher.getInstance(decryptionConfig.getTransformation());
+			SecretKeySpec keySpec = new SecretKeySpec(config.getSecretKey().getBytes(), config.getAlgorithm());
+			Cipher cipher = Cipher.getInstance(config.getTransformation());
 			cipher.init(Cipher.DECRYPT_MODE, keySpec);
 			byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
 			return new String(decryptedBytes);

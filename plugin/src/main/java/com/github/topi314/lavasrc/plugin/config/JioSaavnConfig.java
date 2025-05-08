@@ -1,6 +1,7 @@
 package com.github.topi314.lavasrc.plugin.config;
 
-import com.github.topi314.lavasrc.jiosaavn.JioSaavnDecryptionConfig;
+import com.github.topi314.lavasrc.jiosaavn.JioSaavnAudioSourceManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -29,5 +30,21 @@ public class JioSaavnConfig {
 	@SuppressWarnings("unused")
 	public void setDecryption(JioSaavnDecryptionConfig decryption) {
 		this.decryption = decryption;
+	}
+
+	public @NotNull JioSaavnAudioSourceManager.JioSaavnConfig buildConfig() {
+		JioSaavnDecryptionConfig decryptionConfig = getDecryption();
+		if (decryptionConfig == null || decryptionConfig.getSecretKey() == null) {
+			throw new IllegalStateException("JioSaavn is enabled, but JioSaavn secret key is not provided");
+		}
+
+		JioSaavnAudioSourceManager.JioSaavnConfig sourceConfig = new JioSaavnAudioSourceManager.JioSaavnConfig(decryptionConfig.getSecretKey());
+		if (decryptionConfig.getAlgorithm() != null) {
+			sourceConfig.setAlgorithm(decryptionConfig.getAlgorithm());
+		}
+		if (decryptionConfig.getTransformation() != null) {
+			sourceConfig.setTransformation(decryptionConfig.getTransformation());
+		}
+		return sourceConfig;
 	}
 }

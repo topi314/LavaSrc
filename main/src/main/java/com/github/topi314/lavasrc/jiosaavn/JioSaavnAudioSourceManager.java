@@ -23,6 +23,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,9 +56,9 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 
 	private static final Logger log = LoggerFactory.getLogger(JioSaavnAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
-	private final JioSaavnDecryptionConfig decryptionConfig;
+	private final JioSaavnConfig decryptionConfig;
 
-	public JioSaavnAudioSourceManager(@NotNull JioSaavnDecryptionConfig decryptionConfig) {
+	public JioSaavnAudioSourceManager(@NotNull JioSaavnConfig decryptionConfig) {
 		this.decryptionConfig = decryptionConfig;
 	}
 
@@ -379,11 +380,66 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		this.httpInterfaceManager.configureBuilder(configurator);
 	}
 
-	public JioSaavnDecryptionConfig getDecryptionConfig() {
+	public JioSaavnConfig getDecryptionConfig() {
 		return this.decryptionConfig;
 	}
 
 	HttpInterface getHttpInterface() {
 		return httpInterfaceManager.getInterface();
+	}
+
+	public static class JioSaavnConfig {
+		private static final String DEFAULT_ALGORITHM = "DES";
+		private static final String DEFAULT_TRANSFORMATION = "DES/ECB/PKCS5Padding";
+
+		@NotNull
+		private String secretKey;
+		@NotNull
+		private String algorithm;
+		@NotNull
+		private String transformation;
+
+		public JioSaavnConfig(@NotNull String secretKey, @NotNull String algorithm, @NotNull String transformation) {
+			Objects.requireNonNull(secretKey);
+			Objects.requireNonNull(algorithm);
+			Objects.requireNonNull(transformation);
+			this.secretKey = secretKey;
+			this.algorithm = algorithm;
+			this.transformation = transformation;
+		}
+
+		public JioSaavnConfig(@NotNull String secretKey) {
+			this(secretKey, DEFAULT_ALGORITHM, DEFAULT_TRANSFORMATION);
+		}
+
+		@NotNull
+		public String getSecretKey() {
+			return secretKey;
+		}
+
+		public void setSecretKey(@NotNull String secretKey) {
+			Objects.requireNonNull(secretKey);
+			this.secretKey = secretKey;
+		}
+
+		@NotNull
+		public String getAlgorithm() {
+			return algorithm;
+		}
+
+		public void setAlgorithm(@NotNull String algorithm) {
+			Objects.requireNonNull(algorithm);
+			this.algorithm = algorithm;
+		}
+
+		@NotNull
+		public String getTransformation() {
+			return transformation;
+		}
+
+		public void setTransformation(@NotNull String transformation) {
+			Objects.requireNonNull(transformation);
+			this.transformation = transformation;
+		}
 	}
 }

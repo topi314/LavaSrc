@@ -9,7 +9,6 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.jiosaavn.JioSaavnAudioSourceManager;
-import com.github.topi314.lavasrc.jiosaavn.JioSaavnDecryptionConfig;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
@@ -70,7 +69,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		TidalConfig tidalConfig,
 		QobuzConfig qobuzConfig,
 		YtdlpConfig ytdlpConfig,
-		JioSaavnConfig jioSaavnConfig
+		com.github.topi314.lavasrc.plugin.config.JioSaavnConfig jioSaavnConfig
 	) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
@@ -165,12 +164,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isJiosaavn()) {
-			JioSaavnDecryptionConfig decryptionConfig = jioSaavnConfig.getDecryption();
-			if (decryptionConfig == null || decryptionConfig.getSecretKey() == null) {
-				throw new IllegalStateException("JioSaavn is enabled, but JioSaavn secret key is not provided");
-			}
-
-			this.jioSaavn = new JioSaavnAudioSourceManager(decryptionConfig);
+			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.buildConfig());
 
 			HttpProxyConfig proxyConfig = jioSaavnConfig.getProxy();
 			if (proxyConfig != null && proxyConfig.getUrl() != null) {
