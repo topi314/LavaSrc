@@ -70,7 +70,7 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 		return new URI(playbackUrl);
 	}
 
-	private void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
+	private void checkResponse(JsonBrowser json, String message) {
 		if (json == null) {
 			throw new IllegalStateException(message + " No response");
 		} else if (json.get(this.getIdentifier()).isNull()) {
@@ -80,16 +80,10 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
 		try (HttpInterface httpInterface = this.sourceManager.getHttpInterface()) {
-			if (this.isPreview) {
-				//noinspection DataFlowIssue
-				try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(this.previewUrl), this.trackInfo.length)) {
-					this.processDelegate(new MpegAudioTrack(this.trackInfo, stream), executor);
-				}
-				return;
-			}
-
-			try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, this.getTrackMediaURI(), this.trackInfo.length)) {
-				this.processDelegate(new MpegAudioTrack(this.trackInfo, stream), executor);
+			//noinspection DataFlowIssue
+			URI mediaUri = isPreview ? new URI(this.previewUrl) : getTrackMediaURI();
+			try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, mediaUri, trackInfo.length)) {
+				this.processDelegate(new MpegAudioTrack(trackInfo, stream), executor);
 			}
 		}
 	}
