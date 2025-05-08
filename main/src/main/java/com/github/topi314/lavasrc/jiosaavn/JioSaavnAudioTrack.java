@@ -32,6 +32,10 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 	public JioSaavnAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, boolean isPreview, JioSaavnAudioSourceManager sourceManager) {
 		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview);
 		this.sourceManager = sourceManager;
+
+		if (isPreview && previewUrl == null) {
+			throw new IllegalArgumentException("Attempt to create preview track with null preview URL");
+		}
 	}
 
 	public static String decryptUrl(String url, JioSaavnDecryptionConfig decryptionConfig) {
@@ -77,10 +81,7 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 	public void process(LocalAudioTrackExecutor executor) throws Exception {
 		try (HttpInterface httpInterface = this.sourceManager.getHttpInterface()) {
 			if (this.isPreview) {
-				if (this.previewUrl == null) {
-					throw new FriendlyException("No preview url found", Severity.COMMON, new IllegalArgumentException());
-				}
-
+				//noinspection DataFlowIssue
 				try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(this.previewUrl), this.trackInfo.length)) {
 					this.processDelegate(new MpegAudioTrack(this.trackInfo, stream), executor);
 				}
