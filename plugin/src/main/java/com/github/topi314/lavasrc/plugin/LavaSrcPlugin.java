@@ -4,20 +4,20 @@ import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavalyrics.api.LyricsManagerConfiguration;
 import com.github.topi314.lavasearch.SearchManager;
 import com.github.topi314.lavasearch.api.SearchManagerConfiguration;
-import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
-import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
-import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
-import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
-import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
+import com.github.topi314.lavasrc.source.applemusic.AppleMusicSourceManager;
+import com.github.topi314.lavasrc.source.deezer.DeezerAudioSourceManager;
+import com.github.topi314.lavasrc.source.deezer.DeezerAudioTrack;
+import com.github.topi314.lavasrc.source.flowerytts.FloweryTTSSourceManager;
+import com.github.topi314.lavasrc.mirror.DefaultMirrorResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
-import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
-import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
-import com.github.topi314.lavasrc.tidal.TidalSourceManager;
-import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
-import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
-import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
-import com.github.topi314.lavasrc.ytdlp.YtdlpAudioSourceManager;
+import com.github.topi314.lavasrc.source.qobuz.QobuzAudioSourceManager;
+import com.github.topi314.lavasrc.source.spotify.SpotifySourceManager;
+import com.github.topi314.lavasrc.source.tidal.TidalSourceManager;
+import com.github.topi314.lavasrc.source.vkmusic.VkMusicSourceManager;
+import com.github.topi314.lavasrc.source.yandexmusic.YandexMusicSourceManager;
+import com.github.topi314.lavasrc.source.youtube.YoutubeSearchManager;
+import com.github.topi314.lavasrc.source.ytdlp.YtdlpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +68,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		this.lyricsSourcesConfig = lyricsSourcesConfig;
 
 		if (sourcesConfig.isSpotify() || lyricsSourcesConfig.isSpotify()) {
-			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.isPreferAnonymousToken(), spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), unused -> manager, new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()));
+			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.isPreferAnonymousToken(), spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), unused -> manager, new DefaultMirrorResolver(pluginConfig.getProviders()));
 			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
 				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
 			}

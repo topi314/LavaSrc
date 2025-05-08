@@ -1,8 +1,8 @@
 package com.github.topi314.lavasrc.plugin;
 
-import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
-import com.github.topi314.lavasrc.ExtendedAudioTrack;
-import com.github.topi314.lavasrc.spotify.SpotifyAudioTrack;
+import com.github.topi314.lavasrc.extended.ExtendedAudioPlaylist;
+import com.github.topi314.lavasrc.extended.ExtendedAudioTrack;
+import com.github.topi314.lavasrc.source.spotify.SpotifyAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.arbjerg.lavalink.api.AudioPluginInfoModifier;
