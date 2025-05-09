@@ -73,11 +73,13 @@ public class SpotifySourceManager implements MirroringAudioSourceManager, Extend
 		return "spotify";
 	}
 
+	@NotNull
 	@Override
 	public MirrorResolver getMirrorResolver() {
 		return this.mirrorResolver;
 	}
 
+	@NotNull
 	@Override
 	public HttpInterfaceManager getHttpInterfaceManager() {
 		return this.httpInterfaceManager;

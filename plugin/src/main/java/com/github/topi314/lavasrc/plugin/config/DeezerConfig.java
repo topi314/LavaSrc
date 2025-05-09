@@ -8,9 +8,36 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeezerConfig {
 
+	private boolean enabled = false;
+	private boolean lavaLyricsEnabled = false;
+	private boolean lavaSearchEnabled = false;
 	private String masterDecryptionKey;
 	private String arl;
 	private DeezerAudioTrack.TrackFormat[] formats;
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isLavaLyricsEnabled() {
+		return this.lavaLyricsEnabled;
+	}
+
+	public void setLavaLyricsEnabled(boolean lavaLyricsEnabled) {
+		this.lavaLyricsEnabled = lavaLyricsEnabled;
+	}
+
+	public boolean isLavaSearchEnabled() {
+		return this.lavaSearchEnabled;
+	}
+
+	public void setLavaSearchEnabled(boolean lavaSearchEnabled) {
+		this.lavaSearchEnabled = lavaSearchEnabled;
+	}
 
 	public String getMasterDecryptionKey() {
 		return this.masterDecryptionKey;

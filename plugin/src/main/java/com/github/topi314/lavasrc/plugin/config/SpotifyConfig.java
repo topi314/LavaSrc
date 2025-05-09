@@ -2,11 +2,15 @@ package com.github.topi314.lavasrc.plugin.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "plugins.lavasrc.spotify")
 @Component
 public class SpotifyConfig {
 
+	private boolean enabled = false;
+	private boolean lavaLyricsEnabled = false;
+	private boolean lavaSearchEnabled = false;
 	private String clientId;
 	private String clientSecret;
 	private String spDc;
@@ -16,6 +20,30 @@ public class SpotifyConfig {
 	private boolean resolveArtistsInSearch = true;
 	private boolean localFiles = false;
 	private boolean preferAnonymousToken = false;
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isLavaLyricsEnabled() {
+		return this.lavaLyricsEnabled;
+	}
+
+	public void setLavaLyricsEnabled(boolean lavaLyricsEnabled) {
+		this.lavaLyricsEnabled = lavaLyricsEnabled;
+	}
+
+	public boolean isLavaSearchEnabled() {
+		return this.lavaSearchEnabled;
+	}
+
+	public void setLavaSearchEnabled(boolean lavaSearchEnabled) {
+		this.lavaSearchEnabled = lavaSearchEnabled;
+	}
 
 	public String getClientId() {
 		return this.clientId;

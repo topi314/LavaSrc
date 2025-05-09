@@ -7,14 +7,31 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppleMusicConfig {
 
+	private boolean enabled = false;
+	private boolean lavaSearchEnabled = false;
 	private String countryCode = "us";
 	private String musicKitKey;
 	private String teamID;
 	private String keyID;
-
 	private String mediaAPIToken;
 	private int playlistLoadLimit = 6;
 	private int albumLoadLimit = 6;
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isLavaSearchEnabled() {
+		return this.lavaSearchEnabled;
+	}
+
+	public void setLavaSearchEnabled(boolean lavaSearchEnabled) {
+		this.lavaSearchEnabled = lavaSearchEnabled;
+	}
 
 	public String getCountryCode() {
 		return this.countryCode;
@@ -71,4 +88,5 @@ public class AppleMusicConfig {
 	public void setKeyID(String keyID) {
 		this.keyID = keyID;
 	}
+
 }

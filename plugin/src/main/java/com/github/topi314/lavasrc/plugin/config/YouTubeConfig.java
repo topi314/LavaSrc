@@ -7,8 +7,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class YouTubeConfig {
 
+	private boolean lavaLyricsEnabled = false;
+	private boolean lavaSearchEnabled = false;
 	private String countryCode = "US";
 	private String language = "en";
+
+	public boolean isLavaLyricsEnabled() {
+		return lavaLyricsEnabled;
+	}
+
+	public void setLavaLyricsEnabled(boolean lavaLyricsEnabled) {
+		this.lavaLyricsEnabled = lavaLyricsEnabled;
+	}
+
+	public boolean isLavaSearchEnabled() {
+		return lavaSearchEnabled;
+	}
+
+	public void setLavaSearchEnabled(boolean lavaSearchEnabled) {
+		this.lavaSearchEnabled = lavaSearchEnabled;
+	}
 
 	public String getCountryCode() {
 		return countryCode;

@@ -6,9 +6,19 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "plugins.lavasrc.tidal")
 @Component
 public class TidalConfig {
+
+	private boolean enabled = false;
 	private String countryCode;
 	private int searchLimit;
 	private String token;
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public String getCountryCode() {
 		return this.countryCode;

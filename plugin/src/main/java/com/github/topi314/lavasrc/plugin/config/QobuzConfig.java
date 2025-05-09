@@ -7,9 +7,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class QobuzConfig {
 
+	private boolean enabled = false;
 	private String userOauthToken;
 	private String appId;
 	private String appSecret;
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public String getAppId() {
 		return appId;

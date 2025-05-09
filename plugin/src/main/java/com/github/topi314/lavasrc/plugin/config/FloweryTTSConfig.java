@@ -7,11 +7,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class FloweryTTSConfig {
 
+	private boolean enabled = false;
 	private String voice = null;
 	private boolean translate;
 	private int silence;
 	private float speed = 1.0F;
 	private String audioFormat = "mp3";
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public String getVoice() {
 		return this.voice;

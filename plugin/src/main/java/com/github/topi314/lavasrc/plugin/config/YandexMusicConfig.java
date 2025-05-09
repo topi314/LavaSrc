@@ -7,10 +7,37 @@ import org.springframework.stereotype.Component;
 @Component
 public class YandexMusicConfig {
 
+	private boolean enabled = false;
+	private boolean lavaLyricsEnabled = false;
+	private boolean lavaSearchEnabled = false;
 	private String accessToken;
 	private int playlistLoadLimit = 1;
 	private int albumLoadLimit = 1;
 	private int artistLoadLimit = 1;
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isLavaLyricsEnabled() {
+		return this.lavaLyricsEnabled;
+	}
+
+	public void setLavaLyricsEnabled(boolean lavaLyricsEnabled) {
+		this.lavaLyricsEnabled = lavaLyricsEnabled;
+	}
+
+	public boolean isLavaSearchEnabled() {
+		return this.lavaSearchEnabled;
+	}
+
+	public void setLavaSearchEnabled(boolean lavaSearchEnabled) {
+		this.lavaSearchEnabled = lavaSearchEnabled;
+	}
 
 	public String getAccessToken() {
 		return this.accessToken;

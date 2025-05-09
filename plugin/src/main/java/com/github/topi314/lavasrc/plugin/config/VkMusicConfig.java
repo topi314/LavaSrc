@@ -7,10 +7,37 @@ import org.springframework.stereotype.Component;
 @Component
 public class VkMusicConfig {
 
+	private boolean enabled = false;
+	private boolean lavaLyricsEnabled = false;
+	private boolean lavaSearchEnabled = false;
 	private String userToken;
 	private int playlistLoadLimit = 1;
 	private int artistLoadLimit = 1;
 	private int recommendationLoadLimit = 1;
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isLavaLyricsEnabled() {
+		return this.lavaLyricsEnabled;
+	}
+
+	public void setLavaLyricsEnabled(boolean lavaLyricsEnabled) {
+		this.lavaLyricsEnabled = lavaLyricsEnabled;
+	}
+
+	public boolean isLavaSearchEnabled() {
+		return this.lavaSearchEnabled;
+	}
+
+	public void setLavaSearchEnabled(boolean lavaSearchEnabled) {
+		this.lavaSearchEnabled = lavaSearchEnabled;
+	}
 
 	public String getUserToken() {
 		return this.userToken;

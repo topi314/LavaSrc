@@ -1,28 +1,34 @@
 package com.github.topi314.lavasrc.source.vkmusic;
 
 import com.github.topi314.lavasrc.extended.ExtendedAudioTrack;
+import com.github.topi314.lavasrc.extended.ExtendedAudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class VkMusicAudioTrack extends ExtendedAudioTrack {
+public class VkMusicAudioTrack extends DelegatedAudioTrack implements ExtendedAudioTrack {
 
+	private final ExtendedAudioTrackInfo extendedTrackInfo;
 	private final VkMusicSourceManager sourceManager;
 
-	public VkMusicAudioTrack(AudioTrackInfo trackInfo, VkMusicSourceManager sourceManager) {
-		this(trackInfo, null, null, null, null, null, sourceManager);
+	public VkMusicAudioTrack(AudioTrackInfo trackInfo, ExtendedAudioTrackInfo extendedTrackInfo, VkMusicSourceManager sourceManager) {
+		super(trackInfo);
+		this.extendedTrackInfo = extendedTrackInfo;
+		this.sourceManager = sourceManager;
 	}
 
-	public VkMusicAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, String artistUrl, String artistArtworkUrl, String previewUrl, VkMusicSourceManager sourceManager) {
-		super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, false);
-		this.sourceManager = sourceManager;
+	@NotNull
+	@Override
+	public ExtendedAudioTrackInfo getExtendedInfo() {
+		return this.extendedTrackInfo;
 	}
 
 	@Override
@@ -51,11 +57,11 @@ public class VkMusicAudioTrack extends ExtendedAudioTrack {
 
 	@Override
 	protected AudioTrack makeShallowClone() {
-		return new VkMusicAudioTrack(this.trackInfo, this.sourceManager);
+		return new VkMusicAudioTrack(this.trackInfo, this.extendedTrackInfo, this.sourceManager);
 	}
 
 	@Override
-	public AudioSourceManager getSourceManager() {
+	public VkMusicSourceManager getSourceManager() {
 		return this.sourceManager;
 	}
 }

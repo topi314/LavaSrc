@@ -7,10 +7,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class YtdlpConfig {
 
+	private boolean enabled = false;
 	private String path;
 	private int searchLimit = 10;
 	private String[] customLoadArgs;
 	private String[] customPlaybackArgs;
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public String getPath() {
 		return path;
