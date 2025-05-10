@@ -15,6 +15,7 @@ public class SpotifyConfig {
 	private int albumLoadLimit = 6;
 	private boolean resolveArtistsInSearch = true;
 	private boolean localFiles = false;
+	private boolean preferAnonymousToken = false;
 
 	public String getClientId() {
 		return this.clientId;
@@ -78,5 +79,13 @@ public class SpotifyConfig {
 
 	public void setLocalFiles(boolean localFiles) {
 		this.localFiles = localFiles;
+	}
+
+	public boolean isPreferAnonymousToken() {
+		return this.preferAnonymousToken;
+	}
+
+	public void setPreferAnonymousToken(boolean preferAnonymousToken) {
+		this.preferAnonymousToken = preferAnonymousToken;
 	}
 }

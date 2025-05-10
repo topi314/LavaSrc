@@ -5,7 +5,6 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -43,6 +42,9 @@ public class SpotifyTokenTracker {
 	private String accessToken;
 	private Instant expires;
 
+	private String anonymousAccessToken;
+	private Instant anonymousExpires;
+
 	private String spDc;
 	private String accountToken;
 	private Instant accountTokenExpire;
@@ -54,8 +56,6 @@ public class SpotifyTokenTracker {
 
 		if (!hasValidCredentials()) {
 			log.debug("Missing/invalid credentials, falling back to public token.");
-		} else {
-			log.debug("Valid credentials found, ready to request access token.");
 		}
 
 		this.spDc = spDc;
@@ -72,7 +72,14 @@ public class SpotifyTokenTracker {
 		this.expires = null;
 	}
 
-	public String getAccessToken() throws IOException {
+	private boolean hasValidCredentials() {
+		return clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty();
+	}
+
+	public String getAccessToken(boolean preferAnonymousToken) throws IOException {
+		if (preferAnonymousToken || !hasValidCredentials()) {
+			return this.getAnonymousAccessToken();
+		}
 		if (this.accessToken == null || this.expires == null || this.expires.isBefore(Instant.now())) {
 			synchronized (this) {
 				if (accessToken == null || this.expires == null || this.expires.isBefore(Instant.now())) {
@@ -85,40 +92,48 @@ public class SpotifyTokenTracker {
 	}
 
 	private void refreshAccessToken() throws IOException {
-		boolean usePublicToken = !hasValidCredentials();
-		HttpUriRequest request;
+		var request = new HttpPost("https://accounts.spotify.com/api/token");
+		request.addHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((this.clientId + ":" + this.clientSecret).getBytes(StandardCharsets.UTF_8)));
+		request.setEntity(new UrlEncodedFormEntity(List.of(new BasicNameValuePair("grant_type", "client_credentials")), StandardCharsets.UTF_8));
 
-		if (!usePublicToken) {
-			request = new HttpPost("https://accounts.spotify.com/api/token");
-			request.addHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((this.clientId + ":" + this.clientSecret).getBytes(StandardCharsets.UTF_8)));
-			((HttpPost) request).setEntity(new UrlEncodedFormEntity(List.of(new BasicNameValuePair("grant_type", "client_credentials")), StandardCharsets.UTF_8));
-		} else {
-			request = new HttpGet(generateGetAccessTokenURL());
+		var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
+		if (json == null) {
+			throw new RuntimeException("No response from Spotify API");
 		}
-
-		try {
-			var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
-			if (!json.get("error").isNull()) {
-				String error = json.get("error").text();
-				log.error("Error while fetching access token: {}", error);
-				throw new RuntimeException("Error while fetching access token: " + error);
-			}
-
-			if (!usePublicToken) {
-				accessToken = json.get("access_token").text();
-				expires = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
-			} else {
-				accessToken = json.get("accessToken").text();
-				expires = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
-			}
-		} catch (IOException e) {
-			log.error("Access token refreshing failed.", e);
-			throw new RuntimeException("Access token refreshing failed", e);
+		if (!json.get("error").isNull()) {
+			var error = json.get("error").text();
+			throw new RuntimeException("Error while fetching access token: " + error);
 		}
+		accessToken = json.get("access_token").text();
+		expires = Instant.now().plusSeconds(json.get("expires_in").asLong(0));
 	}
 
-	private boolean hasValidCredentials() {
-		return clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty();
+	public String getAnonymousAccessToken() throws IOException {
+		if (this.anonymousAccessToken == null || this.anonymousExpires == null || this.anonymousExpires.isBefore(Instant.now())) {
+			synchronized (this) {
+				if (this.anonymousAccessToken == null || this.anonymousExpires == null || this.anonymousExpires.isBefore(Instant.now())) {
+					log.debug("Anonymous access token is invalid or expired, refreshing token...");
+					this.refreshAnonymousAccessToken();
+				}
+			}
+		}
+		return this.anonymousAccessToken;
+	}
+
+	private void refreshAnonymousAccessToken() throws IOException {
+		var request = new HttpGet(generateGetAccessTokenURL());
+
+		var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
+		if (json == null) {
+			throw new RuntimeException("No response from Spotify API");
+		}
+		if (!json.get("error").isNull()) {
+			var error = json.get("error").text();
+			throw new RuntimeException("Error while fetching access token: " + error);
+		}
+
+		anonymousAccessToken = json.get("accessToken").text();
+		anonymousExpires = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
 	}
 
 	public void setSpDc(String spDc) {
@@ -292,4 +307,5 @@ public class SpotifyTokenTracker {
 		}
 		return data;
 	}
+
 }
