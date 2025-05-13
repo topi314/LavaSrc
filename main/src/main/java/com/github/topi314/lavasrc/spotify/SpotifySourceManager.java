@@ -37,12 +37,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchManager, AudioLyricsManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
+	public static final Pattern RADIO_MIX_QUERY_PATTERN = Pattern.compile("(?<query>spotify:(?<seedType>album|artist|track):(?<seed>[a-zA-Z0-9-_]+))");
 	public static final String SEARCH_PREFIX = "spsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "sprec:";
 	public static final String PREVIEW_PREFIX = "spprev:";
@@ -63,6 +65,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private boolean localFiles;
 	private boolean resolveArtistsInSearch = true;
 	private boolean preferAnonymousToken = false;
+	
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
 		this(clientId, clientSecret, null, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -81,10 +84,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public SpotifySourceManager(String clientId, String clientSecret, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
-		this(clientId, clientSecret, false, spDc, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
+		this(clientId, clientSecret, false , spDc, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
-	public SpotifySourceManager(String clientId, String clientSecret, boolean preferAnonymousToken, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+	public SpotifySourceManager(String clientId, String clientSecret, boolean preferAnonymousToken , String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 
 		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc);
@@ -365,6 +368,16 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getRecommendations(String query, boolean preview) throws IOException {
+		Matcher matcher = RADIO_MIX_QUERY_PATTERN.matcher(query);
+		if (matcher.find()) {
+			JsonBrowser rjson = this.getJson(CLIENT_API_BASE + "inspiredby-mix/v2/seed_to_playlist/" + matcher.group("query") + "?response-format=json", true, this.preferAnonymousToken); // this endpoint works with account accessToken but idk it is also working with anonymous access tokens.
+			JsonBrowser mediaItems = rjson.get("mediaItems");
+			if (mediaItems.isList() && mediaItems.values().size() > 0) {
+				String playlistId = mediaItems.index(0).get("uri").text().split(":")[2];
+				return this.getPlaylist(playlistId, preview);
+			}
+			
+		}
 		var json = this.getJson(API_BASE + "recommendations?" + query, false, false);
 		if (json == null || json.get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
