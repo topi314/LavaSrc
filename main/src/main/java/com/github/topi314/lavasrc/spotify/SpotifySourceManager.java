@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 public class SpotifySourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchManager, AudioLyricsManager {
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
-	public static final Pattern RADIO_MIX_QUERY_PATTERN = Pattern.compile("(?<query>spotify:(?<seedType>album|artist|track):(?<seed>[a-zA-Z0-9-_]+))");
+	public static final Pattern RADIO_MIX_QUERY_PATTERN = Pattern.compile("mix:(?<seedType>album|artist|track):(?<seed>[a-zA-Z0-9-_]+)");
 	public static final String SEARCH_PREFIX = "spsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "sprec:";
 	public static final String PREVIEW_PREFIX = "spprev:";
@@ -370,7 +370,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public AudioItem getRecommendations(String query, boolean preview) throws IOException {
 		Matcher matcher = RADIO_MIX_QUERY_PATTERN.matcher(query);
 		if (matcher.find()) {
-			JsonBrowser rjson = this.getJson(CLIENT_API_BASE + "inspiredby-mix/v2/seed_to_playlist/" + matcher.group("query") + "?response-format=json", true, this.preferAnonymousToken); // this endpoint works with account accessToken but idk it is also working with anonymous access tokens.
+			JsonBrowser rjson = this.getJson(CLIENT_API_BASE + "inspiredby-mix/v2/seed_to_playlist/spotify:" + matcher.group("seedType") + ":" + matcher.group("seed") + "?response-format=json", true, this.preferAnonymousToken); // this endpoint works with account accessToken but idk it is also working with anonymous access tokens.
 			JsonBrowser mediaItems = rjson.get("mediaItems");
 			if (mediaItems.isList() && mediaItems.values().size() > 0) {
 				String playlistId = mediaItems.index(0).get("uri").text().split(":")[2];
