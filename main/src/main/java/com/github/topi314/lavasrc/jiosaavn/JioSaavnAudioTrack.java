@@ -61,7 +61,7 @@ public class JioSaavnAudioTrack extends ExtendedAudioTrack {
 
 		JsonBrowser trackData = jsonResponse.get(identifier);
 		String encryptedMediaUrl = trackData.get("encrypted_media_url").text();
-		String playbackUrl = decryptUrl(encryptedMediaUrl, sourceManager.getDecryptionConfig());
+		String playbackUrl = decryptUrl(encryptedMediaUrl, sourceManager.getConfig());
 
 		if (trackData.get("320kbps").asBoolean(false)) {
 			playbackUrl = playbackUrl.replace("_96.mp4", "_320.mp4");

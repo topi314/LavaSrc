@@ -56,10 +56,10 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 
 	private static final Logger log = LoggerFactory.getLogger(JioSaavnAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
-	private final JioSaavnConfig decryptionConfig;
+	private final JioSaavnConfig config;
 
-	public JioSaavnAudioSourceManager(@NotNull JioSaavnConfig decryptionConfig) {
-		this.decryptionConfig = decryptionConfig;
+	public JioSaavnAudioSourceManager(@NotNull JioSaavnConfig config) {
+		this.config = config;
 	}
 
 	@NotNull
@@ -342,7 +342,9 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	}
 
 	private AudioItem getArtist(String id, boolean preview) throws IOException {
-		JsonBrowser json = this.getJson(String.format(METADATA_API_BASE, URLEncoder.encode(id, StandardCharsets.UTF_8), "artist"));
+		String url = String.format(METADATA_API_BASE, URLEncoder.encode(id, StandardCharsets.UTF_8), "artist")
+			+ "&n_song=" + config.getArtistTopTracksRequestLimit();
+		JsonBrowser json = this.getJson(url);
 
 		if (json == null || json.get("topSongs").values().isEmpty()) {
 			log.debug("Failed to get artist for id: {}", id);
@@ -380,8 +382,8 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		this.httpInterfaceManager.configureBuilder(configurator);
 	}
 
-	public JioSaavnConfig getDecryptionConfig() {
-		return this.decryptionConfig;
+	public JioSaavnConfig getConfig() {
+		return this.config;
 	}
 
 	HttpInterface getHttpInterface() {
@@ -391,25 +393,19 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 	public static class JioSaavnConfig {
 		private static final String DEFAULT_ALGORITHM = "DES";
 		private static final String DEFAULT_TRANSFORMATION = "DES/ECB/PKCS5Padding";
+		private static final int DEFAULT_ARTIST_TOP_TRACKS_REQUEST_LIMIT = 20;
 
 		@NotNull
-		private String secretKey;
+		private String secretKey = DEFAULT_ALGORITHM;
 		@NotNull
-		private String algorithm;
+		private String algorithm = DEFAULT_TRANSFORMATION;
 		@NotNull
 		private String transformation;
-
-		public JioSaavnConfig(@NotNull String secretKey, @NotNull String algorithm, @NotNull String transformation) {
-			Objects.requireNonNull(secretKey);
-			Objects.requireNonNull(algorithm);
-			Objects.requireNonNull(transformation);
-			this.secretKey = secretKey;
-			this.algorithm = algorithm;
-			this.transformation = transformation;
-		}
+		private int artistTopTracksRequestLimit = DEFAULT_ARTIST_TOP_TRACKS_REQUEST_LIMIT;
 
 		public JioSaavnConfig(@NotNull String secretKey) {
-			this(secretKey, DEFAULT_ALGORITHM, DEFAULT_TRANSFORMATION);
+			Objects.requireNonNull(secretKey);
+			this.secretKey = secretKey;
 		}
 
 		@NotNull
@@ -440,6 +436,17 @@ public class JioSaavnAudioSourceManager extends ExtendedAudioSourceManager imple
 		public void setTransformation(@NotNull String transformation) {
 			Objects.requireNonNull(transformation);
 			this.transformation = transformation;
+		}
+
+		public int getArtistTopTracksRequestLimit() {
+			return artistTopTracksRequestLimit;
+		}
+
+		public void setArtistTopTracksRequestLimit(int artistTopTracksRequestLimit) {
+			if (artistTopTracksRequestLimit < 0) {
+				throw new IllegalArgumentException("artistTopTracksRequestLimit must be non-negative");
+			}
+			this.artistTopTracksRequestLimit = artistTopTracksRequestLimit;
 		}
 	}
 }
