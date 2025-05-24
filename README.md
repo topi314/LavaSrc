@@ -800,7 +800,7 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 * `spsearch:animals architects` (check out [Spotify Search Docs](https://developer.spotify.com/documentation/web-api/reference/search) for advanced search queries like isrc & co)
 * `sprec:seed_artists=3ZztVuWxHzNpl0THurTFCv,4MzJMcHQBl9SIYSjwWn8QW&seed_genres=metalcore&seed_tracks=5ofoB8PFmocBXFBEWVb6Vz,6I5zXzSDByTEmYZ7ePVQeB`
   (only works in [Extended quota mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes#extended-quota-mode) or with anonymous tokens, check out [Spotify Recommendations Docs](https://developer.spotify.com/documentation/web-api/reference/get-recommendations) for the full query parameter list)
-* `sprec:mix:artist:{ARTIST_ID}` , `sprec:mix:track:{TRACK_ID}` , `sprec:mix:album:{ALBUM_ID}` (Currently working with anonymous tokens & account tokens)
+* `sprec:mix:artist:{ARTIST_ID}` , `sprec:mix:track:{TRACK_ID}` , `sprec:mix:album:{ALBUM_ID}` , `sprec:mix:isrc:{ISRC}` (Currently working with anonymous tokens & account tokens)
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
 * https://open.spotify.com/playlist/7HAO9R9v203gkaPAgknOMp (playlists can include local files if you enabled this via: `plugins.lavasrc.spotify.localFiles: true`. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`)
