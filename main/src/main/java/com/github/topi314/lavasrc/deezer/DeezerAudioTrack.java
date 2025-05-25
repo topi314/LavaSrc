@@ -208,7 +208,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		private static SourceWithFormat fromResponse(JsonBrowser json, JsonBrowser trackJson) throws URISyntaxException {
 			var media = json.get("data").index(0).get("media").index(0);
 			if (media.isNull()) {
-				return null;
+				throw new IllegalStateException("No media found in response");
 			}
 
 			var format = media.get("format").text();
