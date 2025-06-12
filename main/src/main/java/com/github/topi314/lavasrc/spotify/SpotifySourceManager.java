@@ -52,6 +52,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 	public static final String API_BASE = "https://api.spotify.com/v1/";
 	public static final String CLIENT_API_BASE = "https://spclient.wg.spotify.com/";
+	private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.178 Spotify/1.2.65.255 Safari/537.36";
 	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.ARTIST, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.TRACK);
 	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 
@@ -177,8 +178,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		}
 
 		var request = new HttpGet(CLIENT_API_BASE + "color-lyrics/v2/track/" + id + "?format=json&vocalRemoval=false");
-		request.addHeader("App-Platform", "WebPlayer");
-		request.addHeader("Authorization", "Bearer " + this.tokenTracker.getAccountToken());
+		request.setHeader("User-Agent", USER_AGENT);
+		request.setHeader("App-Platform", "WebPlayer");
+		request.setHeader("Authorization", "Bearer " + this.tokenTracker.getAccountToken());
 		var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 		if (json == null) {
 			return null;
