@@ -272,7 +272,7 @@ public class SpotifyTokenTracker {
 		var hexSecret = toHexString(transformedSecret);
 		var totp = generateTOTP(hexSecret, 30, 6);
 		long ts = System.currentTimeMillis();
-		return "https://open.spotify.com/api/token?reason=init&productType=web-player&totp=" + totp + "&totpVer=5&ts=" + ts;
+		return "https://open.spotify.com/api/token?reason=init&productType=web-player&totp=" + totp + "&totpVer=7&ts=" + ts;
 	}
 
 	public static byte[] convertArrayToTransformedByteArray(byte[] array) {
