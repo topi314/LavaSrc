@@ -33,7 +33,8 @@ import java.util.regex.Pattern;
 public class SpotifyTokenTracker {
 	private static final Logger log = LoggerFactory.getLogger(SpotifyTokenTracker.class);
 
-	private static final Pattern SECRET_PATTERN = Pattern.compile("\"secret\":\\[(\\d+(?:,\\d+)+)]");
+	private static final Pattern SECRET_PATTERN = Pattern.compile("(?:\"secret\"|secret):\\[(\\d+(?:,\\d+)*)]");
+	private static final Pattern VERSION_PATTERN = Pattern.compile("(?:\"version\"|version):([\\d\"]+)");
 
 	private final SpotifySourceManager sourceManager;
 
@@ -221,11 +222,55 @@ public class SpotifyTokenTracker {
 		}
 	}
 
-	public static byte[] requestSecret() throws IOException {
+	// Helper class for secret and version
+	private static class SecretAndVersion {
+		public final byte[] secret;
+		public final String version;
+		public SecretAndVersion(byte[] secret, String version) {
+			this.secret = secret;
+			this.version = version;
+		}
+	}
+
+	// Extracts secret and version from JS
+	public static SecretAndVersion extractSecretAndVersion(CloseableHttpClient client, String scriptUrl) throws IOException {
+		HttpGet scriptRequest = new HttpGet(scriptUrl);
+		try (CloseableHttpResponse scriptResponse = client.execute(scriptRequest)) {
+			String scriptContent = EntityUtils.toString(scriptResponse.getEntity());
+
+			Matcher secretMatcher = SECRET_PATTERN.matcher(scriptContent);
+			Matcher versionMatcher = VERSION_PATTERN.matcher(scriptContent);
+
+			byte[] secretByteArray = null;
+			String version = "7"; // fallback
+
+			if (secretMatcher.find()) {
+				String secretArrayString = secretMatcher.group(1);
+				String[] secretArray = secretArrayString.split(",");
+				secretByteArray = new byte[secretArray.length];
+				for (int i = 0; i < secretArray.length; i++) {
+					secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
+				}
+			}
+			if (versionMatcher.find()) {
+				version = versionMatcher.group(1).replace("\"", "");
+			}
+
+			if (secretByteArray != null) {
+				return new SecretAndVersion(secretByteArray, version);
+			} else {
+				log.error("No secret array found in script: {}", scriptUrl);
+				return null;
+			}
+		}
+	}
+
+	// Extracts secret and version from multiple scripts
+	public static SecretAndVersion requestSecretAndVersion() throws IOException {
 		String homepageUrl = "https://open.spotify.com/";
 		String scriptPattern = "mobile-web-player";
 
-		log.debug("Requesting secret from Spotify homepage: {}", homepageUrl);
+		log.debug("Requesting secret and version from Spotify homepage: {}", homepageUrl);
 
 		try (CloseableHttpClient client = HttpClients.createDefault()) {
 			HttpGet request = new HttpGet(homepageUrl);
@@ -242,37 +287,33 @@ public class SpotifyTokenTracker {
 						log.debug("Found relevant script URL: {}", scriptUrl);
 					}
 				}
-				if (scriptUrls.isEmpty()) {
-					log.debug("No relevant script URLs found.");
-					return null;
-				}
 				for (String scriptUrl : scriptUrls) {
-					log.debug("Attempting to extract secret from script URL: {}", scriptUrl);
-					byte[] secret = extractSecret(client, scriptUrl);
-					if (secret != null) {
-						log.debug("Successfully extracted secret.");
-						return secret;
+					log.debug("Attempting to extract secret and version from script URL: {}", scriptUrl);
+					SecretAndVersion result = extractSecretAndVersion(client, scriptUrl);
+					if (result != null) {
+						log.debug("Successfully extracted secret and version.");
+						return result;
 					}
 				}
 			}
 		} catch (IOException e) {
-			log.error("Failed to request or parse the secret", e);
-			throw new IOException("Failed to request or parse the secret", e);
+			log.error("Failed to request or parse the secret and version", e);
+			throw new IOException("Failed to request or parse the secret and version", e);
 		}
-		log.error("No secret found.");
+		log.error("No secret and version found.");
 		return null;
 	}
 
 	public static String generateGetAccessTokenURL() throws IOException {
-		var secret = requestSecret();
-		if (secret == null) {
-			throw new IOException("Failed to retrieve secret from Spotify.");
+		SecretAndVersion secretAndVersion = requestSecretAndVersion();
+		if (secretAndVersion == null) {
+			throw new IOException("Failed to retrieve secret and version from Spotify.");
 		}
-		byte[] transformedSecret = convertArrayToTransformedByteArray(secret);
+		byte[] transformedSecret = convertArrayToTransformedByteArray(secretAndVersion.secret);
 		var hexSecret = toHexString(transformedSecret);
 		var totp = generateTOTP(hexSecret, 30, 6);
 		long ts = System.currentTimeMillis();
-		return "https://open.spotify.com/api/token?reason=init&productType=web-player&totp=" + totp + "&totpVer=7&ts=" + ts;
+		return "https://open.spotify.com/api/token?reason=init&productType=web-player&totp=" + totp + "&totpVer=" + secretAndVersion.version + "&ts=" + ts;
 	}
 
 	public static byte[] convertArrayToTransformedByteArray(byte[] array) {
