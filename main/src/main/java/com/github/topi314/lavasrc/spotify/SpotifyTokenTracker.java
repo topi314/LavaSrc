@@ -33,7 +33,9 @@ import java.util.regex.Pattern;
 public class SpotifyTokenTracker {
 	private static final Logger log = LoggerFactory.getLogger(SpotifyTokenTracker.class);
 
-	private static final Pattern SECRET_PATTERN = Pattern.compile("(?:\"secret\"|secret):\\[(\\d+(?:,\\d+)*)]");
+	private static final Pattern SECRET_PATTERN = Pattern.compile(
+		"(?:\"secret\"|secret)\\s*:\\s*\\[(\\d+(?:,\\d+)*)]|(?:secret\\s*=\\s*)([\"'])(.*?)\\2([+][^;]*)?"
+	);
 	private static final Pattern VERSION_PATTERN = Pattern.compile("(?:\"version\"|version):([\\d\"]+)");
 
 	private final SpotifySourceManager sourceManager;
@@ -207,18 +209,42 @@ public class SpotifyTokenTracker {
 
 			Matcher matcher = SECRET_PATTERN.matcher(scriptContent);
 			if (matcher.find()) {
-				String secretArrayString = matcher.group(1);
-				String[] secretArray = secretArrayString.split(",");
-				byte[] secretByteArray = new byte[secretArray.length];
-				for (int i = 0; i < secretArray.length; i++) {
-					secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
+				// Byte array
+				if (matcher.group(1) != null) {
+					String secretArrayString = matcher.group(1);
+					String[] secretArray = secretArrayString.split(",");
+					byte[] secretByteArray = new byte[secretArray.length];
+					for (int i = 0; i < secretArray.length; i++) {
+						secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
+					}
+					return secretByteArray;
 				}
-
-				return secretByteArray;
-			} else {
-				log.error("No secret array found in script: {}", scriptUrl);
-				return null;
+				// String secret
+				if (matcher.group(3) != null) {
+					StringBuilder sb = new StringBuilder();
+					sb.append(matcher.group(3));
+					String concat = matcher.group(4);
+					if (concat != null) {
+						Pattern funcPattern = Pattern.compile("\\+\\s*([a-zA-Z0-9_]+)\\(([^\\)]*)\\)");
+						Matcher funcMatcher = funcPattern.matcher(concat);
+						while (funcMatcher.find()) {
+							String funcName = funcMatcher.group(1);
+							String args = funcMatcher.group(2);
+							if ("bP".equals(funcName) || "_P".equals(funcName)) {
+								String[] argArr = args.split(",");
+								int[] intArgs = new int[argArr.length];
+								for (int i = 0; i < argArr.length; i++) {
+									intArgs[i] = Integer.parseInt(argArr[i].trim());
+								}
+								sb.append(simulateSecretFunction(funcName, intArgs));
+							}
+						}
+					}
+					return sb.toString().getBytes(StandardCharsets.UTF_8);
+				}
 			}
+			log.error("No secret found in script: {}", scriptUrl);
+			return null;
 		}
 	}
 
@@ -232,34 +258,43 @@ public class SpotifyTokenTracker {
 		}
 	}
 
-	// Extracts secret and version from JS
+	// Simulation of bP and _P functions from JS (based on JS code)
+	private static String simulateSecretFunction(String func, int[] args) {
+		// In JS: bP(e,t,s,n){return gP(s- -135,t)}
+		//        _P(e,t,s,n){return gP(s-32,n)}
+		// gP(e,t) -> returns string from array s[e-330]
+		// Simplified version: return character with code (s- -135) or (s-32)
+		int codePoint;
+		if ("bP".equals(func)) {
+			codePoint = args[2] + 135;
+		} else if ("_P".equals(func)) {
+			codePoint = args[2] - 32;
+		} else {
+			return "";
+		}
+		return Character.toString((char) codePoint);
+	}
+
+	// Change extraction of secret and version to new logic
 	public static SecretAndVersion extractSecretAndVersion(CloseableHttpClient client, String scriptUrl) throws IOException {
 		HttpGet scriptRequest = new HttpGet(scriptUrl);
 		try (CloseableHttpResponse scriptResponse = client.execute(scriptRequest)) {
 			String scriptContent = EntityUtils.toString(scriptResponse.getEntity());
 
-			Matcher secretMatcher = SECRET_PATTERN.matcher(scriptContent);
-			Matcher versionMatcher = VERSION_PATTERN.matcher(scriptContent);
-
-			byte[] secretByteArray = null;
+			String secretString = extractSecretString(scriptContent);
 			String version = "7"; // fallback
 
-			if (secretMatcher.find()) {
-				String secretArrayString = secretMatcher.group(1);
-				String[] secretArray = secretArrayString.split(",");
-				secretByteArray = new byte[secretArray.length];
-				for (int i = 0; i < secretArray.length; i++) {
-					secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
-				}
-			}
+			Matcher versionMatcher = VERSION_PATTERN.matcher(scriptContent);
 			if (versionMatcher.find()) {
 				version = versionMatcher.group(1).replace("\"", "");
 			}
 
-			if (secretByteArray != null) {
+			if (secretString != null) {
+				// Convert string to byte array (UTF-8)
+				byte[] secretByteArray = secretString.getBytes(StandardCharsets.UTF_8);
 				return new SecretAndVersion(secretByteArray, version);
 			} else {
-				log.error("No secret array found in script: {}", scriptUrl);
+				log.error("No secret string found in script: {}", scriptUrl);
 				return null;
 			}
 		}
@@ -346,6 +381,47 @@ public class SpotifyTokenTracker {
 				+ Character.digit(s.charAt(i + 1), 16));
 		}
 		return data;
+	}
+
+	// Method for extracting string secret (used in extractSecretAndVersion)
+	private static String extractSecretString(String scriptContent) {
+		Matcher matcher = SECRET_PATTERN.matcher(scriptContent);
+		if (matcher.find()) {
+			// Byte array
+			if (matcher.group(1) != null) {
+				String secretArrayString = matcher.group(1);
+				String[] secretArray = secretArrayString.split(",");
+				StringBuilder sb = new StringBuilder();
+				for (String s : secretArray) {
+					sb.append((char) Integer.parseInt(s.trim()));
+				}
+				return sb.toString();
+			}
+			// String secret
+			if (matcher.group(3) != null) {
+				StringBuilder sb = new StringBuilder();
+				sb.append(matcher.group(3));
+				String concat = matcher.group(4);
+				if (concat != null) {
+					Pattern funcPattern = Pattern.compile("\\+\\s*([a-zA-Z0-9_]+)\\(([^\\)]*)\\)");
+					Matcher funcMatcher = funcPattern.matcher(concat);
+					while (funcMatcher.find()) {
+						String funcName = funcMatcher.group(1);
+						String args = funcMatcher.group(2);
+						if ("bP".equals(funcName) || "_P".equals(funcName)) {
+							String[] argArr = args.split(",");
+							int[] intArgs = new int[argArr.length];
+							for (int i = 0; i < argArr.length; i++) {
+								intArgs[i] = Integer.parseInt(argArr[i].trim());
+							}
+							sb.append(simulateSecretFunction(funcName, intArgs));
+						}
+					}
+				}
+				return sb.toString();
+			}
+		}
+		return null;
 	}
 
 }
