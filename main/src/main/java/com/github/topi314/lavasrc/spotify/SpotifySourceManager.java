@@ -93,7 +93,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public SpotifySourceManager(String clientId, String clientSecret, boolean preferAnonymousToken, String customAnonymousTokenEndpoint, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 
-		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc);
+		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc, customAnonymousTokenEndpoint);
 
 		if (countryCode == null || countryCode.isEmpty()) {
 			countryCode = "US";
