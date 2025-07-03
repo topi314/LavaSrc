@@ -414,7 +414,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		var request = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + String.format("?method=%s&input=3&api_version=1.0&api_token=%s", method, tokens.api));
-		request.setHeader("Cookie", "sid=" + tokens.sessionId);
+		request.setHeader("Cookie", "sid=" + tokens.sessionId + "; dzr_uniq_id=" + tokens.dzrUniqId);
 		request.setHeader("Content-Type", "application/json");
 		request.setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
 
