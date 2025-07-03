@@ -276,6 +276,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (spotifyConfig.getPreferAnonymousToken() != null) {
 				this.spotify.setPreferAnonymousToken(spotifyConfig.getPreferAnonymousToken());
 			}
+			if (spotifyConfig.getCustomAnonymousTokenEndpoint() != null) {
+				this.spotify.setCustomAnonymousTokenEndpoint(spotifyConfig.getCustomAnonymousTokenEndpoint());
+			}
 		}
 
 		var appleMusicConfig = config.getAppleMusic();

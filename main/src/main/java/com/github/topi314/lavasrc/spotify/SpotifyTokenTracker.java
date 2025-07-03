@@ -42,6 +42,7 @@ public class SpotifyTokenTracker {
 	private String accessToken;
 	private Instant expires;
 
+	private String customAnonymousTokenEndpoint;
 	private String anonymousAccessToken;
 	private Instant anonymousExpires;
 
@@ -50,9 +51,15 @@ public class SpotifyTokenTracker {
 	private Instant accountTokenExpire;
 
 	public SpotifyTokenTracker(SpotifySourceManager source, String clientId, String clientSecret, String spDc) {
+		this(source, clientId, clientSecret, spDc, null);
+	}
+
+
+	public SpotifyTokenTracker(SpotifySourceManager source, String clientId, String clientSecret, String spDc, String customAnonymousTokenEndpoint) {
 		this.sourceManager = source;
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
+		this.customAnonymousTokenEndpoint = customAnonymousTokenEndpoint;
 
 		if (!hasValidCredentials()) {
 			log.debug("Missing/invalid credentials, falling back to public token.");
@@ -70,6 +77,12 @@ public class SpotifyTokenTracker {
 		this.clientSecret = clientSecret;
 		this.accessToken = null;
 		this.expires = null;
+	}
+
+	public void setCustomAnonymousTokenEndpoint(String customAnonymousTokenEndpoint) {
+		this.customAnonymousTokenEndpoint = customAnonymousTokenEndpoint;
+		this.anonymousAccessToken = null;
+		this.anonymousExpires = null;
 	}
 
 	private boolean hasValidCredentials() {
@@ -121,7 +134,11 @@ public class SpotifyTokenTracker {
 	}
 
 	private void refreshAnonymousAccessToken() throws IOException {
-		var request = new HttpGet(generateGetAccessTokenURL());
+		var accessTokenUrl = this.customAnonymousTokenEndpoint;
+		if (accessTokenUrl == null || accessTokenUrl.isBlank()) {
+			accessTokenUrl = generateGetAccessTokenURL();
+		}
+		var request = new HttpGet(accessTokenUrl);
 
 		var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
 		if (json == null) {
