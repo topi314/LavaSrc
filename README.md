@@ -471,6 +471,12 @@ var spotify = new SpotifySourceManager(clientId, clientSecret, spDc, countryCode
 playerManager.registerSourceManager(spotify);
 ```
 
+#### Access Tokens
+
+Getting anonymous & account access tokens is generally optional but required if you want to resolve spotify generated playlists or lyrics.
+
+You can use a service such as [Spotify Tokener](https://github.com/topi314/spotify-tokener) via the `customTokenEndpoint` option to support those.
+
 #### LavaLyrics
 
 <details>
