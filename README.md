@@ -129,8 +129,8 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 50 tracks each
       resolveArtistsInSearch: true # Whether to resolve artists in track search results (can be slow)
       localFiles: false # Enable local files support with Spotify playlists. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`
-      preferAnonymousToken: false # Whether to use the anonymous token for resolving tracks, artists and albums. Spotify generated playlists are always resolved with the anonymous tokens since they do not work otherwise. This requires the customAnonymousTokenEndpoint to be set.
-      customAnonymousTokenEndpoint: "http://localhost:8080/api/token" # Optional custom endpoint for getting the anonymous token. If not set, spotify's default endpoint will be used which might not work. The response must match spotify's anonymous token response format.
+      preferAnonymousToken: false # Whether to use the anonymous token for resolving tracks, artists and albums. Spotify generated playlists are always resolved with the anonymous tokens since they do not work otherwise. This requires the customTokenEndpoint to be set.
+      customTokenEndpoint: "http://localhost:8080/api/token" # Optional custom endpoint for getting the anonymous token. If not set, spotify's default endpoint will be used which might not work. The response must match spotify's anonymous token response format.
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       mediaAPIToken: "your apple music api token" # apple music api token
@@ -290,13 +290,13 @@ PATCH /v4/lavasrc/config
 
 ##### Spotify Config Object
 
-| Field                         | Type    | Description                                                                 |
-|-------------------------------|---------|-----------------------------------------------------------------------------|
-| ?clientId                     | string  | The Spotify clientId                                                        |
-| ?clientSecret                 | string  | The Spotify clientSecret                                                    |
-| ?spDc                         | string  | The Spotify spDc cookie                                                     |
-| ?preferAnonymousToken         | boolean | Whether to use the anonymous token for resolving tracks, artists and albums |
-| ?customAnonymousTokenEndpoint | string  | The custom endpoint for getting the anonymous token                         |
+| Field                 | Type    | Description                                                                 |
+|-----------------------|---------|-----------------------------------------------------------------------------|
+| ?clientId             | string  | The Spotify clientId                                                        |
+| ?clientSecret         | string  | The Spotify clientSecret                                                    |
+| ?spDc                 | string  | The Spotify spDc cookie                                                     |
+| ?preferAnonymousToken | boolean | Whether to use the anonymous token for resolving tracks, artists and albums |
+| ?customTokenEndpoint  | string  | The custom endpoint for getting the anonymous token                         |
 
 ##### Apple Music Config Object
 
@@ -352,7 +352,7 @@ PATCH /v4/lavasrc/config
     "clientSecret": "your client secret",
     "spDc": "your sp dc cookie", 
     "preferAnonymousToken": false,
-    "customAnonymousTokenEndpoint": "http://localhost/api/token"
+    "customTokenEndpoint": "http://localhost/api/token"
   },
   "applemusic": {
     "mediaAPIToken": "your apple music api token"

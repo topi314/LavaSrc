@@ -90,10 +90,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		this(clientId, clientSecret, preferAnonymousToken, null, spDc, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
-	public SpotifySourceManager(String clientId, String clientSecret, boolean preferAnonymousToken, String customAnonymousTokenEndpoint, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
+	public SpotifySourceManager(String clientId, String clientSecret, boolean preferAnonymousToken, String customTokenEndpoint, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
 		super(audioPlayerManager, mirroringAudioTrackResolver);
 
-		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc, customAnonymousTokenEndpoint);
+		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc, customTokenEndpoint);
 
 		if (countryCode == null || countryCode.isEmpty()) {
 			countryCode = "US";
@@ -130,8 +130,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		this.preferAnonymousToken = preferAnonymousToken;
 	}
 
-	public void setCustomAnonymousTokenEndpoint(String endpoint) {
-		this.tokenTracker.setCustomAnonymousTokenEndpoint(endpoint);
+	public void setCustomTokenEndpoint(String customTokenEndpoint) {
+		this.tokenTracker.setCustomTokenEndpoint(customTokenEndpoint);
 	}
 
 	@NotNull
@@ -189,7 +189,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		var request = new HttpGet(CLIENT_API_BASE + "color-lyrics/v2/track/" + id + "?format=json&vocalRemoval=false");
 		request.setHeader("User-Agent", USER_AGENT);
 		request.setHeader("App-Platform", "WebPlayer");
-		request.setHeader("Authorization", "Bearer " + this.tokenTracker.getAccountToken());
+		request.setHeader("Authorization", "Bearer " + this.tokenTracker.getAccountAccessToken());
 		var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
 		if (json == null) {
 			return null;

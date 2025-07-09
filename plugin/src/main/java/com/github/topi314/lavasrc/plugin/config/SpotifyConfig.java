@@ -16,7 +16,7 @@ public class SpotifyConfig {
 	private boolean resolveArtistsInSearch = true;
 	private boolean localFiles = false;
 	private boolean preferAnonymousToken = false;
-	private String customAnonymousTokenEndpoint;
+	private String customTokenEndpoint;
 
 	public String getClientId() {
 		return this.clientId;
@@ -90,11 +90,11 @@ public class SpotifyConfig {
 		this.preferAnonymousToken = preferAnonymousToken;
 	}
 
-	public String getCustomAnonymousTokenEndpoint() {
-		return this.customAnonymousTokenEndpoint;
+	public String getCustomTokenEndpoint() {
+		return this.customTokenEndpoint;
 	}
 
-	public void setCustomAnonymousTokenEndpoint(String customAnonymousTokenEndpoint) {
-		this.customAnonymousTokenEndpoint = customAnonymousTokenEndpoint;
+	public void setCustomTokenEndpoint(String customTokenEndpoint) {
+		this.customTokenEndpoint = customTokenEndpoint;
 	}
 }
