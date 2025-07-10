@@ -19,6 +19,7 @@ data class SpotifyConfig(
     val clientSecret: String? = null,
     val spDc: String? = null,
     val preferAnonymousToken: Boolean? = null,
+    val customTokenEndpoint: String? = null,
 )
 
 @Serializable

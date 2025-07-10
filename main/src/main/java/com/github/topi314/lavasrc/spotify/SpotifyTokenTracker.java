@@ -27,7 +27,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SpotifyTokenTracker {
@@ -42,17 +41,23 @@ public class SpotifyTokenTracker {
 	private String accessToken;
 	private Instant expires;
 
+	private String customTokenEndpoint;
 	private String anonymousAccessToken;
 	private Instant anonymousExpires;
 
 	private String spDc;
-	private String accountToken;
-	private Instant accountTokenExpire;
+	private String accountAccessToken;
+	private Instant accountAccessTokenExpire;
 
 	public SpotifyTokenTracker(SpotifySourceManager source, String clientId, String clientSecret, String spDc) {
+		this(source, clientId, clientSecret, spDc, null);
+	}
+
+	public SpotifyTokenTracker(SpotifySourceManager source, String clientId, String clientSecret, String spDc, String customTokenEndpoint) {
 		this.sourceManager = source;
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
+		this.customTokenEndpoint = customTokenEndpoint;
 
 		if (!hasValidCredentials()) {
 			log.debug("Missing/invalid credentials, falling back to public token.");
@@ -70,6 +75,14 @@ public class SpotifyTokenTracker {
 		this.clientSecret = clientSecret;
 		this.accessToken = null;
 		this.expires = null;
+	}
+
+	public void setCustomTokenEndpoint(String customTokenEndpoint) {
+		this.customTokenEndpoint = customTokenEndpoint;
+		this.anonymousAccessToken = null;
+		this.anonymousExpires = null;
+		this.accountAccessToken = null;
+		this.accountAccessTokenExpire = null;
 	}
 
 	private boolean hasValidCredentials() {
@@ -125,11 +138,11 @@ public class SpotifyTokenTracker {
 
 		var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
 		if (json == null) {
-			throw new RuntimeException("No response from Spotify API");
+			throw new RuntimeException("No response from Spotify API while fetching anonymous access token.");
 		}
 		if (!json.get("error").isNull()) {
 			var error = json.get("error").text();
-			throw new RuntimeException("Error while fetching access token: " + error);
+			throw new RuntimeException("Error while fetching anonymous access token: " + error);
 		}
 
 		anonymousAccessToken = json.get("accessToken").text();
@@ -138,36 +151,39 @@ public class SpotifyTokenTracker {
 
 	public void setSpDc(String spDc) {
 		this.spDc = spDc;
-		this.accountToken = null;
-		this.accountTokenExpire = null;
+		this.accountAccessToken = null;
+		this.accountAccessTokenExpire = null;
 	}
 
-	public String getAccountToken() throws IOException {
-		if (this.accountToken == null || this.accountTokenExpire == null || this.accountTokenExpire.isBefore(Instant.now())) {
+	public String getAccountAccessToken() throws IOException {
+		if (this.accountAccessToken == null || this.accountAccessTokenExpire == null || this.accountAccessTokenExpire.isBefore(Instant.now())) {
 			synchronized (this) {
-				if (this.accountToken == null || this.accountTokenExpire == null || this.accountTokenExpire.isBefore(Instant.now())) {
+				if (this.accountAccessToken == null || this.accountAccessTokenExpire == null || this.accountAccessTokenExpire.isBefore(Instant.now())) {
 					log.debug("Account token is invalid or expired, refreshing token...");
-					this.refreshAccountToken();
+					this.refreshAccountAccessToken();
 				}
 			}
 		}
-		return this.accountToken;
+		return this.accountAccessToken;
 	}
 
-	public void refreshAccountToken() throws IOException {
+	public void refreshAccountAccessToken() throws IOException {
 		var request = new HttpGet(generateGetAccessTokenURL());
 		request.addHeader("App-Platform", "WebPlayer");
 		request.addHeader("Cookie", "sp_dc=" + this.spDc);
 
 		try {
 			var json = LavaSrcTools.fetchResponseAsJson(this.sourceManager.getHttpInterface(), request);
-			if (!json.get("error").isNull()) {
-				String error = json.get("error").text();
-				log.error("Error while fetching account token: {}", error);
-				throw new RuntimeException("Error while fetching account token: " + error);
+			if (json == null) {
+				throw new RuntimeException("No response from Spotify API while fetching account access token.");
 			}
-			this.accountToken = json.get("accessToken").text();
-			this.accountTokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
+			if (!json.get("error").isNull()) {
+				var error = json.get("error").text();
+				log.error("Error while fetching account token: {}", error);
+				throw new RuntimeException("Error while fetching account access token: " + error);
+			}
+			this.accountAccessToken = json.get("accessToken").text();
+			this.accountAccessTokenExpire = Instant.ofEpochMilli(json.get("accessTokenExpirationTimestampMs").asLong(0));
 		} catch (IOException e) {
 			log.error("Account token refreshing failed.", e);
 			throw new RuntimeException("Account token refreshing failed", e);
@@ -178,50 +194,23 @@ public class SpotifyTokenTracker {
 		return this.spDc != null && !this.spDc.isEmpty();
 	}
 
-	public static String generateTOTP(String secret, int period, int digits) {
-		long time = System.currentTimeMillis() / 1000 / period;
-		ByteBuffer buffer = ByteBuffer.allocate(8);
-		buffer.putLong(time);
-		byte[] timeBytes = buffer.array();
-
-		try {
-			SecretKeySpec keySpec = new SecretKeySpec(hexStringToByteArray(secret), "HmacSHA1");
-			Mac mac = Mac.getInstance("HmacSHA1");
-			mac.init(keySpec);
-			byte[] hash = mac.doFinal(timeBytes);
-			int offset = hash[hash.length - 1] & 0xF;
-			int binary = ((hash[offset] & 0x7F) << 24) | ((hash[offset + 1] & 0xFF) << 16) |
-				((hash[offset + 2] & 0xFF) << 8) | (hash[offset + 3] & 0xFF);
-			int otp = binary % (int) Math.pow(10, digits);
-			return String.format("%0" + digits + "d", otp);
-		} catch (NoSuchAlgorithmException | InvalidKeyException e) {
-			throw new RuntimeException("Error generating TOTP", e);
+	private String generateGetAccessTokenURL() throws IOException {
+		if (this.customTokenEndpoint != null && !this.customTokenEndpoint.isBlank()) {
+			return this.customTokenEndpoint;
 		}
+
+		var secret = requestSecret();
+		if (secret == null) {
+			throw new IOException("Failed to retrieve secret from Spotify.");
+		}
+		var transformedSecret = convertArrayToTransformedByteArray(secret);
+		var hexSecret = toHexString(transformedSecret);
+		var totp = generateTOTP(hexSecret, 30, 6);
+		var ts = System.currentTimeMillis();
+		return "https://open.spotify.com/api/token?reason=init&productType=web-player&totp=" + totp + "&totpVer=7&ts=" + ts;
 	}
 
-	public static byte[] extractSecret(CloseableHttpClient client, String scriptUrl) throws IOException {
-		HttpGet scriptRequest = new HttpGet(scriptUrl);
-		try (CloseableHttpResponse scriptResponse = client.execute(scriptRequest)) {
-			String scriptContent = EntityUtils.toString(scriptResponse.getEntity());
-
-			Matcher matcher = SECRET_PATTERN.matcher(scriptContent);
-			if (matcher.find()) {
-				String secretArrayString = matcher.group(1);
-				String[] secretArray = secretArrayString.split(",");
-				byte[] secretByteArray = new byte[secretArray.length];
-				for (int i = 0; i < secretArray.length; i++) {
-					secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
-				}
-
-				return secretByteArray;
-			} else {
-				log.error("No secret array found in script: {}", scriptUrl);
-				return null;
-			}
-		}
-	}
-
-	public static byte[] requestSecret() throws IOException {
+	private byte[] requestSecret() throws IOException {
 		String homepageUrl = "https://open.spotify.com/";
 		String scriptPattern = "mobile-web-player";
 
@@ -263,19 +252,50 @@ public class SpotifyTokenTracker {
 		return null;
 	}
 
-	public static String generateGetAccessTokenURL() throws IOException {
-		var secret = requestSecret();
-		if (secret == null) {
-			throw new IOException("Failed to retrieve secret from Spotify.");
+	private static String generateTOTP(String secret, int period, int digits) {
+		var time = System.currentTimeMillis() / 1000 / period;
+		var buffer = ByteBuffer.allocate(8);
+		buffer.putLong(time);
+		var timeBytes = buffer.array();
+
+		try {
+			var keySpec = new SecretKeySpec(hexStringToByteArray(secret), "HmacSHA1");
+			var mac = Mac.getInstance("HmacSHA1");
+			mac.init(keySpec);
+			var hash = mac.doFinal(timeBytes);
+			var offset = hash[hash.length - 1] & 0xF;
+			var binary = ((hash[offset] & 0x7F) << 24) | ((hash[offset + 1] & 0xFF) << 16) |
+				((hash[offset + 2] & 0xFF) << 8) | (hash[offset + 3] & 0xFF);
+			var otp = binary % (int) Math.pow(10, digits);
+			return String.format("%0" + digits + "d", otp);
+		} catch (NoSuchAlgorithmException | InvalidKeyException e) {
+			throw new RuntimeException("Error generating TOTP", e);
 		}
-		byte[] transformedSecret = convertArrayToTransformedByteArray(secret);
-		var hexSecret = toHexString(transformedSecret);
-		var totp = generateTOTP(hexSecret, 30, 6);
-		long ts = System.currentTimeMillis();
-		return "https://open.spotify.com/api/token?reason=init&productType=web-player&totp=" + totp + "&totpVer=7&ts=" + ts;
 	}
 
-	public static byte[] convertArrayToTransformedByteArray(byte[] array) {
+	private static byte[] extractSecret(CloseableHttpClient client, String scriptUrl) throws IOException {
+		var scriptRequest = new HttpGet(scriptUrl);
+		try (var scriptResponse = client.execute(scriptRequest)) {
+			var scriptContent = EntityUtils.toString(scriptResponse.getEntity());
+
+			var matcher = SECRET_PATTERN.matcher(scriptContent);
+			if (matcher.find()) {
+				var secretArrayString = matcher.group(1);
+				var secretArray = secretArrayString.split(",");
+				byte[] secretByteArray = new byte[secretArray.length];
+				for (int i = 0; i < secretArray.length; i++) {
+					secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
+				}
+
+				return secretByteArray;
+			} else {
+				log.error("No secret array found in script: {}", scriptUrl);
+				return null;
+			}
+		}
+	}
+
+	private static byte[] convertArrayToTransformedByteArray(byte[] array) {
 		byte[] transformed = new byte[array.length];
 		for (int i = 0; i < array.length; i++) {
 			// XOR with dat transform
@@ -284,7 +304,7 @@ public class SpotifyTokenTracker {
 		return transformed;
 	}
 
-	public static String toHexString(byte[] transformed) {
+	private static String toHexString(byte[] transformed) {
 		StringBuilder joinedString = new StringBuilder();
 		for (byte b : transformed) {
 			joinedString.append(b);
