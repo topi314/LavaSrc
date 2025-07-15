@@ -11,6 +11,7 @@ data class Config(
     val vkMusic: VkMusicConfig? = null,
     val qobuz: QobuzConfig? = null,
     val ytdlp: YtdlpConfig? = null,
+    val lastfm: LastfmConfig? = null,
 )
 
 @Serializable
@@ -64,7 +65,12 @@ data class QobuzConfig(
 @Serializable
 data class YtdlpConfig(
     val path: String? = null,
-    val searchLimit: Int? = null,
+    val searchLimit: Int = 0,
     val customLoadArgs: List<String>? = null,
     val customPlaybackArgs: List<String>? = null,
+)
+
+@Serializable
+data class LastfmConfig(
+    val apiKey: String? = null,
 )
