@@ -290,7 +290,7 @@ PATCH /v4/lavasrc/config
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
 | ?qobuz       | [Qobuz Config](#qobuz-config-object)               | The Qobuz settings        |
-| ?lastfm      | [Lastfm Config](#lastfm-config-object)             | The Lastfm settings       | 
+| ?lastfm      | [Lastfm Config](#lastfm-config-object)             | The Lastfm settings       |
 
 ##### Spotify Config Object
 
@@ -347,10 +347,11 @@ PATCH /v4/lavasrc/config
 | ?appSecret      | string | The Qobuz App Secret |
 
 #### Lastfm Config Object
-| Field           | Type   | Description          |
-|-----------------|--------|----------------------|
-| ?apiKey | string | The last.fm api key |
-| ?playlistLoadLimit          | String | The playlist load limit     |
+
+| Field             | Type   | Description             |
+|-------------------|--------|-------------------------|
+| ?apiKey           | string | The last.fm api key     |
+| ?playlistLoadLimit| int    | The playlist load limit |
 
 
 <details>
@@ -397,7 +398,7 @@ PATCH /v4/lavasrc/config
   },
   "lastfm": {
     "apiKey": "your last.fm api key",
-    "playlistLoadLimit": "your playlist load limit"
+    "playlistLoadLimit": 10
   }
 }
 ```
@@ -823,7 +824,7 @@ To get a Last.fm api key you must go [here](https://www.last.fm/api/account/crea
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new LastfmSourceManager with the default providers, apiKey and AudioPlayerManager and register it
-var lastfm = new LastfmSourceManager(apiKey, () -> playerManager);
+var lastfm = new LastfmSourceManager(apiKey, unused -> playerManager, new DefaultMirroringAudioTrackResolver(null));
 playerManager.registerSourceManager(lastfm);
 ```
 
