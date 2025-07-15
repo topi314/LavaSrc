@@ -633,21 +633,6 @@ searchManager.registerSearchManager(deezer);
    Very quickly there will be a redirect to another page, so you need to have time to copy the link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
 5. Your accessToken, what is after `access_token`.
 
-### Lastfm
-
-To get a Last.fm api key you must go [here](https://www.last.fm/api/account/create) and create the application.
-
-
-</details>
-
-```java
-AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-// create a new LastfmSourceManager with the default providers, apiKey and AudioPlayerManager and register it
-var lastfm = new LastfmSourceManager(apiKey, () -> playerManager);
-playerManager.registerSourceManager(lastfm);
-```
-
 #### Important information
 
 Yandex Music is very location-dependent. You should either have a premium subscription or be located in one of the following countries:
@@ -830,6 +815,17 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 ```
 
+### Lastfm
+
+To get a Last.fm api key you must go [here](https://www.last.fm/api/account/create) and create the application.
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new LastfmSourceManager with the default providers, apiKey and AudioPlayerManager and register it
+var lastfm = new LastfmSourceManager(apiKey, () -> playerManager);
+playerManager.registerSourceManager(lastfm);
+```
 
 ---
 ## Supported URLs and Queries
