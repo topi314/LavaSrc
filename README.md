@@ -91,7 +91,7 @@ To get your Tidal token go [here](#tidal)
 
 To get your Qobuz userOauthToken go [here](#qobuz)
 
-To get your Last.fm api key go [here](#lastfm)
+To get your Last.fm api key go [here](#Lastfm)
 
 > [!WARNING]
 > YES `plugins` IS AT ROOT IN THE YAML
