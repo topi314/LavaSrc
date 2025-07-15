@@ -17,6 +17,7 @@ plugins:
       tidal: false # Enable Tidal source
       qobuz: false # Enabled qobuz source
       ytdlp: false # Enable yt-dlp source
+      lastfm: true # Enable Last.fm source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -78,6 +79,9 @@ plugins:
       userOauthToken : "your user oauth token" # This token is needed for authorization in the api. Guide: https://github.com/topi314/LavaSrc#qobuz
 #      appId : optional (Only pass it when you are using an old userOauthToken)
 #      appSecret : optional (Only pass it when you are using an old userOauthToken)
+    lastfm:
+      apiKey: "your api key" # Required - get this from https://www.last.fm/api/account/create
+      playlistLoadLimit: 6 # Optional - number of pages to load for playlists (default: 6)
     ytdlp:
       path: "yt-dlp" # the path to the yt-dlp executable.
       searchLimit: 10 # How many search results should be returned
