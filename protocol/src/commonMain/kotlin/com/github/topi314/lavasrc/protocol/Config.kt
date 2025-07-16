@@ -65,7 +65,7 @@ data class QobuzConfig(
 @Serializable
 data class YtdlpConfig(
     val path: String? = null,
-    val searchLimit: Int = 0,
+    val searchLimit: Int? = null,
     val customLoadArgs: List<String>? = null,
     val customPlaybackArgs: List<String>? = null,
 )
