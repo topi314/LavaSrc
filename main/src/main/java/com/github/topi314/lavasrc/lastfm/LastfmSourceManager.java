@@ -22,12 +22,13 @@ import org.slf4j.LoggerFactory;
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-
 
 public class LastfmSourceManager extends MirroringAudioSourceManager implements HttpConfigurable {
 
@@ -40,7 +41,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 	private final HttpInterfaceManager httpInterfaceManager;
 	private final String apiKey;
 	private int playlistPageLimit = 6;
-
 
 	public LastfmSourceManager(String apiKey, String[] providers, AudioPlayerManager audioPlayerManager) {
 		this(apiKey, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -74,9 +74,9 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 				return null;
 			}
 
-			var artist = matcher.group("artist");
-			var album = matcher.group("album");
-			var track = matcher.group("track");
+			var artist = URLDecoder.decode(matcher.group("artist"), StandardCharsets.UTF_8);
+			var album = matcher.group("album") != null ? URLDecoder.decode(matcher.group("album"), StandardCharsets.UTF_8) : null;
+			var track = matcher.group("track") != null ? URLDecoder.decode(matcher.group("track"), StandardCharsets.UTF_8) : null;
 
 			if (track != null) {
 				return this.getTrack(artist, track);
@@ -98,7 +98,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 
 	@Override
 	public void encodeTrack(AudioTrack track, java.io.DataOutput output) throws IOException {
-		// No custom values to encode
 	}
 
 	@Override
@@ -128,7 +127,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 	private JsonBrowser getJson(URIBuilder builder) throws IOException, URISyntaxException {
 		builder.addParameter("api_key", this.apiKey);
 		builder.addParameter("format", "json");
-		// Convert URI to HttpGet request
 		HttpGet request = new HttpGet(builder.build());
 		return LavaSrcTools.fetchResponseAsJson(httpInterfaceManager.getInterface(), request);
 	}
@@ -154,7 +152,7 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 			.addParameter("artist", artist)
 			.addParameter("track", track);
 		var json = this.getJson(builder);
-		if (json == null) {
+		if (json == null || json.get("track").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 		return this.buildTrack(json.get("track"));
@@ -166,12 +164,17 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 			.addParameter("artist", artist)
 			.addParameter("album", album);
 		var json = this.getJson(builder);
-		if (json == null) {
+		if (json == null || json.get("album").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = new ArrayList<AudioTrack>();
-		for (var track : json.get("album").get("tracks").get("track").values()) {
-			tracks.add(this.buildTrack(track));
+		var tracksJson = json.get("album").get("tracks").get("track");
+		if (tracksJson.isList()) {
+			for (var track : tracksJson.values()) {
+				tracks.add(this.buildTrack(track));
+			}
+		} else if (!tracksJson.isNull()) {
+			tracks.add(this.buildTrack(tracksJson));
 		}
 		var albumJson = json.get("album");
 		return new LastfmAudioPlaylist(albumJson.get("name").text(), tracks, ExtendedAudioPlaylist.Type.ALBUM, albumJson.get("url").text(), albumJson.get("image").index(3).get("#text").text(), albumJson.get("artist").text(), tracks.size());
@@ -182,7 +185,7 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 			.addParameter("method", "artist.gettoptracks")
 			.addParameter("artist", artist);
 		var json = this.getJson(builder);
-		if (json == null) {
+		if (json == null || json.get("toptracks").get("track").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = new ArrayList<AudioTrack>();
@@ -201,15 +204,24 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 		if (artistName == null) {
 			artistName = artist.text();
 		}
+		var trackName = track.get("name").text();
 		var artworkUrl = track.get("image").index(3).get("#text").text();
+		var lastfmUrl = track.get("url").text();
+		
+		if (trackName == null || artistName == null) {
+			return null;
+		}
+		
+		var identifier = lastfmUrl != null ? lastfmUrl : ("lastfm:" + artistName + ":" + trackName);
+		
 		return new LastfmAudioTrack(
 			new AudioTrackInfo(
-				track.get("name").text(),
+				trackName,
 				artistName,
 				track.get("duration").asLong(0) * 1000,
-				track.get("url").text(),
+				identifier,
 				false,
-				track.get("url").text(),
+				lastfmUrl,
 				artworkUrl,
 				null
 			), this);
