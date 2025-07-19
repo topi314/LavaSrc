@@ -9,18 +9,17 @@ import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 public class LastfmAudioTrack extends MirroringAudioTrack {
 
     public LastfmAudioTrack(AudioTrackInfo trackInfo, MirroringAudioSourceManager sourceManager) {
-        super(trackInfo, 
-              trackInfo.artworkUrl,    
-              trackInfo.title,         
-              trackInfo.author,       
-              trackInfo.uri,           
-              trackInfo.identifier,  
-              trackInfo.isStream,      
-              sourceManager);          
+        super(trackInfo, null, null, null, null, null, false, sourceManager);
+    }
+
+    public LastfmAudioTrack(AudioTrackInfo trackInfo, String albumName, String albumUrl, 
+                           String artistUrl, String artistArtworkUrl, String previewUrl, 
+                           boolean isPreview, MirroringAudioSourceManager sourceManager) {
+        super(trackInfo, albumName, albumUrl, artistUrl, artistArtworkUrl, previewUrl, isPreview, sourceManager);
     }
 
     @Override
-    public InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream inputStream) {
-        return new LastfmAudioTrack(trackInfo, (MirroringAudioSourceManager) this.sourceManager);
+    protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream inputStream) {
+        return new LastfmAudioTrack(trackInfo, this.sourceManager);
     }
 }
