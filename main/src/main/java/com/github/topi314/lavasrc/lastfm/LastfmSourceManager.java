@@ -104,7 +104,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 
             var matcher = URL_PATTERN.matcher(reference.identifier);
             if (!matcher.find()) {
-                log.debug("URL did not match pattern: {}", reference.identifier);
                 return null;
             }
 
@@ -112,10 +111,9 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
             var track = matcher.group(2) != null ? URLDecoder.decode(matcher.group(2).replace("+", " "), StandardCharsets.UTF_8) : null;
             var album = matcher.group(3) != null ? URLDecoder.decode(matcher.group(3).replace("+", " "), StandardCharsets.UTF_8) : null;
 
-            log.debug("Parsed Last.fm URL - Artist: {}, Album: {}, Track: {}", artist, album, track);
 
             if (track != null) {
-                return this.getTrack(artist, track);
+                return this.getTrack(artist, track, null);
             }
             if (album != null) {
                 return this.getAlbum(artist, album);
@@ -123,7 +121,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
             return this.getArtist(artist);
 
         } catch (Exception e) {
-            log.error("Error loading Last.fm item: {}", reference.identifier, e);
             return null;
         }
     }
@@ -147,7 +144,7 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
         try {
             this.httpInterfaceManager.close();
         } catch (IOException e) {
-            log.error("Failed to close HTTP interface manager", e);
+			
         }
     }
 
@@ -183,10 +180,8 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
         }
         
         if (rawDuration > 7200) {
-            log.debug("Duration {} appears to be in milliseconds, using as-is", rawDuration);
             return rawDuration;
         } else {
-            log.debug("Duration {} appears to be in seconds, converting to milliseconds", rawDuration);
             return rawDuration * 1000;
         }
     }
@@ -199,12 +194,10 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
         try {
             var response = LavaSrcTools.fetchResponseAsJson(httpInterfaceManager.getInterface(), request);
             if (response != null && !response.get("error").isNull()) {
-                log.error("Last.fm API error: {}", response.get("message").text());
                 return null;
             }
             return response;
         } catch (Exception e) {
-            log.error("Failed to fetch Last.fm API response", e);
             return null;
         }
     }
@@ -214,12 +207,10 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
         
         AlbumInfo cached = albumCache.get(cacheKey);
         if (cached != null && !cached.isExpired()) {
-            log.debug("Using cached album info for: {} - {}", artist, album);
             return cached;
         }
         
         try {
-            log.debug("Fetching album info from API: {} - {}", artist, album);
             var builder = new URIBuilder(API_BASE)
                 .addParameter("method", "album.getinfo")
                 .addParameter("artist", artist)
@@ -257,26 +248,24 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
             }
             
             albumCache.put(cacheKey, albumInfo);
-            log.debug("Cached album info for: {} - {} with {} tracks", artist, album, albumInfo.tracks.size());
             return albumInfo;
             
         } catch (Exception e) {
-            log.debug("Failed to get album info for: {} - {}", artist, album, e);
             return null;
         }
     }
 
-    private AudioTrack getEnhancedTrack(String artist, String trackName, JsonBrowser trackJson) {
-        log.debug("Getting enhanced track info for: {} - {}", artist, trackName);
-        
+    private AudioTrack getEnhancedTrack(String artist, String trackName, JsonBrowser trackJson, String artworkUrl) {
         var duration = normalizeDuration(trackJson.get("duration").asLong(0));
-        var artworkUrl = getImageUrl(trackJson.get("image"));
-        
+        if (artworkUrl == null) {
+            artworkUrl = getImageUrl(trackJson.get("album").get("image"));
+        }
+
         var albumName = trackJson.get("album").get("title").text();
         if (albumName == null) {
             albumName = trackJson.get("album").text();
         }
-        
+
         if (albumName != null && !albumName.trim().isEmpty()) {
             var albumInfo = getAlbumInfo(artist, albumName);
             if (albumInfo != null) {
@@ -284,32 +273,27 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
                 if (trackInfo != null) {
                     if (trackInfo.duration > 0 && duration <= 0) {
                         duration = trackInfo.duration;
-                        log.debug("Using album duration: {} for track: {}", duration, trackName);
                     }
                     if (trackInfo.artwork != null && (artworkUrl == null || artworkUrl.trim().isEmpty())) {
                         artworkUrl = trackInfo.artwork;
-                        log.debug("Using album artwork for track: {}", trackName);
                     }
                 }
-                
+
                 if ((artworkUrl == null || artworkUrl.trim().isEmpty()) && albumInfo.artwork != null) {
                     artworkUrl = albumInfo.artwork;
-                    log.debug("Using fallback album artwork for track: {}", trackName);
                 }
             }
         }
-        
+
         return buildTrackFromData(trackName, artist, duration, trackJson.get("url").text(), artworkUrl);
     }
 
     private AudioItem getSearch(String query) throws IOException, URISyntaxException {
-        log.debug("Searching Last.fm for: {}", query);
-        
         var builder = new URIBuilder(API_BASE)
             .addParameter("method", "track.search")
             .addParameter("track", query)
-            .addParameter("limit", "50");
-            
+            .addParameter("limit", "1");
+
         var json = this.getJson(builder);
         if (json == null) {
             return AudioReference.NO_TRACK;
@@ -320,51 +304,43 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
             return AudioReference.NO_TRACK;
         }
 
-        var tracks = new ArrayList<AudioTrack>();
-        if (trackMatches.isList()) {
-            for (var track : trackMatches.values()) {
-                var audioTrack = this.buildTrack(track);
-                if (audioTrack != null) {
-                    tracks.add(audioTrack);
-                }
-            }
-        } else {
-            var audioTrack = this.buildTrack(trackMatches);
-            if (audioTrack != null) {
-                tracks.add(audioTrack);
-            }
+        var topTrack = trackMatches.isList() ? trackMatches.values().get(0) : trackMatches;
+        var artist = topTrack.get("artist").text();
+        var trackName = topTrack.get("name").text();
+        var artworkUrl = getImageUrl(topTrack.get("image"));
+
+        if (artist == null || trackName == null) {
+            return AudioReference.NO_TRACK;
         }
 
-        return new BasicAudioPlaylist("Search results for: " + query, tracks, null, true);
+        return this.getTrack(artist, trackName, artworkUrl);
     }
 
-    private AudioItem getTrack(String artist, String track) throws IOException, URISyntaxException {
-        log.debug("Getting Last.fm track: {} by {}", track, artist);
-        
+    private AudioItem getTrack(String artist, String track, String artworkUrl) throws IOException, URISyntaxException {
+
         var builder = new URIBuilder(API_BASE)
             .addParameter("method", "track.getInfo")
             .addParameter("artist", artist)
             .addParameter("track", track)
             .addParameter("autocorrect", "1");
-            
+
         var json = this.getJson(builder);
         if (json == null || json.get("track").isNull()) {
             return AudioReference.NO_TRACK;
         }
-        
+
         var trackJson = json.get("track");
         var trackName = trackJson.get("name").text();
         var artistName = getArtistName(trackJson.get("artist"));
-        
+
         if (trackName == null || artistName == null) {
             return AudioReference.NO_TRACK;
         }
-        
-        return getEnhancedTrack(artistName, trackName, trackJson);
+
+        return getEnhancedTrack(artistName, trackName, trackJson, artworkUrl);
     }
 
     private AudioItem getAlbum(String artist, String album) throws IOException, URISyntaxException {
-        log.debug("Getting Last.fm album: {} by {}", album, artist);
         
         var builder = new URIBuilder(API_BASE)
             .addParameter("method", "album.getInfo")
@@ -417,7 +393,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
     }
 
     private AudioItem getArtist(String artist) throws IOException, URISyntaxException {
-        log.debug("Getting Last.fm artist top tracks: {}", artist);
         
         var artistInfoBuilder = new URIBuilder(API_BASE)
             .addParameter("method", "artist.getInfo")
@@ -491,7 +466,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
         
         if (trackName == null || trackName.trim().isEmpty() || 
             artistName == null || artistName.trim().isEmpty()) {
-            log.debug("Skipping track with missing name or artist");
             return null;
         }
 
@@ -500,8 +474,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 
         var durationSeconds = trackJson.get("duration").asLong(0);
         var duration = normalizeDuration(durationSeconds);
-        
-        log.debug("Raw duration from API: {} seconds, converted to: {} ms", durationSeconds, duration); 
         
         var lastfmUrl = trackJson.get("url").text();
         
@@ -523,16 +495,13 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
                     if (trackInfo != null) {
                         if (duration <= 0 && trackInfo.duration > 0) {
                             duration = trackInfo.duration;
-                            log.debug("Enhanced duration from album info: {}", duration);
                         }
                         if ((artworkUrl == null || artworkUrl.trim().isEmpty()) && trackInfo.artwork != null) {
                             artworkUrl = trackInfo.artwork;
-                            log.debug("Enhanced artwork from album info");
                         }
                     }
                     if ((artworkUrl == null || artworkUrl.trim().isEmpty()) && albumInfo.artwork != null) {
                         artworkUrl = albumInfo.artwork;
-                        log.debug("Using album artwork as fallback");
                     }
                 }
             }
@@ -547,8 +516,7 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
             : ("lastfm:" + artistName + ":" + trackName);
 
         var formattedDuration = formatDuration(duration);
-        
-        log.debug("Built track: {} by {} (Duration: {}, URL: {}, Artwork: {})", 
+		
                  trackName, artistName, formattedDuration, identifier, artworkUrl != null ? "Yes" : "No");
 
         return new LastfmAudioTrack(
@@ -588,14 +556,12 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
 
     private String getImageUrl(JsonBrowser imageJson) {
         if (imageJson == null || imageJson.isNull()) {
-            log.debug("No image JSON provided");
             return null;
         }
 
         String[] sizeOrder = {"mega", "extralarge", "large", "medium", "small"};
         
         if (imageJson.isList()) {
-            log.debug("Processing image array with {} items", imageJson.values().size());
             
             for (String preferredSize : sizeOrder) {
                 for (var image : imageJson.values()) {
@@ -603,7 +569,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
                     var imageUrl = image.get("#text").text();
                     
                     if (preferredSize.equals(sizeAttr) && isValidImageUrl(imageUrl)) {
-                        log.debug("Found {} quality image: {}", preferredSize, imageUrl);
                         return imageUrl.trim();
                     }
                 }
@@ -612,7 +577,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
             for (var image : imageJson.values()) {
                 var imageUrl = image.get("#text").text();
                 if (isValidImageUrl(imageUrl)) {
-                    log.debug("Found fallback image from array: {}", imageUrl);
                     return imageUrl.trim();
                 }
             }
@@ -620,7 +584,6 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
         else {
             var imageUrl = imageJson.get("#text").text();
             if (isValidImageUrl(imageUrl)) {
-                log.debug("Found single image: {}", imageUrl);
                 return imageUrl.trim();
             }
         }
@@ -628,12 +591,9 @@ public class LastfmSourceManager extends MirroringAudioSourceManager implements 
         for (int i = 0; i < 5; i++) {
             var imageUrl = imageJson.index(i).get("#text").text();
             if (isValidImageUrl(imageUrl)) {
-                log.debug("Found legacy indexed image at position {}: {}", i, imageUrl);
                 return imageUrl.trim();
             }
         }
-
-        log.debug("No valid image found in JSON");
         return null;
     }
 
