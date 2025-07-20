@@ -30,6 +30,7 @@
 | Tidal                                               | 📁💿🎵🧑       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
 | Qobuz                                               | 📁💿🎵🧑       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
 | YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                 |
+| Lastfm | 📁💿🎵🧑🔍🔬📜 | [Mirror](#what-is-mirroring) | [@asynico](https://github.com/asynico)                                                                                                                                   |
 
 ### Features
 
@@ -89,6 +90,8 @@ To get your Vk Music user token go [here](#vk-music)
 To get your Tidal token go [here](#tidal)
 
 To get your Qobuz userOauthToken go [here](#qobuz)
+
+To get your Last.fm api key go [here](#Lastfm)
 
 > [!WARNING]
 > YES `plugins` IS AT ROOT IN THE YAML
@@ -287,6 +290,7 @@ PATCH /v4/lavasrc/config
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
 | ?qobuz       | [Qobuz Config](#qobuz-config-object)               | The Qobuz settings        |
+| ?lastfm      | [Lastfm Config](#lastfm-config-object)             | The Lastfm settings       |
 
 ##### Spotify Config Object
 
@@ -342,6 +346,14 @@ PATCH /v4/lavasrc/config
 | ?appId          | String | The Qobuz App ID     |
 | ?appSecret      | string | The Qobuz App Secret |
 
+#### Lastfm Config Object
+
+| Field             | Type   | Description             |
+|-------------------|--------|-------------------------|
+| ?apiKey           | string | The last.fm api key     |
+| ?playlistLoadLimit| int    | The playlist load limit |
+
+
 <details>
 <summary>Example Payload</summary>
 
@@ -383,6 +395,10 @@ PATCH /v4/lavasrc/config
     "path": "yt-dlp",
     "customLoadArgs": ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"],
     "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "-J"]
+  },
+  "lastfm": {
+    "apiKey": "your last.fm api key",
+    "playlistLoadLimit": 10
   }
 }
 ```
@@ -618,8 +634,6 @@ searchManager.registerSearchManager(deezer);
    Very quickly there will be a redirect to another page, so you need to have time to copy the link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
 5. Your accessToken, what is after `access_token`.
 
-Token expires in 1 year. You can get a new one by repeating the steps above.
-
 #### Important information
 
 Yandex Music is very location-dependent. You should either have a premium subscription or be located in one of the following countries:
@@ -802,6 +816,17 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 ```
 
+### Lastfm
+
+To get a Last.fm api key you must go [here](https://www.last.fm/api/account/create) and create the application.
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new LastfmSourceManager with the default providers, apiKey and AudioPlayerManager and register it
+var lastfm = new LastfmSourceManager(apiKey, unused -> playerManager, new DefaultMirroringAudioTrackResolver(null));
+playerManager.registerSourceManager(lastfm);
+```
 
 ---
 ## Supported URLs and Queries
@@ -899,4 +924,11 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://www.youtube.com/watch?v=yEBEg4NGVrw&list=PLcZMZxR9uxC8EGrCPopQT1JjNTV6nnQ1G
 * https://youtu.be/jdWhJcrrjQs
 
+### lastfm
+
+* `lfsearch:animals architects`
+* `lfsearch:"12345678"` (`lfsearch:"{ISRC}"`)
+* https://www.last.fm/music/artist/track
+* https://www.last.fm/music/artist/1+2+3+4+5+6
+https://www.last.fm/music/playlist+url
 ---
