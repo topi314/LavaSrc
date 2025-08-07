@@ -9,9 +9,11 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.lrclib.LrcLibLyricsManager;
+import com.github.topi314.lavasrc.jiosaavn.JioSaavnAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
+import com.github.topi314.lavasrc.plugin.config.HttpProxyConfig;
 import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
@@ -20,6 +22,11 @@ import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
 import com.github.topi314.lavasrc.ytdlp.YtdlpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -46,6 +53,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private YoutubeSearchManager youtube;
 	private VkMusicSourceManager vkMusic;
 	private TidalSourceManager tidal;
+	private JioSaavnAudioSourceManager jioSaavn;
 	private QobuzAudioSourceManager qobuz;
 	private YtdlpAudioSourceManager ytdlp;
 	private LrcLibLyricsManager lrcLib;
@@ -63,7 +71,8 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		VkMusicConfig vkMusicConfig,
 		TidalConfig tidalConfig,
 		QobuzConfig qobuzConfig,
-		YtdlpConfig ytdlpConfig
+		YtdlpConfig ytdlpConfig,
+		JioSaavnConfig jioSaavnConfig
 	) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
@@ -155,8 +164,38 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (sourcesConfig.isYtdlp()) {
 			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getSearchLimit(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
 		}
+
 		if (lyricsSourcesConfig.isLrcLib()) {
 			this.lrcLib = new LrcLibLyricsManager();
+		}
+
+		if (sourcesConfig.isJiosaavn()) {
+			this.jioSaavn = new JioSaavnAudioSourceManager(jioSaavnConfig.buildConfig());
+
+			HttpProxyConfig proxyConfig = jioSaavnConfig.getProxy();
+			if (proxyConfig != null && proxyConfig.getUrl() != null) {
+				HttpHost httpHost = HttpHost.create(proxyConfig.getUrl());
+
+				BasicCredentialsProvider credentialsProvider;
+				if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
+					credentialsProvider = new BasicCredentialsProvider();
+					credentialsProvider.setCredentials(
+						new AuthScope(httpHost),
+						new UsernamePasswordCredentials(proxyConfig.getUsername(), proxyConfig.getPassword())
+					);
+				} else {
+					credentialsProvider = null;
+				}
+
+				log.info("Using {} as http proxy for JioSaavn. With basic auth: {}", httpHost, credentialsProvider != null);
+
+				this.jioSaavn.configureBuilder(builder -> {
+					builder.setProxy(httpHost);
+					if (credentialsProvider != null) {
+						builder.setDefaultCredentialsProvider(credentialsProvider);
+					}
+				});
+			}
 		}
 	}
 
@@ -209,6 +248,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering YTDLP audio source manager...");
 			manager.registerSourceManager(this.ytdlp);
 		}
+		if (this.jioSaavn != null) {
+			log.info("Registering JioSaavn audio source manager...");
+			manager.registerSourceManager(this.jioSaavn);
+		}
 		return manager;
 	}
 
@@ -238,6 +281,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.vkMusic != null && this.sourcesConfig.isVkMusic()) {
 			log.info("Registering VK Music search manager...");
 			manager.registerSearchManager(this.vkMusic);
+		}
+		if (this.jioSaavn != null && this.sourcesConfig.isJiosaavn()) {
+			log.info("Registering JioSaavn search manager...");
+			manager.registerSearchManager(this.jioSaavn);
 		}
 		return manager;
 	}
