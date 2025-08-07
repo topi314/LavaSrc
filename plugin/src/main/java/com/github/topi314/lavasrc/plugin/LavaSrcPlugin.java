@@ -8,6 +8,7 @@ import com.github.topi314.lavasrc.applemusic.AppleMusicSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
+import com.github.topi314.lavasrc.lrclib.LrcLibLyricsManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
@@ -47,6 +48,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private TidalSourceManager tidal;
 	private QobuzAudioSourceManager qobuz;
 	private YtdlpAudioSourceManager ytdlp;
+	private LrcLibLyricsManager lrcLib;
 
 	public LavaSrcPlugin(
 		LavaSrcConfig pluginConfig,
@@ -152,6 +154,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (sourcesConfig.isYtdlp()) {
 			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getSearchLimit(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
+		}
+		if (lyricsSourcesConfig.isLrcLib()) {
+			this.lrcLib = new LrcLibLyricsManager();
 		}
 	}
 
@@ -259,6 +264,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.vkMusic != null && this.lyricsSourcesConfig.isVkMusic()) {
 			log.info("Registering VK Music lyrics manager...");
 			manager.registerLyricsManager(this.vkMusic);
+		}
+		if (this.lrcLib != null && this.lyricsSourcesConfig.isLrcLib()) {
+			log.info("Registering LRCLIB lyrics manager...");
+			manager.registerLyricsManager(this.lrcLib);
 		}
 		return manager;
 	}
