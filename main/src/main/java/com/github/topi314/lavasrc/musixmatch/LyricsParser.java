@@ -4,33 +4,49 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 
 public class LyricsParser {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     public static String cleanLyrics(String lyrics) {
+        if (lyrics == null || lyrics.isEmpty()) return "";
         lyrics = lyrics.replaceAll(Constants.TIMESTAMPS_REGEX, "");
-        String[] lines = lyrics.split("\n");
         StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            line = line.trim();
-            if (!line.matches(Constants.EMPTY_LINES_REGEX)) {
-                sb.append(line).append('\n');
+        for (String line : lyrics.split("\n")) {
+            String trimmed = line.trim();
+            if (!trimmed.matches(Constants.EMPTY_LINES_REGEX)) {
+                sb.append(trimmed).append('\n');
             }
         }
         return sb.toString().trim();
     }
 
     public static List<Musixmatch.LrcLine> parseSubtitles(String subtitleBody) {
+        if (subtitleBody == null || subtitleBody.isEmpty()) return Collections.emptyList();
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            List<Map<String, Object>> subtitleData = mapper.readValue(subtitleBody, List.class);
+            List<?> subtitleData = MAPPER.readValue(subtitleBody, List.class);
             List<Musixmatch.LrcLine> result = new ArrayList<>();
-            for (Map<String, Object> item : subtitleData) {
-                double time = ((Map<String, Object>) item.get("time")).get("total") instanceof Number
-                    ? ((Number) ((Map<String, Object>) item.get("time")).get("total")).doubleValue()
-                    : Double.parseDouble(((Map<String, Object>) item.get("time")).get("total").toString());
-                result.add(new Musixmatch.LrcLine((long) (time * 1000), (String) item.get("text")));
+            for (Object obj : subtitleData) {
+                if (!(obj instanceof Map)) continue;
+                Map<?, ?> item = (Map<?, ?>) obj;
+                Object timeObj = item.get("time");
+                if (!(timeObj instanceof Map)) continue;
+                Map<?, ?> timeMap = (Map<?, ?>) timeObj;
+                Object totalObj = timeMap.get("total");
+                double timeValue;
+                if (totalObj instanceof Number) {
+                    timeValue = ((Number) totalObj).doubleValue();
+                } else {
+                    try {
+                        timeValue = Double.parseDouble(totalObj.toString());
+                    } catch (Exception e) {
+                        timeValue = 0.0;
+                    }
+                }
+                String text = item.get("text") != null ? item.get("text").toString() : "";
+                result.add(new Musixmatch.LrcLine((long) (timeValue * 1000), text));
             }
             return result;
         } catch (Exception e) {
-            return null;
+            return Collections.emptyList();
         }
     }
 }
