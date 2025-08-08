@@ -122,6 +122,7 @@ plugins:
       yandexmusic: false # Enable Yandex Music lyrics source
       vkmusic: false # Enable Vk Music lyrics source
       lrcLib: false # Enable LRC Library lyrics source (https://lrclib.net)
+      musixmatch: false # Enable Musixmatch lyrics source
     spotify:
       # clientId & clientSecret are required for using spsearch
 #      clientId: "your client id"
