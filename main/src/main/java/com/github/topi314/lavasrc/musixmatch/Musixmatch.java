@@ -1,3 +1,4 @@
+
 package com.github.topi314.lavasrc.musixmatch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,43 +10,32 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Musixmatch {
-	private static final ObjectMapper mapper = new ObjectMapper();
+	private static final int RATE_LIMIT = 1;
+	private static final Semaphore rateLimiter = new Semaphore(RATE_LIMIT);
+	private static volatile long lastRequestTime = 0L;
+	private static final ObjectMapper MAPPER = new ObjectMapper();
 	private static final String TOKEN_FILE = "musixmatch_token.json";
 	private static final long TOKEN_TTL = 55000L;
-	private static final int MAX_REQUESTS_PER_MINUTE = 30;
-	private static final long MIN_REQUEST_INTERVAL = 1000; 
-	private static final int MAX_CONCURRENT_REQUESTS = 3; 
 	private TokenData tokenData;
 	private CompletableFuture<String> tokenPromise;
-	private final Semaphore requestSemaphore = new Semaphore(MAX_CONCURRENT_REQUESTS);
-	private final Queue<Long> requestTimestamps = new ConcurrentLinkedQueue<>();
-	private volatile long lastRequestTime = 0;
-	private final Object rateLimitLock = new Object();
-	private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
 	public Musixmatch() {
 		initializeToken();
-		startCleanupTask();
-	}
-
-	private void startCleanupTask() {
-		scheduler.scheduleAtFixedRate(() -> {
-			long oneMinuteAgo = System.currentTimeMillis() - 60000;
-			requestTimestamps.removeIf(timestamp -> timestamp < oneMinuteAgo);
-		}, 1, 1, TimeUnit.MINUTES);
 	}
 
 	private void initializeToken() {
 		try {
 			getToken().get();
 		} catch (Exception e) {
-			System.err.println("Musixmatch initialization failed: " + e.getMessage());
+			logError("Musixmatch initialization failed", e);
 		}
 	}
 
@@ -58,7 +48,7 @@ public class Musixmatch {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				String json = Files.readString(Paths.get(TOKEN_FILE));
-				return mapper.readValue(json, TokenData.class);
+				return MAPPER.readValue(json, TokenData.class);
 			} catch (IOException e) {
 				return null;
 			}
@@ -71,29 +61,26 @@ public class Musixmatch {
 				TokenData data = new TokenData();
 				data.value = token;
 				data.expires = expires;
-				String json = mapper.writeValueAsString(data);
+				String json = MAPPER.writeValueAsString(data);
 				Files.writeString(Paths.get(TOKEN_FILE), json);
 			} catch (IOException e) {
-				System.err.println("Failed to save token to file: " + e.getMessage());
+				logError("Failed to save token to file", e);
 			}
 		});
 	}
 
 	private CompletableFuture<String> fetchToken() {
-		return rateLimitedApiGet(Constants.ENDPOINTS.get("TOKEN"))
+		return apiGet(Constants.ENDPOINTS.get("TOKEN"))
 			.thenApply(data -> {
-				@SuppressWarnings("unchecked")
-				Map<String, Object> message = (Map<String, Object>) data.get("message");
-				@SuppressWarnings("unchecked")
-				Map<String, Object> header = (Map<String, Object>) message.get("header");
-				if ((Integer) header.get("status_code") != 200) {
-					Object hint = header.get("hint");
+				Map<String, Object> message = getMap(data, "message");
+				Map<String, Object> header = getMap(message, "header");
+				if (header == null || !Objects.equals(header.get("status_code"), 200)) {
+					Object hint = header != null ? header.get("hint") : null;
 					String errorMessage = hint != null ? hint.toString() : "Invalid token response";
 					throw new RuntimeException(errorMessage);
 				}
-				@SuppressWarnings("unchecked")
-				Map<String, Object> body = (Map<String, Object>) message.get("body");
-				return (String) body.get("user_token");
+				Map<String, Object> body = getMap(message, "body");
+				return body != null ? (String) body.get("user_token") : null;
 			});
 	}
 
@@ -118,91 +105,36 @@ public class Musixmatch {
 		return tokenPromise;
 	}
 
-	private CompletableFuture<Map<String, Object>> rateLimitedApiGet(String url) {
+	public CompletableFuture<Map<String, Object>> apiGet(String url) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				requestSemaphore.acquire();
-				
-				try {
-					enforceRateLimit();
-					
-					return makeHttpRequest(url);
-				} finally {
-					requestSemaphore.release();
-				}
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw new RuntimeException("Request interrupted", e);
+				acquireRateLimit();
+				HttpClient client = HttpClient.newHttpClient();
+				HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+				HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+				if (response.statusCode() != 200) throw new IOException("API request failed: " + response.statusCode());
+				return MAPPER.readValue(response.body(), Map.class);
 			} catch (Exception e) {
-				throw new RuntimeException("Rate-limited API request failed", e);
+				throw new RuntimeException(e);
 			}
 		});
 	}
 
-	private void enforceRateLimit() throws InterruptedException {
-		synchronized (rateLimitLock) {
+	private static void acquireRateLimit() {
+		synchronized (rateLimiter) {
 			long now = System.currentTimeMillis();
-			
-			long oneMinuteAgo = now - 60000;
-			requestTimestamps.removeIf(timestamp -> timestamp < oneMinuteAgo);
-			
-			if (requestTimestamps.size() >= MAX_REQUESTS_PER_MINUTE) {
-				long oldestRequest = requestTimestamps.peek();
-				if (oldestRequest != null) {
-					long waitTime = 60000 - (now - oldestRequest) + 100; 
-					if (waitTime > 0) {
-						System.out.println("Rate limit reached, waiting " + waitTime + "ms");
-						Thread.sleep(waitTime);
-						now = System.currentTimeMillis();
-					}
-				}
+			long wait = 1000 - (now - lastRequestTime);
+			if (wait > 0) {
+				try {
+					TimeUnit.MILLISECONDS.sleep(wait);
+				} catch (InterruptedException ignored) {}
 			}
-			
-			long timeSinceLastRequest = now - lastRequestTime;
-			if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-				long waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-				System.out.println("Enforcing request interval, waiting " + waitTime + "ms");
-				Thread.sleep(waitTime);
-				now = System.currentTimeMillis();
-			}
-			
-			requestTimestamps.offer(now);
-			lastRequestTime = now;
+			lastRequestTime = System.currentTimeMillis();
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> makeHttpRequest(String url) throws Exception {
-		HttpClient client = HttpClient.newHttpClient();
-		HttpRequest request = HttpRequest.newBuilder()
-			.uri(URI.create(url))
-			.timeout(Duration.ofSeconds(30))
-			.build();
-		
-		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-		
-		if (response.statusCode() == 429) {
-			String retryAfter = response.headers().firstValue("Retry-After").orElse("60");
-			long waitSeconds = Long.parseLong(retryAfter);
-			System.out.println("Server rate limit hit, waiting " + waitSeconds + " seconds");
-			Thread.sleep(waitSeconds * 1000);
-			
-			response = client.send(request, HttpResponse.BodyHandlers.ofString());
-		}
-		
-		if (response.statusCode() != 200) {
-			throw new IOException("API request failed: " + response.statusCode());
-		}
-		
-		return (Map<String, Object>) mapper.readValue(response.body(), Map.class);
-	}
-
-	@SuppressWarnings("unchecked")
-	public CompletableFuture<Map<String, Object>> apiGet(String url) {
-		return rateLimitedApiGet(url);
 	}
 
 	public String cleanLyrics(String lyrics) {
+		if (lyrics == null) return "";
 		lyrics = lyrics.replaceAll(Constants.TIMESTAMPS_REGEX, "");
 		String[] lines = lyrics.split("\n");
 		StringBuilder sb = new StringBuilder();
@@ -215,67 +147,66 @@ public class Musixmatch {
 		return sb.toString().trim();
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<LrcLine> parseSubtitles(String subtitleBody) {
+		if (subtitleBody == null) return Collections.emptyList();
 		try {
-			List<Map<String, Object>> subtitleData = (List<Map<String, Object>>) mapper.readValue(subtitleBody, List.class);
+			List<Map<String, Object>> subtitleData = MAPPER.readValue(subtitleBody, List.class);
 			List<LrcLine> result = new ArrayList<>();
 			for (Map<String, Object> item : subtitleData) {
-				Map<String, Object> time = (Map<String, Object>) item.get("time");
-				double timeValue = time.get("total") instanceof Number
+				Map<String, Object> time = getMap(item, "time");
+				double timeValue = time != null && time.get("total") instanceof Number
 					? ((Number) time.get("total")).doubleValue()
-					: Double.parseDouble(time.get("total").toString());
+					: time != null ? Double.parseDouble(time.get("total").toString()) : 0.0;
 				result.add(new LrcLine((long) (timeValue * 1000), (String) item.get("text")));
 			}
 			return result;
 		} catch (Exception e) {
-			return null;
+			logError("Failed to parse subtitles", e);
+			return Collections.emptyList();
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public CompletableFuture<Map<String, Object>> searchTrack(String title, String token) {
+	public CompletableFuture<Optional<Map<String, Object>>> searchTrack(String title, String token) {
 		String url = Constants.ENDPOINTS.get("SEARCH") + "&q_track=" + encodeURIComponent(title) + "&usertoken=" + token;
 		return apiGet(url).thenApply(data -> {
-			Map<String, Object> message = (Map<String, Object>) data.get("message");
-			Map<String, Object> body = (Map<String, Object>) message.get("body");
-			List<Map<String, Object>> trackList = (List<Map<String, Object>>) body.get("track_list");
+			Map<String, Object> message = getMap(data, "message");
+			Map<String, Object> body = getMap(message, "body");
+			List<Map<String, Object>> trackList = getList(body, "track_list");
 			if (trackList != null && !trackList.isEmpty()) {
 				Map<String, Object> trackObj = trackList.get(0);
-				return (Map<String, Object>) trackObj.get("track");
+				return Optional.ofNullable(getMap(trackObj, "track"));
 			}
-			return null;
+			return Optional.empty();
 		});
 	}
 
-	@SuppressWarnings("unchecked")
 	public CompletableFuture<Map<String, Object>> getAltLyrics(String title, String artist, String token) {
 		String url = Constants.ENDPOINTS.get("ALT_LYRICS") + "&usertoken=" + token + "&q_artist=" + encodeURIComponent(artist) + "&q_track=" + encodeURIComponent(title);
 		return apiGet(url).thenApply(data -> {
-			Map<String, Object> message = (Map<String, Object>) data.get("message");
-			Map<String, Object> body = (Map<String, Object>) message.get("body");
-			Map<String, Object> calls = (Map<String, Object>) body.get("macro_calls");
+			Map<String, Object> message = getMap(data, "message");
+			Map<String, Object> body = getMap(message, "body");
+			Map<String, Object> calls = getMap(body, "macro_calls");
 			Map<String, Object> result = new HashMap<>();
-			
-			Map<String, Object> lyricsCall = (Map<String, Object>) calls.get("track.lyrics.get");
-			Map<String, Object> lyricsMessage = (Map<String, Object>) lyricsCall.get("message");
-			Map<String, Object> lyricsBody = (Map<String, Object>) lyricsMessage.get("body");
+
+			Map<String, Object> lyricsCall = getMap(calls, "track.lyrics.get");
+			Map<String, Object> lyricsMessage = getMap(lyricsCall, "message");
+			Map<String, Object> lyricsBody = getMap(lyricsMessage, "body");
 			String lyrics = lyricsBody != null ? (String) lyricsBody.get("lyrics_body") : null;
 			result.put("lyrics", lyrics);
-			
-			Map<String, Object> trackCall = (Map<String, Object>) calls.get("matcher.track.get");
-			Map<String, Object> trackMessage = (Map<String, Object>) trackCall.get("message");
-			Map<String, Object> trackBody = (Map<String, Object>) trackMessage.get("body");
-			Map<String, Object> track = trackBody != null ? (Map<String, Object>) trackBody.get("track") : null;
+
+			Map<String, Object> trackCall = getMap(calls, "matcher.track.get");
+			Map<String, Object> trackMessage = getMap(trackCall, "message");
+			Map<String, Object> trackBody = getMap(trackMessage, "body");
+			Map<String, Object> track = trackBody != null ? getMap(trackBody, "track") : null;
 			result.put("track", track);
-			
-			Map<String, Object> subtitlesCall = (Map<String, Object>) calls.get("track.subtitles.get");
-			Map<String, Object> subtitlesMessage = (Map<String, Object>) subtitlesCall.get("message");
-			Map<String, Object> subtitlesBody = (Map<String, Object>) subtitlesMessage.get("body");
+
+			Map<String, Object> subtitlesCall = getMap(calls, "track.subtitles.get");
+			Map<String, Object> subtitlesMessage = getMap(subtitlesCall, "message");
+			Map<String, Object> subtitlesBody = getMap(subtitlesMessage, "body");
 			if (subtitlesBody != null) {
-				List<Map<String, Object>> subtitleList = (List<Map<String, Object>>) subtitlesBody.get("subtitle_list");
+				List<Map<String, Object>> subtitleList = getList(subtitlesBody, "subtitle_list");
 				if (subtitleList != null && !subtitleList.isEmpty()) {
-					Map<String, Object> subtitle = (Map<String, Object>) subtitleList.get(0).get("subtitle");
+					Map<String, Object> subtitle = getMap(subtitleList.get(0), "subtitle");
 					String subtitleBody = subtitle != null ? (String) subtitle.get("subtitle_body") : null;
 					result.put("subtitles", subtitleBody);
 				} else {
@@ -284,7 +215,6 @@ public class Musixmatch {
 			} else {
 				result.put("subtitles", null);
 			}
-			
 			return result;
 		});
 	}
@@ -303,17 +233,17 @@ public class Musixmatch {
 		return new ParsedQuery(null, cleanedQuery);
 	}
 
-	@SuppressWarnings("unchecked")
 	public CompletableFuture<Result> findLyrics(String query) {
 		return getToken().thenCompose(token -> {
 			ParsedQuery parsed = parseQuery(query);
 			if (parsed.artist != null) {
 				return getAltLyrics(parsed.title, parsed.artist, token).thenCompose(altResult -> {
 					if (altResult.get("subtitles") != null || altResult.get("lyrics") != null) {
-						return CompletableFuture.completedFuture(formatResult((String) altResult.get("subtitles"), (String) altResult.get("lyrics"), (Map<String, Object>) altResult.get("track")));
+						return CompletableFuture.completedFuture(formatResult((String) altResult.get("subtitles"), (String) altResult.get("lyrics"), getMap(altResult, "track")));
 					}
-					return searchTrack(query, token).thenCompose(trackResult -> {
-						if (trackResult != null) {
+					return searchTrack(query, token).thenCompose(trackResultOpt -> {
+						if (trackResultOpt.isPresent()) {
+							Map<String, Object> trackResult = trackResultOpt.get();
 							return getLyricsFromTrack(trackResult, token).thenApply(lyricsData -> {
 								if (lyricsData != null && (lyricsData.get("subtitles") != null || lyricsData.get("lyrics") != null)) {
 									return formatResult((String) lyricsData.get("subtitles"), (String) lyricsData.get("lyrics"), trackResult);
@@ -325,8 +255,9 @@ public class Musixmatch {
 					});
 				});
 			}
-			return searchTrack(query, token).thenCompose(trackResult -> {
-				if (trackResult != null) {
+			return searchTrack(query, token).thenCompose(trackResultOpt -> {
+				if (trackResultOpt.isPresent()) {
+					Map<String, Object> trackResult = trackResultOpt.get();
 					return getLyricsFromTrack(trackResult, token).thenApply(lyricsData -> {
 						if (lyricsData != null && (lyricsData.get("subtitles") != null || lyricsData.get("lyrics") != null)) {
 							return formatResult((String) lyricsData.get("subtitles"), (String) lyricsData.get("lyrics"), trackResult);
@@ -336,7 +267,7 @@ public class Musixmatch {
 				}
 				return getAltLyrics(parsed.title, "", token).thenApply(titleOnlyResult -> {
 					if (titleOnlyResult.get("subtitles") != null || titleOnlyResult.get("lyrics") != null) {
-						return formatResult((String) titleOnlyResult.get("subtitles"), (String) titleOnlyResult.get("lyrics"), (Map<String, Object>) titleOnlyResult.get("track"));
+						return formatResult((String) titleOnlyResult.get("subtitles"), (String) titleOnlyResult.get("lyrics"), getMap(titleOnlyResult, "track"));
 					}
 					return null;
 				});
@@ -344,16 +275,15 @@ public class Musixmatch {
 		});
 	}
 
-	@SuppressWarnings("unchecked")
 	public CompletableFuture<Map<String, Object>> getLyricsFromTrack(Map<String, Object> trackData, String token) {
 		String url = Constants.ENDPOINTS.get("LYRICS") + "&track_id=" + trackData.get("track_id") + "&usertoken=" + token;
 		return apiGet(url).thenApply(data -> {
-			Map<String, Object> message = (Map<String, Object>) data.get("message");
-			Map<String, Object> body = (Map<String, Object>) message.get("body");
+			Map<String, Object> message = getMap(data, "message");
+			Map<String, Object> body = getMap(message, "body");
 			String subtitles = null;
-			if (body.get("subtitle") != null) {
-				Map<String, Object> subtitle = (Map<String, Object>) body.get("subtitle");
-				subtitles = (String) subtitle.get("subtitle_body");
+			if (body != null && body.get("subtitle") != null) {
+				Map<String, Object> subtitle = getMap(body, "subtitle");
+				subtitles = subtitle != null ? (String) subtitle.get("subtitle_body") : null;
 			}
 			Map<String, Object> result = new HashMap<>();
 			result.put("subtitles", subtitles);
@@ -363,7 +293,7 @@ public class Musixmatch {
 	}
 
 	public Result formatResult(String subtitles, String lyrics, Map<String, Object> trackData) {
-		List<LrcLine> lines = subtitles != null ? parseSubtitles(subtitles) : null;
+		List<LrcLine> lines = subtitles != null ? parseSubtitles(subtitles) : Collections.emptyList();
 		return new Result(
 			lyrics,
 			lines,
@@ -379,43 +309,9 @@ public class Musixmatch {
 	public CompletableFuture<LrcResult> getLrc(String query) {
 		return findLyrics(query).thenApply(result -> {
 			if (result == null) return null;
-			String synced = result.lines != null ? String.join("\n", result.lines.stream().map(l -> l.line).collect(Collectors.toList())) : null;
+			String synced = result.lines != null ? result.lines.stream().map(l -> l.line).collect(Collectors.joining("\n")) : null;
 			return new LrcResult(synced, result.text, result.track);
 		});
-	}
-
-	public RateLimitStatus getRateLimitStatus() {
-		synchronized (rateLimitLock) {
-			long now = System.currentTimeMillis();
-			long oneMinuteAgo = now - 60000;
-			requestTimestamps.removeIf(timestamp -> timestamp < oneMinuteAgo);
-			
-			int requestsInLastMinute = requestTimestamps.size();
-			int remainingRequests = Math.max(0, MAX_REQUESTS_PER_MINUTE - requestsInLastMinute);
-			long timeSinceLastRequest = now - lastRequestTime;
-			long timeUntilNextRequest = Math.max(0, MIN_REQUEST_INTERVAL - timeSinceLastRequest);
-			
-			return new RateLimitStatus(
-				requestsInLastMinute,
-				remainingRequests,
-				MAX_REQUESTS_PER_MINUTE,
-				timeUntilNextRequest,
-				requestSemaphore.availablePermits(),
-				MAX_CONCURRENT_REQUESTS
-			);
-		}
-	}
-
-	public void shutdown() {
-		scheduler.shutdown();
-		try {
-			if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-				scheduler.shutdownNow();
-			}
-		} catch (InterruptedException e) {
-			scheduler.shutdownNow();
-			Thread.currentThread().interrupt();
-		}
 	}
 
 	private static String encodeURIComponent(String s) {
@@ -426,9 +322,25 @@ public class Musixmatch {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> getMap(Map<String, Object> map, String key) {
+		Object value = map != null ? map.get(key) : null;
+		return value instanceof Map ? (Map<String, Object>) value : null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static List<Map<String, Object>> getList(Map<String, Object> map, String key) {
+		Object value = map != null ? map.get(key) : null;
+		return value instanceof List ? (List<Map<String, Object>>) value : null;
+	}
+
+	private static void logError(String message, Exception e) {
+		System.err.println(message + ": " + (e != null ? e.getMessage() : "unknown error"));
+	}
+
 	public static class LrcLine {
-		public long start;
-		public String line;
+		public final long start;
+		public final String line;
 		public LrcLine(long start, String line) {
 			this.start = start;
 			this.line = line;
@@ -436,8 +348,8 @@ public class Musixmatch {
 	}
 
 	public static class ParsedQuery {
-		public String artist;
-		public String title;
+		public final String artist;
+		public final String title;
 		public ParsedQuery(String artist, String title) {
 			this.artist = artist;
 			this.title = title;
@@ -445,9 +357,9 @@ public class Musixmatch {
 	}
 
 	public static class TrackInfo {
-		public String title;
-		public String author;
-		public String albumArt;
+		public final String title;
+		public final String author;
+		public final String albumArt;
 		public TrackInfo(String title, String author, String albumArt) {
 			this.title = title;
 			this.author = author;
@@ -456,10 +368,10 @@ public class Musixmatch {
 	}
 
 	public static class Result {
-		public String text;
-		public List<LrcLine> lines;
-		public TrackInfo track;
-		public String source;
+		public final String text;
+		public final List<LrcLine> lines;
+		public final TrackInfo track;
+		public final String source;
 		public Result(String text, List<LrcLine> lines, TrackInfo track, String source) {
 			this.text = text;
 			this.lines = lines;
@@ -469,39 +381,13 @@ public class Musixmatch {
 	}
 
 	public static class LrcResult {
-		public String synced;
-		public String unsynced;
-		public TrackInfo track;
+		public final String synced;
+		public final String unsynced;
+		public final TrackInfo track;
 		public LrcResult(String synced, String unsynced, TrackInfo track) {
 			this.synced = synced;
 			this.unsynced = unsynced;
 			this.track = track;
-		}
-	}
-
-	public static class RateLimitStatus {
-		public int requestsInLastMinute;
-		public int remainingRequests;
-		public int maxRequestsPerMinute;
-		public long timeUntilNextRequest;
-		public int availableConcurrentSlots;
-		public int maxConcurrentRequests;
-		
-		public RateLimitStatus(int requestsInLastMinute, int remainingRequests, int maxRequestsPerMinute,
-							   long timeUntilNextRequest, int availableConcurrentSlots, int maxConcurrentRequests) {
-			this.requestsInLastMinute = requestsInLastMinute;
-			this.remainingRequests = remainingRequests;
-			this.maxRequestsPerMinute = maxRequestsPerMinute;
-			this.timeUntilNextRequest = timeUntilNextRequest;
-			this.availableConcurrentSlots = availableConcurrentSlots;
-			this.maxConcurrentRequests = maxConcurrentRequests;
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("Rate Limit Status: %d/%d requests used, %d remaining, next request in %dms, %d/%d concurrent slots available",
-				requestsInLastMinute, maxRequestsPerMinute, remainingRequests, timeUntilNextRequest,
-				availableConcurrentSlots, maxConcurrentRequests);
 		}
 	}
 }
