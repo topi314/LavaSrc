@@ -9,6 +9,7 @@ import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioTrack;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.lrclib.LrcLibLyricsManager;
+import com.github.topi314.lavasrc.musixmatch.Musixmatch;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
@@ -49,6 +50,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private QobuzAudioSourceManager qobuz;
 	private YtdlpAudioSourceManager ytdlp;
 	private LrcLibLyricsManager lrcLib;
+	private Musixmatch musixmatch;
 
 	public LavaSrcPlugin(
 		LavaSrcConfig pluginConfig,
@@ -157,6 +159,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (lyricsSourcesConfig.isLrcLib()) {
 			this.lrcLib = new LrcLibLyricsManager();
+		}
+		if (lyricsSourcesConfig.isMusixmatch()) {
+			this.musixmatch = new Musixmatch();
 		}
 	}
 
@@ -268,6 +273,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.lrcLib != null && this.lyricsSourcesConfig.isLrcLib()) {
 			log.info("Registering LRCLIB lyrics manager...");
 			manager.registerLyricsManager(this.lrcLib);
+		}
+		if (this.musixmatch != null && this.lyricsSourcesConfig.isMusixmatch()) {
+			log.info("Registering Musixmatch lyrics manager...");
+			manager.registerLyricsManager(this.musixmatch);
 		}
 		return manager;
 	}
