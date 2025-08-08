@@ -3,17 +3,16 @@ package com.github.topi314.lavasrc.plugin.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-
 @ConfigurationProperties(prefix = "plugins.lavasrc.lyrics-sources")
 @Component
 public class LyricsSourcesConfig {
-
 	private boolean spotify = false;
 	private boolean deezer = false;
 	private boolean youtube = false;
 	private boolean yandexMusic = false;
 	private boolean vkMusic = false;
 	private boolean lrcLib = false;
+	private boolean musixmatch = false;
 
 	public boolean isSpotify() {
 		return this.spotify;
@@ -61,5 +60,13 @@ public class LyricsSourcesConfig {
 
 	public void setLrcLib(boolean lrcLib) {
 		this.lrcLib = lrcLib;
+	}
+
+	public boolean isMusixmatch() {
+		return this.musixmatch;
+	}
+
+	public void setMusixmatch(boolean musixmatch) {
+		this.musixmatch = musixmatch;
 	}
 }

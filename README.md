@@ -30,7 +30,8 @@
 | Tidal                                               | 📁💿🎵🧑       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
 | Qobuz                                               | 📁💿🎵🧑       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
 | YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                 |
-| [LRCLIB](https://lrclib.net))                       | 📜             | N/A                          | [@topi314](https://github.com/topi314)                                                                                 |
+| [LRCLIB](https://lrclib.net)                        | 📜             | N/A                          | [@topi314](https://github.com/topi314)                                                                                 |
+| [Musixmatch](https://www.musixmatch.com)            | 📜             | N/A                          | [@asynico](https://github.com/asynico)                                                                       |
 
 ### Features
 
@@ -121,6 +122,7 @@ plugins:
       yandexmusic: false # Enable Yandex Music lyrics source
       vkmusic: false # Enable Vk Music lyrics source
       lrcLib: false # Enable LRC Library lyrics source (https://lrclib.net)
+      musixmatch: false # Enable Musixmatch lyrics source
     spotify:
       # clientId & clientSecret are required for using spsearch
 #      clientId: "your client id"
