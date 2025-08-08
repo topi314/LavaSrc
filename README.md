@@ -31,6 +31,7 @@
 | Qobuz                                               | 📁💿🎵🧑       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
 | YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                 |
 | [LRCLIB](https://lrclib.net))                       | 📜             | N/A                          | [@topi314](https://github.com/topi314)                                                                                 |
+| JioSaavn                                            | 📁💿🎵🧑🔍🔬   | Direct                       | [@WeeeeeeeeeeS](https://github.com/WeeeeeeeeeeS), [@freyacodes](https://github.com/freyacodes)                         ||
 
 ### Features
 
@@ -114,6 +115,7 @@ plugins:
       tidal: false # Enable Tidal source
       qobuz : false # Enabled qobuz source
       ytdlp: false # Enable yt-dlp source
+      jiosaavn: false # Enable JioSaavn source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -181,6 +183,15 @@ plugins:
       searchLimit: 10 # How many search results should be returned
 #      customLoadArgs: ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
 #      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
+    jiosaavn:
+      decryption: # The decryption configuration for the JioSaavn tracks
+        secretKey: "??" # The required secret key used for decryption (Find your own secret key)
+#        algorithm: "DES" # The algorithm used for decryption (Default "DES")
+#        transformation: "DES/ECB/PKCS5Padding" # The transformation used for decryption (Default "DES/ECB/PKCS5Padding")
+#      proxy: # If defined, JioSaavn HTTP requests will be proxied through here. JioSaavn uses region blocking
+#        url: "https://example.org" # The HTTP proxy to use
+#        username: "my-bot" # Optional username to authenticate with the proxy
+#        password: "youshallpass" # Optional password to authenticate with the proxy
 ```
 
 ### Plugin Info
@@ -616,7 +627,7 @@ searchManager.registerSearchManager(deezer);
 1. (Optional) Open DevTools in your browser and on the Network tab enable trotlining.
 2. Go to https://oauth.yandex.ru/authorize?response_type=token&client_id=23cabbbdc6cd418abb4b39c32c41195d
 3. Authorize and grant access
-4. The browser will redirect to the address like `https://music.yandex.ru/#access_token=AQAAAAAYc***&token_type=bearer&expires_in=31535645`. 
+4. The browser will redirect to the address like `https://music.yandex.ru/#access_token=AQAAAAAYc***&token_type=bearer&expires_in=31535645`.
    Very quickly there will be a redirect to another page, so you need to have time to copy the link. ![image](https://user-images.githubusercontent.com/68972811/196124196-a817b828-3387-4f70-a2b2-cdfdc71ce1f2.png)
 5. Your accessToken, what is after `access_token`.
 
@@ -783,7 +794,7 @@ To retrieve the token:
 1. Open Qobuz in any web browser and log in with your Qobuz account.
 2. Press **F12** to open the developer tools and navigate to the **Network** tab.
 3. Select any request and check the request headers.
-> When looking for a request, you must find a POST request - not OPTIONS! 
+> When looking for a request, you must find a POST request - not OPTIONS!
 4. Copy the value of the `x-user-auth-token` and paste it into the config.
 
 </details>
@@ -882,7 +893,7 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://tidal.com/browse/playlist/12345678
 * https://tidal.com/browse/artist/12345678
 
-### Qobuz 
+### Qobuz
 
 * `qbsearch:animals architects`
 * `qbisrc:USEP42058010` (`qbisrc:ISRC`)
@@ -900,5 +911,14 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://www.youtube.com/watch?v=jdWhJcrrjQs
 * https://www.youtube.com/watch?v=yEBEg4NGVrw&list=PLcZMZxR9uxC8EGrCPopQT1JjNTV6nnQ1G
 * https://youtu.be/jdWhJcrrjQs
+
+### JioSaavn
+
+* `jssearch:animals architects`
+* `jsrec:identifier`
+* https://www.jiosaavn.com/song/apna-bana-le/ATIfejZ9bWw
+* https://www.jiosaavn.com/album/bhediya/wSM2AOubajk
+* https://www.jiosaavn.com/artist/arijit-singh-songs/LlRWpHzy3Hk
+* https://www.jiosaavn.com/featured/jai-hanuman/8GIEhrr8clSO0eMLZZxqsA
 
 ---
