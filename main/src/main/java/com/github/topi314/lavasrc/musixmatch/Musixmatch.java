@@ -9,7 +9,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -18,11 +18,27 @@ public class Musixmatch {
 	private static final ObjectMapper mapper = new ObjectMapper();
 	private static final String TOKEN_FILE = "musixmatch_token.json";
 	private static final long TOKEN_TTL = 55000L;
+	private static final int MAX_REQUESTS_PER_MINUTE = 30;
+	private static final long MIN_REQUEST_INTERVAL = 1000; 
+	private static final int MAX_CONCURRENT_REQUESTS = 3; 
 	private TokenData tokenData;
 	private CompletableFuture<String> tokenPromise;
+	private final Semaphore requestSemaphore = new Semaphore(MAX_CONCURRENT_REQUESTS);
+	private final Queue<Long> requestTimestamps = new ConcurrentLinkedQueue<>();
+	private volatile long lastRequestTime = 0;
+	private final Object rateLimitLock = new Object();
+	private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
 	public Musixmatch() {
 		initializeToken();
+		startCleanupTask();
+	}
+
+	private void startCleanupTask() {
+		scheduler.scheduleAtFixedRate(() -> {
+			long oneMinuteAgo = System.currentTimeMillis() - 60000;
+			requestTimestamps.removeIf(timestamp -> timestamp < oneMinuteAgo);
+		}, 1, 1, TimeUnit.MINUTES);
 	}
 
 	private void initializeToken() {
@@ -64,7 +80,7 @@ public class Musixmatch {
 	}
 
 	private CompletableFuture<String> fetchToken() {
-		return apiGet(Constants.ENDPOINTS.get("TOKEN"))
+		return rateLimitedApiGet(Constants.ENDPOINTS.get("TOKEN"))
 			.thenApply(data -> {
 				@SuppressWarnings("unchecked")
 				Map<String, Object> message = (Map<String, Object>) data.get("message");
@@ -102,19 +118,88 @@ public class Musixmatch {
 		return tokenPromise;
 	}
 
-	@SuppressWarnings("unchecked")
-	public CompletableFuture<Map<String, Object>> apiGet(String url) {
+	private CompletableFuture<Map<String, Object>> rateLimitedApiGet(String url) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				HttpClient client = HttpClient.newHttpClient();
-				HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-				HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-				if (response.statusCode() != 200) throw new IOException("API request failed: " + response.statusCode());
-				return (Map<String, Object>) mapper.readValue(response.body(), Map.class);
+				requestSemaphore.acquire();
+				
+				try {
+					enforceRateLimit();
+					
+					return makeHttpRequest(url);
+				} finally {
+					requestSemaphore.release();
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException("Request interrupted", e);
 			} catch (Exception e) {
-				throw new RuntimeException(e);
+				throw new RuntimeException("Rate-limited API request failed", e);
 			}
 		});
+	}
+
+	private void enforceRateLimit() throws InterruptedException {
+		synchronized (rateLimitLock) {
+			long now = System.currentTimeMillis();
+			
+			long oneMinuteAgo = now - 60000;
+			requestTimestamps.removeIf(timestamp -> timestamp < oneMinuteAgo);
+			
+			if (requestTimestamps.size() >= MAX_REQUESTS_PER_MINUTE) {
+				long oldestRequest = requestTimestamps.peek();
+				if (oldestRequest != null) {
+					long waitTime = 60000 - (now - oldestRequest) + 100; 
+					if (waitTime > 0) {
+						System.out.println("Rate limit reached, waiting " + waitTime + "ms");
+						Thread.sleep(waitTime);
+						now = System.currentTimeMillis();
+					}
+				}
+			}
+			
+			long timeSinceLastRequest = now - lastRequestTime;
+			if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+				long waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+				System.out.println("Enforcing request interval, waiting " + waitTime + "ms");
+				Thread.sleep(waitTime);
+				now = System.currentTimeMillis();
+			}
+			
+			requestTimestamps.offer(now);
+			lastRequestTime = now;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> makeHttpRequest(String url) throws Exception {
+		HttpClient client = HttpClient.newHttpClient();
+		HttpRequest request = HttpRequest.newBuilder()
+			.uri(URI.create(url))
+			.timeout(Duration.ofSeconds(30))
+			.build();
+		
+		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+		
+		if (response.statusCode() == 429) {
+			String retryAfter = response.headers().firstValue("Retry-After").orElse("60");
+			long waitSeconds = Long.parseLong(retryAfter);
+			System.out.println("Server rate limit hit, waiting " + waitSeconds + " seconds");
+			Thread.sleep(waitSeconds * 1000);
+			
+			response = client.send(request, HttpResponse.BodyHandlers.ofString());
+		}
+		
+		if (response.statusCode() != 200) {
+			throw new IOException("API request failed: " + response.statusCode());
+		}
+		
+		return (Map<String, Object>) mapper.readValue(response.body(), Map.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	public CompletableFuture<Map<String, Object>> apiGet(String url) {
+		return rateLimitedApiGet(url);
 	}
 
 	public String cleanLyrics(String lyrics) {
@@ -299,6 +384,40 @@ public class Musixmatch {
 		});
 	}
 
+	public RateLimitStatus getRateLimitStatus() {
+		synchronized (rateLimitLock) {
+			long now = System.currentTimeMillis();
+			long oneMinuteAgo = now - 60000;
+			requestTimestamps.removeIf(timestamp -> timestamp < oneMinuteAgo);
+			
+			int requestsInLastMinute = requestTimestamps.size();
+			int remainingRequests = Math.max(0, MAX_REQUESTS_PER_MINUTE - requestsInLastMinute);
+			long timeSinceLastRequest = now - lastRequestTime;
+			long timeUntilNextRequest = Math.max(0, MIN_REQUEST_INTERVAL - timeSinceLastRequest);
+			
+			return new RateLimitStatus(
+				requestsInLastMinute,
+				remainingRequests,
+				MAX_REQUESTS_PER_MINUTE,
+				timeUntilNextRequest,
+				requestSemaphore.availablePermits(),
+				MAX_CONCURRENT_REQUESTS
+			);
+		}
+	}
+
+	public void shutdown() {
+		scheduler.shutdown();
+		try {
+			if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+				scheduler.shutdownNow();
+			}
+		} catch (InterruptedException e) {
+			scheduler.shutdownNow();
+			Thread.currentThread().interrupt();
+		}
+	}
+
 	private static String encodeURIComponent(String s) {
 		try {
 			return java.net.URLEncoder.encode(s, java.nio.charset.StandardCharsets.UTF_8.toString());
@@ -357,6 +476,32 @@ public class Musixmatch {
 			this.synced = synced;
 			this.unsynced = unsynced;
 			this.track = track;
+		}
+	}
+
+	public static class RateLimitStatus {
+		public int requestsInLastMinute;
+		public int remainingRequests;
+		public int maxRequestsPerMinute;
+		public long timeUntilNextRequest;
+		public int availableConcurrentSlots;
+		public int maxConcurrentRequests;
+		
+		public RateLimitStatus(int requestsInLastMinute, int remainingRequests, int maxRequestsPerMinute,
+							   long timeUntilNextRequest, int availableConcurrentSlots, int maxConcurrentRequests) {
+			this.requestsInLastMinute = requestsInLastMinute;
+			this.remainingRequests = remainingRequests;
+			this.maxRequestsPerMinute = maxRequestsPerMinute;
+			this.timeUntilNextRequest = timeUntilNextRequest;
+			this.availableConcurrentSlots = availableConcurrentSlots;
+			this.maxConcurrentRequests = maxConcurrentRequests;
+		}
+		
+		@Override
+		public String toString() {
+			return String.format("Rate Limit Status: %d/%d requests used, %d remaining, next request in %dms, %d/%d concurrent slots available",
+				requestsInLastMinute, maxRequestsPerMinute, remainingRequests, timeUntilNextRequest,
+				availableConcurrentSlots, maxConcurrentRequests);
 		}
 	}
 }
