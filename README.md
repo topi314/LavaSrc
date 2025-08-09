@@ -858,6 +858,7 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 * https://music.yandex.ru/album/13886032
 * https://music.yandex.ru/track/71663565
 * https://music.yandex.ru/users/yamusic-bestsongs/playlists/701626
+* https://music.yandex.ru/playlists/e1bb61b5-360d-e3c5-124c-ef58d981ca7d
 * https://music.yandex.ru/artist/701626
 
 ### Flowery TTS
