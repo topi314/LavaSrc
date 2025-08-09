@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioLyricsManager, AudioSearchManager {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
+	public static final Pattern URL_PLAYLIST_UUID_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/playlists/(?<identifier>([a-z]{2}\\.)?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})");
 	public static final Pattern EXTRACT_LYRICS_STROKE = Pattern.compile("\\[(?<min>\\d{2}):(?<sec>\\d{2})\\.(?<mil>\\d{2})] ?(?<text>.+)?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "ymrec:";
@@ -316,6 +317,11 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				var playlistId = matcher.group("identifier2");
 				return this.getPlaylist(userId, playlistId, matcher.group("domain"));
 			}
+			matcher = URL_PLAYLIST_UUID_PATTERN.matcher(reference.identifier);
+			if (matcher.find()) {
+				var uuid = matcher.group("identifier");
+				return this.getPlaylist(uuid, matcher.group("domain"));
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -430,12 +436,27 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		);
 	}
 
+	private AudioItem getPlaylist(String uuid, String domainEnd) throws IOException {
+		var json = this.getJson(
+			PUBLIC_API_BASE + "/playlist/" + uuid
+				+ "?page-size=" + PLAYLIST_MAX_PAGE_ITEMS * playlistLoadLimit
+				+ "&rich-tracks=true"
+		);
+
+		return this.getPlaylist(json, domainEnd, "https://music.yandex." + domainEnd + "/playlists/" + uuid);
+	}
+
 	private AudioItem getPlaylist(String userString, String id, String domainEnd) throws IOException {
 		var json = this.getJson(
 			PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id
 				+ "?page-size=" + PLAYLIST_MAX_PAGE_ITEMS * playlistLoadLimit
 				+ "&rich-tracks=true"
 		);
+
+		return this.getPlaylist(json, domainEnd, "https://music.yandex." + domainEnd + "/users/" + userString + "/playlists/" + id);
+	}
+
+	private AudioItem getPlaylist(JsonBrowser json, String domainEnd, String playlistUrl) {
 		if (json.isNull() || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -456,7 +477,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			playlistTitle,
 			tracks,
 			ExtendedAudioPlaylist.Type.PLAYLIST,
-			"https://music.yandex." + domainEnd + "/users/" + userString + "/playlists/" + id,
+			playlistUrl,
 			this.parseCoverUri(json.get("result")),
 			author,
 			tracks.size()
