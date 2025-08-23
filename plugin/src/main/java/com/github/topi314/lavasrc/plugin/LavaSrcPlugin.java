@@ -105,18 +105,54 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (sourcesConfig.isDeezer() || lyricsSourcesConfig.isDeezer()) {
 			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats());
 		}
+
 		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
 			this.yandexMusic = new YandexMusicSourceManager(yandexMusicConfig.getAccessToken());
+
+			HttpProxyConfig proxyConfig = yandexMusicConfig.getProxy();
+
+			if (proxyConfig != null && proxyConfig.getUrl() != null) {
+
+				HttpHost httpHost = HttpHost.create(proxyConfig.getUrl());
+				BasicCredentialsProvider credentialsProvider;
+
+				if (proxyConfig.getUsername() != null && proxyConfig.getPassword() != null) {
+					credentialsProvider = new BasicCredentialsProvider();
+					credentialsProvider.setCredentials(
+						new AuthScope(httpHost),
+						new UsernamePasswordCredentials(proxyConfig.getUsername(), proxyConfig.getPassword())
+					);
+				} else {
+					credentialsProvider = null;
+				}
+
+				log.info("Using {} as http proxy for YandexMusic. With basic auth: {}", httpHost, credentialsProvider != null);
+
+				this.yandexMusic.configureBuilder(builder -> {
+
+					builder.setProxy(httpHost);
+
+					if (credentialsProvider != null) {
+						builder.setDefaultCredentialsProvider(credentialsProvider);
+					}
+
+				});
+			}
+
 			if (yandexMusicConfig.getPlaylistLoadLimit() > 0) {
 				yandexMusic.setPlaylistLoadLimit(yandexMusicConfig.getPlaylistLoadLimit());
 			}
+
 			if (yandexMusicConfig.getAlbumLoadLimit() > 0) {
 				yandexMusic.setAlbumLoadLimit(yandexMusicConfig.getAlbumLoadLimit());
 			}
+
 			if (yandexMusicConfig.getArtistLoadLimit() > 0) {
 				yandexMusic.setArtistLoadLimit(yandexMusicConfig.getArtistLoadLimit());
 			}
+
 		}
+
 		if (sourcesConfig.isFloweryTTS()) {
 			this.flowerytts = new FloweryTTSSourceManager(floweryTTSConfig.getVoice());
 			if (floweryTTSConfig.getTranslate()) {
