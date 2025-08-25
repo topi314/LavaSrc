@@ -156,6 +156,10 @@ plugins:
       playlistLoadLimit: 1 # The number of pages at 100 tracks each
       albumLoadLimit: 1 # The number of pages at 50 tracks each
       artistLoadLimit: 1 # The number of pages at 10 tracks each
+#      proxy: # If defined, YandexMusic HTTP requests will be proxied through here. YandexMusic uses region blocking
+#        url: "https://example.org" # The HTTP proxy to use
+#        username: "my-bot" # Optional username to authenticate with the proxy
+#        password: "youshallpass" # Optional password to authenticate with the proxy      
     flowerytts:
       voice: "default voice" # (case-sensitive) get default voice from here https://api.flowery.pw/v1/tts/voices
       translate: false # whether to translate the text to the native language of voice
