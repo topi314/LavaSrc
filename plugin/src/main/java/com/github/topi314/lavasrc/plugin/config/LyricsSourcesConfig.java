@@ -13,6 +13,7 @@ public class LyricsSourcesConfig {
 	private boolean youtube = false;
 	private boolean yandexMusic = false;
 	private boolean vkMusic = false;
+	private boolean lrcLib = false;
 
 	public boolean isSpotify() {
 		return this.spotify;
@@ -52,5 +53,13 @@ public class LyricsSourcesConfig {
 
 	public void setVkMusic(boolean vkMusic) {
 		this.vkMusic = vkMusic;
+	}
+
+	public boolean isLrcLib() {
+		return this.lrcLib;
+	}
+
+	public void setLrcLib(boolean lrcLib) {
+		this.lrcLib = lrcLib;
 	}
 }

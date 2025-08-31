@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 public class YandexMusicSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioLyricsManager, AudioSearchManager {
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/(?<type1>artist|album|track)/(?<identifier>[0-9]+)(/(?<type2>track)/(?<identifier2>[0-9]+))?/?");
 	public static final Pattern URL_PLAYLIST_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/users/(?<identifier>[0-9A-Za-z@.-]+)/playlists/(?<identifier2>[0-9]+)/?");
+	public static final Pattern URL_PLAYLIST_UUID_PATTERN = Pattern.compile("(https?://)?music\\.yandex\\.(?<domain>ru|com|kz|by)/playlists/(?<identifier>[0-9A-Za-z\\-.]+)");
 	public static final Pattern EXTRACT_LYRICS_STROKE = Pattern.compile("\\[(?<min>\\d{2}):(?<sec>\\d{2})\\.(?<mil>\\d{2})] ?(?<text>.+)?");
 	public static final String SEARCH_PREFIX = "ymsearch:";
 	public static final String RECOMMENDATIONS_PREFIX = "ymrec:";
@@ -99,12 +100,15 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				+ "&type=all"
 				+ "&page=0"
 		);
+		if (json == null) {
+			return AudioSearchResult.EMPTY;
+		}
 		if (setOfTypes.isEmpty()) {
 			setOfTypes = SEARCH_TYPES;
 		}
 
 		var resultJson = json.get("result");
-		if (json.isNull() || resultJson.isNull()) {
+		if (resultJson.isNull()) {
 			return AudioSearchResult.EMPTY;
 		}
 
@@ -316,6 +320,11 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 				var playlistId = matcher.group("identifier2");
 				return this.getPlaylist(userId, playlistId, matcher.group("domain"));
 			}
+			matcher = URL_PLAYLIST_UUID_PATTERN.matcher(reference.identifier);
+			if (matcher.find()) {
+				var uuid = matcher.group("identifier");
+				return this.getPlaylist(uuid, matcher.group("domain"));
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -337,7 +346,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		var json = this.getJson(PUBLIC_API_BASE + "/tracks/" + identifier + "/similar");
-		if (json.isNull() || json.get("result").isNull() || json.get("result").get("similarTracks").values().isEmpty()) {
+		if (json == null || json.get("result").isNull() || json.get("result").get("similarTracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = this.parseTracks(json.get("result").get("similarTracks"), "com");
@@ -357,7 +366,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	private AudioItem getSearch(String query) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/search?text=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track&page=0");
-		if (json.isNull() || json.get("result").get("tracks").isNull()) {
+		if (json == null || json.get("result").get("tracks").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = this.parseTracks(json.get("result").get("tracks").get("results"), "com");
@@ -369,7 +378,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	private AudioItem getAlbum(String id, String domainEnd) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/albums/" + id + "/with-tracks?page-size=" + ALBUM_MAX_PAGE_ITEMS * albumLoadLimit);
-		if (json.isNull() || json.get("result").isNull()) {
+		if (json == null || json.get("result").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = new ArrayList<AudioTrack>();
@@ -398,7 +407,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	private AudioItem getTrack(String id, String domainEnd) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/tracks/" + id);
-		if (json.isNull() || json.get("result").values().get(0).get("available").text().equals("false")) {
+		if (json == null || json.get("result").values().get(0).get("available").text().equals("false")) {
 			return AudioReference.NO_TRACK;
 		}
 		return this.parseTrack(json.get("result").values().get(0), domainEnd);
@@ -406,7 +415,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 
 	private AudioItem getArtist(String id, String domainEnd) throws IOException {
 		var json = this.getJson(PUBLIC_API_BASE + "/artists/" + id + "/tracks?page-size=" + ARTIST_MAX_PAGE_ITEMS * artistLoadLimit);
-		if (json.isNull() || json.get("result").values().isEmpty()) {
+		if (json == null || json.get("result").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 
@@ -416,6 +425,9 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		var artistJsonResponse = this.getJson(PUBLIC_API_BASE + "/artists/" + id);
+		if (artistJsonResponse == null) {
+			return AudioReference.NO_TRACK;
+		}
 		var artistJson = artistJsonResponse.get("result").get("artist");
 		var author = artistJson.get("name").text();
 
@@ -430,13 +442,28 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 		);
 	}
 
+	private AudioItem getPlaylist(String uuid, String domainEnd) throws IOException {
+		var json = this.getJson(
+			PUBLIC_API_BASE + "/playlist/" + uuid
+				+ "?page-size=" + PLAYLIST_MAX_PAGE_ITEMS * playlistLoadLimit
+				+ "&rich-tracks=true"
+		);
+
+		return this.getPlaylist(json, domainEnd, "https://music.yandex." + domainEnd + "/playlists/" + uuid);
+	}
+
 	private AudioItem getPlaylist(String userString, String id, String domainEnd) throws IOException {
 		var json = this.getJson(
 			PUBLIC_API_BASE + "/users/" + userString + "/playlists/" + id
 				+ "?page-size=" + PLAYLIST_MAX_PAGE_ITEMS * playlistLoadLimit
 				+ "&rich-tracks=true"
 		);
-		if (json.isNull() || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
+
+		return this.getPlaylist(json, domainEnd, "https://music.yandex." + domainEnd + "/users/" + userString + "/playlists/" + id);
+	}
+
+	private AudioItem getPlaylist(JsonBrowser json, String domainEnd, String playlistUrl) {
+		if (json == null || json.get("result").isNull() || json.get("result").get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
 		var tracks = this.parseTracks(json.get("result").get("tracks"), domainEnd);
@@ -456,7 +483,7 @@ public class YandexMusicSourceManager extends ExtendedAudioSourceManager impleme
 			playlistTitle,
 			tracks,
 			ExtendedAudioPlaylist.Type.PLAYLIST,
-			"https://music.yandex." + domainEnd + "/users/" + userString + "/playlists/" + id,
+			playlistUrl,
 			this.parseCoverUri(json.get("result")),
 			author,
 			tracks.size()

@@ -250,7 +250,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 				continue;
 			}
 			if (!track.get("readable").asBoolean(false)) {
-				log.warn("Skipping track {} by {} because it is not readable. Available countries: {}", track.get("title").text(), track.get("artist").get("name").text(), track.get("available_countries").text());
+				log.warn("Skipping track {} by {} because it is not readable. Available countries: {}", track.get("title").text(), track.get("artist").get("name").safeText(), track.get("available_countries").text());
 				continue;
 			}
 			tracks.add(this.parseTrack(track, preview));
@@ -266,8 +266,8 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var id = json.get("id").text();
 		return new DeezerAudioTrack(
 			new AudioTrackInfo(
-				json.get("title").text(),
-				json.get("artist").get("name").text(),
+				json.get("title").safeText(),
+				json.get("artist").get("name").safeText(),
 				preview ? PREVIEW_LENGTH : json.get("duration").asLong(0) * 1000,
 				id,
 				false,
@@ -298,7 +298,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		if (types.contains(AudioSearchResult.Type.ALBUM)) {
 			for (var album : json.get("albums").get("data").values()) {
 				albums.add(new DeezerAudioPlaylist(
-					album.get("title").text(),
+					album.get("title").safeText(),
 					Collections.emptyList(),
 					DeezerAudioPlaylist.Type.ALBUM,
 					album.get("link").text(),
@@ -313,7 +313,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		if (types.contains(AudioSearchResult.Type.ARTIST)) {
 			for (var artist : json.get("artists").get("data").values()) {
 				artists.add(new DeezerAudioPlaylist(
-					artist.get("name").text() + "'s Top Tracks",
+					artist.get("name").safeText() + "'s Top Tracks",
 					Collections.emptyList(),
 					DeezerAudioPlaylist.Type.ARTIST,
 					artist.get("link").text(),
@@ -328,7 +328,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		if (types.contains(AudioSearchResult.Type.PLAYLIST)) {
 			for (var playlist : json.get("playlists").get("data").values()) {
 				playlists.add(new DeezerAudioPlaylist(
-					playlist.get("title").text(),
+					playlist.get("title").safeText(),
 					Collections.emptyList(),
 					DeezerAudioPlaylist.Type.PLAYLIST,
 					playlist.get("link").text(),
@@ -414,7 +414,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		var request = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + String.format("?method=%s&input=3&api_version=1.0&api_token=%s", method, tokens.api));
-		request.setHeader("Cookie", "sid=" + tokens.sessionId);
+		request.setHeader("Cookie", "sid=" + tokens.sessionId + "; dzr_uniq_id=" + tokens.dzrUniqId);
 		request.setHeader("Content-Type", "application/json");
 		request.setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
 

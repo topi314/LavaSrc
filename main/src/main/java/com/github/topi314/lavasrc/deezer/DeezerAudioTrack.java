@@ -24,6 +24,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -35,6 +37,8 @@ import java.util.Arrays;
 import java.util.function.BiFunction;
 
 public class DeezerAudioTrack extends ExtendedAudioTrack {
+
+	private static final Logger log = LoggerFactory.getLogger(DeezerAudioTrack.class);
 
 	private final DeezerAudioSourceManager sourceManager;
 
@@ -119,7 +123,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 					}
 				}
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				log.debug("Failed to parse arl from userData", e);
 			}
 
 			if (arl == null) {
@@ -208,7 +212,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		private static SourceWithFormat fromResponse(JsonBrowser json, JsonBrowser trackJson) throws URISyntaxException {
 			var media = json.get("data").index(0).get("media").index(0);
 			if (media.isNull()) {
-				return null;
+				throw new IllegalStateException("No media found in response");
 			}
 
 			var format = media.get("format").text();
