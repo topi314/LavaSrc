@@ -831,7 +831,7 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 * `sprec:mix:artist:0gxyHStUsqpMadRV0Di1Qt`
 * `sprec:mix:track:4PTG3Z6ehGkBFwjybzWkR8`
 * `sprec:mix:album:7t0YTcJ3HsalOTIE6XzQYo`
-* `sprec:mix:isrc:GBARL9300135` (Currently working with anonymous tokens & account tokens)
+* `sprec:mix:isrc:GBARL9300135`
 * https://open.spotify.com/track/0eG08cBeKk0mzykKjw4hcQ
 * https://open.spotify.com/album/7qemUq4n71awwVPOaX7jw4
 * https://open.spotify.com/playlist/7HAO9R9v203gkaPAgknOMp (playlists can include local files if you enabled this via: `plugins.lavasrc.spotify.localFiles: true`. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`)
