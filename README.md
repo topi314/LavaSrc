@@ -20,24 +20,25 @@
 
 | Source                                              | Features       | Playback                     | Credits                                                                                                                |
 |-----------------------------------------------------|----------------|------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| Spotify                                             | 📁💿🎵🧑🔍🔬📜 | [Mirror](#what-is-mirroring) | [@topi314](https://github.com/topi314)                                                                                 |
-| Apple Music                                         | 📁💿🎵🧑🔍🔬📜 | [Mirror](#what-is-mirroring) | [@ryan5453](https://github.com/ryan5453)                                                                               |
-| Deezer                                              | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@topi314](https://github.com/topi314), [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea) |
-| Yandex                                              | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@agutinvboy](https://github.com/agutinvboy)                                                                           |
+| Spotify                                             | 📁💿🎵🧑🔍📻🔬📜 | [Mirror](#what-is-mirroring) | [@topi314](https://github.com/topi314)                                                                                 |
+| Apple Music                                         | 📁💿🎵🧑🔍🔬 | [Mirror](#what-is-mirroring) | [@ryan5453](https://github.com/ryan5453)                                                                               |
+| Deezer                                              | 📁💿🎵🧑🔍📻🔬📜 | Direct                       | [@topi314](https://github.com/topi314), [@ryan5453](https://github.com/ryan5453), [@viztea](https://github.com/viztea) |
+| Yandex                                              | 📁💿🎵🧑🔍📻🔬📜 | Direct                       | [@agutinvboy](https://github.com/agutinvboy)                                                                           |
 | Flowery TTS                                         |                | Direct                       | [@bachtran02](https://github.com/bachtran02)                                                                           |
 | YouTube (Music)                                     | 🔬📜           | N/A                          | [@topi314](https://github.com/topi314), [@DRSchlaubi](https://github.com/DRSchlaubi)                                   |
-| VK Music                                            | 📁💿🎵🧑🔍🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
-| Tidal                                               | 📁💿🎵🧑       | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
-| Qobuz                                               | 📁💿🎵🧑       | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
+| VK Music                                            | 📁💿🎵🧑🔍📻🔬📜 | Direct                       | [@Krispeckt](https://github.com/Krispeckt)                                                                             |
+| Tidal                                               | 📁💿🎵🧑🔍📻   | [Mirror](#what-is-mirroring) | [@nansess](https://github.com/nansess), [@InfNibor](https://github.com/InfNibor)                                       |
+| Qobuz                                               | 📁💿🎵🧑🔍📻   | Direct                       | [@munishkhatri720](https://github.com/munishkhatri720)                                                                 |
 | YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                 |
 | [LRCLIB](https://lrclib.net))                       | 📜             | N/A                          | [@topi314](https://github.com/topi314)                                                                                 |
-| JioSaavn                                            | 📁💿🎵🧑🔍🔬   | Direct                       | [@WeeeeeeeeeeS](https://github.com/WeeeeeeeeeeS), [@freyacodes](https://github.com/freyacodes)                         ||
+| JioSaavn                                            | 📁💿🎵🧑🔍📻🔬 | Direct                       | [@WeeeeeeeeeeS](https://github.com/WeeeeeeeeeeS), [@freyacodes](https://github.com/freyacodes)                         |
 
 ### Features
 
 - 📁 playlists
 - 💿 albums
 - 🎵 tracks
+- 📻 recommendations
 - 🧑 artist top tracks
 - 🔍 search results
 - 🔬 [LavaSearch](https://github.com/topi314/LavaSearch)
