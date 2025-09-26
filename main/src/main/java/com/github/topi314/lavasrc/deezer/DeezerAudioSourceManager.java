@@ -93,7 +93,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			messageDigest.update(masterDecryptionKey.getBytes(StandardCharsets.UTF_8));
 			return Arrays.equals(messageDigest.digest(), decryptionKeyHash);
 		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
+			return false;
 		}
 	}
 
