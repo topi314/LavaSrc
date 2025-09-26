@@ -30,17 +30,19 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DeezerAudioSourceManager extends ExtendedAudioSourceManager implements HttpConfigurable, AudioSearchManager, AudioLyricsManager {
+	private static final byte[] decryptionKeyHash = new byte[] {
+		52, 76, 41, -118, 120, -123, 48, 72, -58, 74, 16, 75, 82, 101, -70, -33, 15, -66, 111, -38, -80, 71, 103, 11, -75, -120, -101, -9, 66, -53, -38, -16
+	};
 
 	public static final Pattern URL_PATTERN = Pattern.compile("(https?://)?(www\\.)?deezer\\.com/(?<countrycode>[a-zA-Z]{2}/)?(?<type>track|album|playlist|artist)/(?<identifier>[0-9]+)");
 	public static final String SEARCH_PREFIX = "dzsearch:";
@@ -75,10 +77,24 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			throw new IllegalArgumentException("Deezer master key must be set");
 		}
 
+		if (!validateDecryptionKey(masterDecryptionKey)) {
+			log.warn("Deezer master decryption key is possibly invalid, playback may not work!");
+		}
+
 		this.masterDecryptionKey = masterDecryptionKey;
 		this.tokenTracker = new DeezerTokenTracker(this, arl);
 		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
+	}
+
+	public boolean validateDecryptionKey(String masterDecryptionKey) {
+		try {
+			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest.update(masterDecryptionKey.getBytes(StandardCharsets.UTF_8));
+			return Arrays.equals(messageDigest.digest(), decryptionKeyHash);
+		} catch (NoSuchAlgorithmException e) {
+			return false;
+		}
 	}
 
 	static void checkResponse(JsonBrowser json, String message) throws IllegalStateException {
