@@ -146,6 +146,8 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (sourcesConfig.isVkMusic() || lyricsSourcesConfig.isVkMusic()) {
 			this.vkMusic = new VkMusicSourceManager(vkMusicConfig.getUserToken());
+			proxyConfigurationService.configure(this.vkMusic, vkMusicConfig.getProxy());
+
 			if (vkMusicConfig.getPlaylistLoadLimit() > 0) {
 				vkMusic.setPlaylistLoadLimit(vkMusicConfig.getPlaylistLoadLimit());
 			}

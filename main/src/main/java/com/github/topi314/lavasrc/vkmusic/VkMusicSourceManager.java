@@ -400,11 +400,16 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 		if (json.isNull() || json.get("response").isNull()) {
 			return AudioReference.NO_TRACK;
 		}
-		return this.parseTrack(json.get("response").values().get(0));
+
+		var track = this.parseTrack(json.get("response").values().get(0));
+		if (track == null) {
+			return AudioReference.NO_TRACK;
+		}
+		return track;
 	}
 
 	private AudioItem getArtist(String id) throws IOException {
-		var json = this.getJson("audio.getAudiosByArtist", "&artist_id=" + id + "&count" + artistLoadLimit * 20);
+		var json = this.getJson("audio.getAudiosByArtist", "&artist_id=" + id + "&count=" + artistLoadLimit * 20);
 		if (json.isNull() || json.get("response").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -453,7 +458,7 @@ public class VkMusicSourceManager extends ExtendedAudioSourceManager implements 
 
 	private AudioTrack parseTrack(JsonBrowser json) {
 		try {
-			if (json.get("url").isNull()) {
+			if (json.get("url").isNull() || json.get("url").text().isEmpty()) {
 				return null;
 			}
 			String coverUri = null;
