@@ -1,5 +1,6 @@
 package com.github.topi314.lavasrc.plugin.config;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -7,10 +8,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class VkMusicConfig {
 
+	@Nullable
+	private HttpProxyConfig proxy;
+
 	private String userToken;
 	private int playlistLoadLimit = 1;
 	private int artistLoadLimit = 1;
 	private int recommendationLoadLimit = 1;
+
+	@Nullable
+	public HttpProxyConfig getProxy() {
+		return this.proxy;
+	}
+
+	@SuppressWarnings("unused")
+	public void setProxy(@Nullable HttpProxyConfig proxy) {
+		this.proxy = proxy;
+	}
 
 	public String getUserToken() {
 		return this.userToken;

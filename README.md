@@ -175,6 +175,10 @@ plugins:
       playlistLoadLimit: 1 # The number of pages at 50 tracks each
       artistLoadLimit: 1 # The number of pages at 10 tracks each
       recommendationsLoadLimit: 10 # Number of tracks
+#      proxy: # If the server with the plugin is located outside of Russia, you must configure a proxy located in Russia to bypass regional restrictions.
+#        url: "https://example.org" # The HTTP proxy to use
+#        username: "my-bot" # Optional username to authenticate with the proxy
+#        password: "youshallpass" # Optional password to authenticate with the proxy
     tidal:
       countryCode: "US" # the country code for accessing region-specific content on Tidal (ISO 3166-1 alpha-2).
       searchLimit: 6 # How many search results should be returned
@@ -733,7 +737,9 @@ playerManager.registerSourceManager(new FloweryTTSSourceManager("..."));
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
 // create a new VkMusicSourceManager with the user token and register it
-playerManager.registerSourceManager(new VkMusicSourceManager("...");
+var vkMusic = new VkMusicSourceManager("...");
+
+playerManager.registerSourceManager(vkMusic);
 ```
 
 #### LavaLyrics
@@ -746,7 +752,7 @@ playerManager.registerSourceManager(new VkMusicSourceManager("...");
 var lyricsManager = new LyricsManager();
 
 // register source
-lyricsManager.registerLyricsManager(vkmusic);
+lyricsManager.registerLyricsManager(vkMusic);
 ```
 
 </details>
@@ -761,7 +767,7 @@ lyricsManager.registerLyricsManager(vkmusic);
 var searchManager = new SearchManager();
 
 // register source
-searchManager.registerSearchManager(vkmusic);
+searchManager.registerSearchManager(vkMusic);
 ```
 
 </details>
