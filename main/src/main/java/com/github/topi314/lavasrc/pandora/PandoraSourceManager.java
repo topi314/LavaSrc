@@ -481,7 +481,7 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
     private AudioSearchResult getAutocomplete(String query, java.util.Set<AudioSearchResult.Type> types) throws IOException {
         final int limit = this.searchLimit;
         if (types.isEmpty()) {
-            types = java.util.Set.of(AudioSearchResult.Type.TRACK);
+            types = SEARCH_TYPES;
         }
 
         List<String> typeKeys = new ArrayList<>();
