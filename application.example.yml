@@ -18,6 +18,7 @@ plugins:
       qobuz: false # Enabled qobuz source
       ytdlp: false # Enable yt-dlp source
       jiosaavn: false # Enable the JioSaavn source
+      pandora: false # Enable Pandora source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -102,6 +103,11 @@ plugins:
 #        url: "https://example.org" # The HTTP proxy to use
 #        username: "my-bot" # Optional username to authenticate with the proxy
 #        password: "youshallpass" # Optional password to authenticate with the proxy
+    pandora:
+      cookie: "your cookie" # Full Cookie header from your browser session to pandora.com
+      csrfToken: "your csrf token" # X-Csrftoken header from your browser session to pandora.com
+      authToken: "your auth token" # X-Authtoken header from your browser session to pandora.com
+      searchLimit: 6 # How many search results should be returned
 
 server: # REST and WS server
   port: 2333

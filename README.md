@@ -32,6 +32,7 @@
 | YouTube([yt-dlp](https://github.com/yt-dlp/yt-dlp)) | 📁💿🎵🧑🔍     | Direct                       | [@topi314](https://github.com/topi314)                                                                                 |
 | [LRCLIB](https://lrclib.net))                       | 📜             | N/A                          | [@topi314](https://github.com/topi314)                                                                                 |
 | JioSaavn                                            | 📁💿🎵🧑🔍📻🔬 | Direct                       | [@WeeeeeeeeeeS](https://github.com/WeeeeeeeeeeS), [@freyacodes](https://github.com/freyacodes)                         |
+| Pandora                                             | 📁💿🎵🧑🔍📻🔬 | [Mirror](#what-is-mirroring) | [@notdeltaxd](https://github.com/notdeltaxd)                                                                                 |
 
 ### Features
 
@@ -93,6 +94,8 @@ To get your Tidal token go [here](#tidal)
 
 To get your Qobuz userOauthToken go [here](#qobuz)
 
+To get your Pandora cookie, csrfToken, and authToken go [here](#pandora)
+
 > [!WARNING]
 > YES `plugins` IS AT ROOT IN THE YAML
 
@@ -117,6 +120,7 @@ plugins:
       qobuz : false # Enabled qobuz source
       ytdlp: false # Enable yt-dlp source
       jiosaavn: false # Enable JioSaavn source
+      pandora: false # Enable Pandora source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -201,6 +205,11 @@ plugins:
 #        url: "https://example.org" # The HTTP proxy to use
 #        username: "my-bot" # Optional username to authenticate with the proxy
 #        password: "youshallpass" # Optional password to authenticate with the proxy
+    pandora:
+      cookie: "your cookie" # Full Cookie header from your browser session to pandora.com
+      csrfToken: "your csrf token" # X-CsrfToken header from your browser session to pandora.com
+      authToken: "your auth token" # X-AuthToken header from your browser session to pandora.com
+      searchLimit: 6 # How many search results should be returned
 ```
 
 ### Plugin Info
@@ -309,6 +318,7 @@ PATCH /v4/lavasrc/config
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
 | ?qobuz       | [Qobuz Config](#qobuz-config-object)               | The Qobuz settings        |
+| ?pandora     | [Pandora Config](#pandora-config-object)           | The Pandora settings      |
 
 ##### Spotify Config Object
 
@@ -364,6 +374,15 @@ PATCH /v4/lavasrc/config
 | ?appId          | String | The Qobuz App ID     |
 | ?appSecret      | string | The Qobuz App Secret |
 
+#### Pandora Config Object
+
+| Field           | Type   | Description             |
+|-----------------|--------|-------------------------|
+| ?cookie         | string | The Pandora cookie      |
+| ?csrfToken      | String | The Pandora csrfToken   |
+| ?authToken      | string | The Pandora authToken   |
+| ?searchLimit    | int    | The search result limit |
+
 <details>
 <summary>Example Payload</summary>
 
@@ -405,6 +424,12 @@ PATCH /v4/lavasrc/config
     "path": "yt-dlp",
     "customLoadArgs": ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"],
     "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "-J"]
+  },
+  "pandora": {
+    "cookie": "your cookie",
+    "csrfToken": "your csrfToken",
+    "authToken": "your authToken",
+    "searchLimit": 6
   }
 }
 ```
@@ -826,6 +851,34 @@ AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 ```
 
+### Pandora
+
+<details>
+<summary>How to get the cookie, csrfToken, and authToken</summary>
+
+1. Go to https://www.pandora.com/browse
+2. If Pandora isn't available in your region,
+   use a VPN and connect to a United States server, then refresh the page.
+3. Open your browser’s Developer Tools (F12 or Ctrl+Shift+I).
+4. Go to the **"Network"** tab.
+5. Search for any song, artist, or album using Pandora’s search bar.
+6. Find a **POST** request related to **"search"** and click it.
+7. In the **"Headers"** section, look under **"Request Headers"** for:
+      • Cookie
+      • X-AuthToken
+      • X-CsrfToken
+8. Copy their values and paste them into the config.
+
+</details>
+
+```java
+AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+// create a new PandoraSourceManager with the cookie, csrfToken,and authToken and register it
+var pandora = new PandoraSourceManager(cookie, csrfToken, authToken, () -> playerManager, new DefaultMirroringAudioTrackResolver(providers));
+
+playerManager.registerSourceManager(pandora);
+```
 
 ---
 ## Supported URLs and Queries
@@ -937,4 +990,12 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://www.jiosaavn.com/artist/arijit-singh-songs/LlRWpHzy3Hk
 * https://www.jiosaavn.com/featured/jai-hanuman/8GIEhrr8clSO0eMLZZxqsA
 
+### Pandora
+
+* `pdsearch:animals architects`
+* `pdrec:identifier`
+* https://www.pandora.com/artist/imagine-dragons/evolve/believer/TRtlJmmZP3nzh3m
+* https://www.pandora.com/artist/nbl-nexuz/on-my-way/AL9kVthv7lq6nfw
+* https://www.pandora.com/artist/alan-walker/ARcKz4k4z2bbd5Z
+* https://www.pandora.com/playlist/PL:844424980353351:1756780791
 ---
