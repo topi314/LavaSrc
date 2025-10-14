@@ -17,6 +17,7 @@ import com.github.topi314.lavasrc.protocol.Config;
 import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
+import com.github.topi314.lavasrc.pandora.PandoraSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
 import com.github.topi314.lavasrc.yandexmusic.YandexMusicSourceManager;
 import com.github.topi314.lavasrc.youtube.YoutubeSearchManager;
@@ -52,6 +53,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private QobuzAudioSourceManager qobuz;
 	private YtdlpAudioSourceManager ytdlp;
 	private LrcLibLyricsManager lrcLib;
+	private PandoraSourceManager pandora;
 
 	public LavaSrcPlugin(
 		LavaSrcConfig pluginConfig,
@@ -68,6 +70,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		QobuzConfig qobuzConfig,
 		YtdlpConfig ytdlpConfig,
 		JioSaavnConfig jioSaavnConfig,
+		PandoraConfig pandoraConfig,
 		ProxyConfigurationService proxyConfigurationService
 	) {
 		log.info("Loading LavaSrc plugin...");
@@ -180,6 +183,13 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 			proxyConfigurationService.configure(this.jioSaavn, jioSaavnConfig.getProxy());
 		}
+
+		if (sourcesConfig.isPandora()) {
+			this.pandora = new PandoraSourceManager(pluginConfig.getProviders(), pandoraConfig.getCookie(), pandoraConfig.getCsrfToken(), pandoraConfig.getAuthToken(), unused -> this.manager);
+			if (pandoraConfig.getSearchLimit() > 0) {
+				this.pandora.setSearchLimit(pandoraConfig.getSearchLimit());
+			}
+		}
 	}
 
 	private boolean hasNewYoutubeSource() {
@@ -235,6 +245,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering JioSaavn audio source manager...");
 			manager.registerSourceManager(this.jioSaavn);
 		}
+		if (this.pandora != null) {
+			log.info("Registering Pandora audio source manager...");
+			manager.registerSourceManager(this.pandora);
+		}
 		return manager;
 	}
 
@@ -268,6 +282,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.jioSaavn != null && this.sourcesConfig.isJiosaavn()) {
 			log.info("Registering JioSaavn search manager...");
 			manager.registerSearchManager(this.jioSaavn);
+		}
+		if (this.pandora != null && this.sourcesConfig.isPandora()) {
+			log.info("Registering Pandora audio search manager...");
+			manager.registerSearchManager(this.pandora);
 		}
 		return manager;
 	}
@@ -377,6 +395,19 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 			if (ytdlpConfig.getCustomPlaybackArgs() != null) {
 				this.ytdlp.setCustomPlaybackArgs(ytdlpConfig.getCustomPlaybackArgs().toArray(String[]::new));
+			}
+		}
+
+		var pandoraConfig = config.getPandora();
+		if (pandoraConfig != null && this.pandora != null) {
+			if (pandoraConfig.getCookie() != null) {
+				this.pandora.setCookie(pandoraConfig.getCookie());
+			}
+			if (pandoraConfig.getCsrfToken() != null) {
+				this.pandora.setCsrfToken(pandoraConfig.getCsrfToken());
+			}
+			if (pandoraConfig.getAuthToken() != null) {
+				this.pandora.setAuthToken(pandoraConfig.getAuthToken());
 			}
 		}
 	}
