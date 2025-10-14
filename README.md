@@ -381,6 +381,7 @@ PATCH /v4/lavasrc/config
 | ?cookie         | string | The Pandora cookie      |
 | ?csrfToken      | String | The Pandora csrfToken   |
 | ?authToken      | string | The Pandora authToken   |
+| ?searchLimit    | int    | The search result limit |
 
 <details>
 <summary>Example Payload</summary>
@@ -427,7 +428,8 @@ PATCH /v4/lavasrc/config
   "pandora": {
     "cookie": "your cookie",
     "csrfToken": "your csrfToken",
-    "authToken": "your authToken"
+    "authToken": "your authToken",
+    "searchLimit": 6
   }
 }
 ```
@@ -989,8 +991,6 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * https://www.jiosaavn.com/featured/jai-hanuman/8GIEhrr8clSO0eMLZZxqsA
 
 ### Pandora
-
-### JioSaavn
 
 * `pdsearch:animals architects`
 * `pdrec:identifier`

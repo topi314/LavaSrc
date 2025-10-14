@@ -116,14 +116,14 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
 
     @Override
     public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) throws IOException {
-        var extended = super.decodeTrack(input);
+        var extendedAudioTrackInfo = super.decodeTrack(input);
         return new PandoraAudioTrack(trackInfo,
-            extended.albumName,
-            extended.albumUrl,
-            extended.artistUrl,
-            extended.artistArtworkUrl,
-            extended.previewUrl,
-            extended.isPreview,
+            extendedAudioTrackInfo.albumName,
+            extendedAudioTrackInfo.albumUrl,
+            extendedAudioTrackInfo.artistUrl,
+            extendedAudioTrackInfo.artistArtworkUrl,
+            extendedAudioTrackInfo.previewUrl,
+            extendedAudioTrackInfo.isPreview,
             this
         );
     }
@@ -365,11 +365,16 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
         }
 
         List<AudioTrack> tracks = new ArrayList<>();
+        var mergedBrowser = JsonBrowser.parse("{}");
+        for (var entry : merged.entrySet()) {
+            mergedBrowser.put(entry.getKey(), entry.getValue());
+        }
+
         for (var t : tracksNode.values()) {
             var id = t.get("pandoraId").text();
             var ann = merged.get(id);
             if (ann == null) continue;
-            var at = mapTrack(ann, annotations);
+            var at = mapTrack(ann, mergedBrowser);
             if (at != null) tracks.add(at);
         }
         var name = json.get("name").text();
@@ -550,8 +555,8 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
             }
         }
 
-        if (tracks.size() > Math.max(1, limit)) {
-            tracks = new ArrayList<>(tracks.subList(0, Math.max(1, limit)));
+        if (tracks.size() > limit) {
+            tracks = new ArrayList<>(tracks.subList(0, limit));
         }
         return new BasicAudioSearchResult(tracks, albums, artists, playlists, new ArrayList<>());
     }

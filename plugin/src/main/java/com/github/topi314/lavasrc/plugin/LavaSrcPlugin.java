@@ -409,6 +409,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (pandoraConfig.getAuthToken() != null) {
 				this.pandora.setAuthToken(pandoraConfig.getAuthToken());
 			}
+			if (pandoraConfig.getSearchLimit() != null && pandoraConfig.getSearchLimit() > 0) {
+				this.pandora.setSearchLimit(pandoraConfig.getSearchLimit());
+			}
 		}
 	}
 }
