@@ -41,6 +41,7 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
     private static final String ENDPOINT_ANNOTATE = "/api/v4/catalog/annotateObjects";
     private static final String ENDPOINT_DETAILS = "/api/v4/catalog/getDetails";
     private static final String ENDPOINT_PLAYLIST_TRACKS = "/api/v7/playlists/getTracks";
+    private static final String ENDPOINT_ARTIST_ALL_TRACKS = "/api/v4/catalog/getAllArtistTracksWithCollaborations";
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
     private static final Logger log = LoggerFactory.getLogger(PandoraSourceManager.class);
     private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
@@ -164,6 +165,9 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
                 } else if (id.startsWith("AL")) {
                     return this.getAlbum(id);
                 } else if (id.startsWith("AR")) {
+                    if (input.contains("/artist/all-songs/")) {
+                        return this.getArtistAllSongs(id);
+                    }
                     return this.getArtist(id);
                 } else if (id.startsWith("PL:")) {
                     return this.getPlaylist(id);
@@ -428,6 +432,72 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
             return AudioReference.NO_TRACK;
         }
         return parseArtist(artist, details);
+    }
+
+    public AudioItem getArtistAllSongs(String artistId) throws IOException {
+        String body = "{\"artistPandoraId\":\"" + escape(artistId) + "\",\"annotationLimit\":100}";
+        var json = postJson(ENDPOINT_ARTIST_ALL_TRACKS, body);
+        if (json == null) return AudioReference.NO_TRACK;
+
+        var annotations = json.get("annotations");
+        var tracksNode = json.get("tracks");
+        if (tracksNode.isNull() || tracksNode.values().isEmpty()) return AudioReference.NO_TRACK;
+
+        Map<String, JsonBrowser> merged = new HashMap<>();
+        for (var v : annotations.values()) {
+            var pid = v.get("pandoraId").text();
+            if (pid != null && !pid.isEmpty()) {
+                merged.put(pid, v);
+            }
+        }
+
+        List<String> allTrackIds = new ArrayList<>();
+        for (var t : tracksNode.values()) {
+            var tid = t.text();
+            if (tid != null && !tid.isEmpty()) allTrackIds.add(tid);
+        }
+
+        List<String> missing = new ArrayList<>();
+        for (var tid : allTrackIds) {
+            if (!merged.containsKey(tid)) missing.add(tid);
+        }
+        if (!missing.isEmpty()) {
+            var extra = postJson(ENDPOINT_ANNOTATE, buildAnnotateRequest(missing));
+            for (var tid : missing) {
+                var node = extra.get(tid);
+                if (!node.isNull()) merged.put(tid, node);
+            }
+        }
+
+        var mergedBrowser = JsonBrowser.parse("{}");
+        for (var entry : merged.entrySet()) {
+            mergedBrowser.put(entry.getKey(), entry.getValue());
+        }
+
+        List<AudioTrack> tracks = new ArrayList<>();
+        for (var tid : allTrackIds) {
+            var ann = merged.get(tid);
+            if (ann == null) continue;
+            var at = mapTrack(ann, mergedBrowser);
+            if (at != null) tracks.add(at);
+        }
+        
+        JsonBrowser artist = findByUrlSuffix(artistId, annotations);
+        if (artist.isNull()) {
+            String detailsBody = "{\"pandoraId\":\"" + escape(artistId) + "\"}";
+            var details = postJson(ENDPOINT_DETAILS, detailsBody);
+            if (details != null) {
+                var detailsAnn = details.get("annotations");
+                var match = findByUrlSuffix(artistId, detailsAnn);
+                if (!match.isNull()) artist = match;
+            }
+        }
+        String name = artist.isNull() ? "All Songs" : (artist.get("name").safeText() + " - All Songs");
+        String path = artist.isNull() ? null : artist.get("shareableUrlPath").text();
+        String artworkUrl = artist.isNull() ? null : getArtworkUrl(artist);
+        String authorName = artist.isNull() ? null : artist.get("name").text();
+
+        return new PandoraAudioPlaylist(name, tracks, ExtendedAudioPlaylist.Type.ARTIST, path != null ? BASE_URL + path : null, artworkUrl, authorName, tracks.size());
     }
 
     private JsonBrowser findByUrlSuffix(String urlTail, JsonBrowser annotations) {
