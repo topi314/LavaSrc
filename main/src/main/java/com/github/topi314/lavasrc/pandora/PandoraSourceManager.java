@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 
 public class PandoraSourceManager extends MirroringAudioSourceManager implements HttpConfigurable, AudioSearchManager {
 
-    public static final Pattern URL_PATTERN = Pattern.compile("^(?:https?://)?(?:www\\.)?pandora\\.com/(?:playlist/(?<id>PL:[\\d:]+)|artist/[\\w\\-]+(?:/[\\w\\-]+)*/(?<id2>(?:TR|AL|AR)[A-Za-z0-9]+))$");
+    public static final Pattern URL_PATTERN = Pattern.compile("^@?(?:https?://)?(?:www\\.)?pandora\\.com/(?:playlist/(?<id>PL:[\\d:]+)|artist/[\\w\\-]+(?:/[\\w\\-]+)*/(?<id2>(?:TR|AL|AR)[A-Za-z0-9]+))(?:[?#].*)?$");
     public static final String BASE_URL = "https://www.pandora.com";
     public static final String SEARCH_PREFIX = "pdsearch:";
     public static final String RECOMMENDATIONS_PREFIX = "pdrec:";
