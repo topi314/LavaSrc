@@ -995,7 +995,8 @@ You can read about all the available options [here](https://flowery.pw/docs), a 
 * `pdsearch:animals architects`
 * `pdrec:identifier`
 * https://www.pandora.com/artist/imagine-dragons/evolve/believer/TRtlJmmZP3nzh3m
-* https://www.pandora.com/artist/nbl-nexuz/on-my-way/AL9kVthv7lq6nfw
+* https://www.pandora.com/artist/alan-walker-sofia-reyes-and-farruko/old-habits-remixes/AL9Xgw5gxV2x7m9
 * https://www.pandora.com/artist/alan-walker/ARcKz4k4z2bbd5Z
+* https://www.pandora.com/artist/all-songs/alan-walker/ARcKz4k4z2bbd5Z
 * https://www.pandora.com/playlist/PL:844424980353351:1756780791
 ---
