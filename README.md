@@ -94,7 +94,7 @@ To get your Tidal token go [here](#tidal)
 
 To get your Qobuz userOauthToken go [here](#qobuz)
 
-To get your Pandora cookie, csrfToken, and authToken go [here](#pandora)
+To get your Pandora csrfToken go [here](#pandora)
 
 > [!WARNING]
 > YES `plugins` IS AT ROOT IN THE YAML
