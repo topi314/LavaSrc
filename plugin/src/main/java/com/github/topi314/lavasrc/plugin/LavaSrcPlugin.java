@@ -185,7 +185,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 
 		if (sourcesConfig.isPandora()) {
-			this.pandora = new PandoraSourceManager(pluginConfig.getProviders(), pandoraConfig.getCookie(), pandoraConfig.getCsrfToken(), pandoraConfig.getAuthToken(), unused -> this.manager);
+			this.pandora = new PandoraSourceManager(pluginConfig.getProviders(), pandoraConfig.getCsrfToken(), unused -> this.manager);
 			if (pandoraConfig.getSearchLimit() > 0) {
 				this.pandora.setSearchLimit(pandoraConfig.getSearchLimit());
 			}
@@ -400,14 +400,8 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 		var pandoraConfig = config.getPandora();
 		if (pandoraConfig != null && this.pandora != null) {
-			if (pandoraConfig.getCookie() != null) {
-				this.pandora.setCookie(pandoraConfig.getCookie());
-			}
 			if (pandoraConfig.getCsrfToken() != null) {
 				this.pandora.setCsrfToken(pandoraConfig.getCsrfToken());
-			}
-			if (pandoraConfig.getAuthToken() != null) {
-				this.pandora.setAuthToken(pandoraConfig.getAuthToken());
 			}
 			if (pandoraConfig.getSearchLimit() != null && pandoraConfig.getSearchLimit() > 0) {
 				this.pandora.setSearchLimit(pandoraConfig.getSearchLimit());

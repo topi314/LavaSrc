@@ -104,9 +104,7 @@ plugins:
 #        username: "my-bot" # Optional username to authenticate with the proxy
 #        password: "youshallpass" # Optional password to authenticate with the proxy
     pandora:
-      cookie: "your cookie" # Full Cookie header from your browser session to pandora.com
       csrfToken: "your csrf token" # X-Csrftoken header from your browser session to pandora.com
-      authToken: "your auth token" # X-Authtoken header from your browser session to pandora.com
       searchLimit: 6 # How many search results should be returned
 
 server: # REST and WS server

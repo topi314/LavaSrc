@@ -45,34 +45,24 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
     private static final Logger log = LoggerFactory.getLogger(PandoraSourceManager.class);
     private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-    private String cookie;
-    private String csrfToken;
-    private String authToken;
+    private final PandoraTokenTracker tokenTracker;
     private int searchLimit = 6;
     public static final java.util.Set<AudioSearchResult.Type> SEARCH_TYPES = java.util.Set.of(AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.ARTIST, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.TRACK);
 
-    public PandoraSourceManager(String[] providers, String cookie, String csrfToken, String authToken, Function<Void, AudioPlayerManager> audioPlayerManager, int searchLimit) {
-        this(cookie, csrfToken, authToken, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), searchLimit);
+    public PandoraSourceManager(String[] providers, String csrfToken, Function<Void, AudioPlayerManager> audioPlayerManager, int searchLimit) {
+        this(csrfToken, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), searchLimit);
     }
 
-    public PandoraSourceManager(String[] providers, String cookie, String csrfToken, String authToken, Function<Void, AudioPlayerManager> audioPlayerManager) {
-        this(cookie, csrfToken, authToken, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), 6);
+    public PandoraSourceManager(String[] providers, String csrfToken, Function<Void, AudioPlayerManager> audioPlayerManager) {
+        this(csrfToken, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers), 6);
     }
 
-    public PandoraSourceManager(String cookie, String csrfToken, String authToken, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver, int searchLimit) {
+    public PandoraSourceManager(String csrfToken, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver, int searchLimit) {
         super(audioPlayerManager, mirroringAudioTrackResolver);
-        if (cookie == null || cookie.isEmpty()) {
-            throw new IllegalArgumentException("Pandora cookie must be set");
-        }
         if (csrfToken == null || csrfToken.isEmpty()) {
             throw new IllegalArgumentException("Pandora csrf token must be set");
         }
-        if (authToken == null || authToken.isEmpty()) {
-            throw new IllegalArgumentException("Pandora auth token must be set");
-        }
-        this.cookie = cookie;
-        this.csrfToken = csrfToken;
-        this.authToken = authToken;
+        this.tokenTracker = new PandoraTokenTracker(this, csrfToken);
         this.searchLimit = searchLimit > 0 ? searchLimit : 6;
     }
 
@@ -92,21 +82,9 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
         this.searchLimit = searchLimit > 0 ? searchLimit : 6;
     }
 
-    public void setCookie(String cookie) {
-        if (cookie != null && !cookie.isEmpty()) {
-            this.cookie = cookie;
-        }
-    }
-
     public void setCsrfToken(String csrfToken) {
         if (csrfToken != null && !csrfToken.isEmpty()) {
-            this.csrfToken = csrfToken;
-        }
-    }
-
-    public void setAuthToken(String authToken) {
-        if (authToken != null && !authToken.isEmpty()) {
-            this.authToken = authToken;
+            this.tokenTracker.setCsrfToken(csrfToken);
         }
     }
 
@@ -131,9 +109,6 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
 
     @Override
     public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
-        if (reference == null || reference.identifier == null) {
-            return null;
-        }
         var identifier = reference.identifier;
         try {
             if (identifier.startsWith(SEARCH_PREFIX)) {
@@ -154,25 +129,24 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
 
             var input = identifier.trim();
             var matcher = URL_PATTERN.matcher(input);
-            if (matcher.find()) {
-                String id = matcher.group("id") != null ? matcher.group("id") : matcher.group("id2");
-                if (id == null || id.isEmpty()) {
-                    return null;
-                }
-
-                if (id.startsWith("TR")) {
-                    return this.getTrack(id);
-                } else if (id.startsWith("AL")) {
-                    return this.getAlbum(id);
-                } else if (id.startsWith("AR")) {
-                    if (input.contains("/artist/all-songs/")) {
-                        return this.getArtistAllSongs(id);
-                    }
-                    return this.getArtist(id);
-                } else if (id.startsWith("PL:")) {
-                    return this.getPlaylist(id);
-                }
+            if (!matcher.find()) {
                 return null;
+            }
+            String id = matcher.group("id") != null ? matcher.group("id") : matcher.group("id2");
+            if (id == null || id.isEmpty()) {
+                return null;
+            }
+            if (id.startsWith("TR")) {
+                return this.getTrack(id);
+            } else if (id.startsWith("AL")) {
+                return this.getAlbum(id);
+            } else if (id.startsWith("AR")) {
+                if (input.contains("/artist/all-songs/")) {
+                    return this.getArtistAllSongs(id);
+                }
+                return this.getArtist(id);
+            } else if (id.startsWith("PL:")) {
+                return this.getPlaylist(id);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -181,6 +155,10 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
     }
 
     private JsonBrowser postJson(String path, String body) throws IOException {
+        return postJsonWithRetry(path, body, false);
+    }
+    
+    private JsonBrowser postJsonWithRetry(String path, String body, boolean isRetry) throws IOException {
         var post = new HttpPost(BASE_URL + path);
         post.setHeader("Accept", "application/json, text/plain, */*");
         post.setHeader("accept-language", "en-US,en;q=0.9");
@@ -188,13 +166,26 @@ public class PandoraSourceManager extends MirroringAudioSourceManager implements
         post.setHeader("origin", BASE_URL);
         post.setHeader("sec-fetch-mode", "cors");
         post.setHeader("sec-fetch-site", "same-origin");
-        post.setHeader("Cookie", this.cookie);
-        post.setHeader("X-Csrftoken", this.csrfToken);
-        post.setHeader("X-Authtoken", this.authToken);
+        post.setHeader("Cookie", this.tokenTracker.buildCookieHeader());
+        post.setHeader("X-Csrftoken", this.tokenTracker.getCsrfToken());
+        post.setHeader("X-Authtoken", this.tokenTracker.getAuthToken());
         post.setHeader("User-Agent", USER_AGENT);
         post.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
-        var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), post);
-        return json;
+        
+        var response = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), post);
+        
+        if (!isRetry && response != null && !response.get("errorCode").isNull()) {
+            var errorCode = response.get("errorCode").asLong(-1);
+            var errorString = response.get("errorString").text();
+            
+            if (errorCode == 1001 || (errorCode == 0 && errorString != null && errorString.contains("could not be validated"))) {
+                log.debug("Auth token error detected (code: {}, message: {}), refreshing token and retrying...", errorCode, errorString);
+                this.tokenTracker.forceRefresh();
+                return postJsonWithRetry(path, body, true);
+            }
+        }
+        
+        return response;
     }
 
     private String getArtworkUrl(JsonBrowser node) {
