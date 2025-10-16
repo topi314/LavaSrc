@@ -19,9 +19,9 @@ public class PandoraTokenTracker {
     private static final long DEFAULT_TOKEN_REFRESH_INTERVAL = 3600;
     
     private final PandoraSourceManager sourceManager;
-    private String csrfToken;
-    private String authToken;
-    private Instant expires;
+    private volatile String csrfToken;
+    private volatile String authToken;
+    private volatile Instant expires;
     
     public PandoraTokenTracker(PandoraSourceManager sourceManager, String csrfToken) {
         this.sourceManager = sourceManager;
@@ -50,7 +50,7 @@ public class PandoraTokenTracker {
         if (csrfToken == null || csrfToken.isEmpty()) {
             throw new IllegalStateException("CSRF token is required to build cookie header");
         }
-        return String.format("csrftoken=%s;Path=/;Domain=.pandora.com;Secure", csrfToken);
+        return String.format("csrftoken=%s", csrfToken);
     }
     
     private void refreshAuthToken() throws IOException {
