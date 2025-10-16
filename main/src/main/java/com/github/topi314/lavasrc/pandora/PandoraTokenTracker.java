@@ -89,7 +89,7 @@ public class PandoraTokenTracker {
         return csrfToken;
     }
     
-    public void forceRefresh() {
+    public synchronized void forceRefresh() {
         this.authToken = null;
         this.expires = null;
     }
