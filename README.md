@@ -206,9 +206,7 @@ plugins:
 #        username: "my-bot" # Optional username to authenticate with the proxy
 #        password: "youshallpass" # Optional password to authenticate with the proxy
     pandora:
-      cookie: "your cookie" # Full Cookie header from your browser session to pandora.com
       csrfToken: "your csrf token" # X-CsrfToken header from your browser session to pandora.com
-      authToken: "your auth token" # X-AuthToken header from your browser session to pandora.com
       searchLimit: 6 # How many search results should be returned
 ```
 
@@ -376,12 +374,10 @@ PATCH /v4/lavasrc/config
 
 #### Pandora Config Object
 
-| Field           | Type   | Description             |
-|-----------------|--------|-------------------------|
-| ?cookie         | string | The Pandora cookie      |
-| ?csrfToken      | String | The Pandora csrfToken   |
-| ?authToken      | string | The Pandora authToken   |
-| ?searchLimit    | int    | The search result limit |
+| Field        | Type   | Description             |
+| ------------ | ------ | ----------------------- |
+| ?csrfToken   | String | The Pandora csrfToken   |
+| ?searchLimit | int    | The search result limit |
 
 <details>
 <summary>Example Payload</summary>
@@ -426,9 +422,7 @@ PATCH /v4/lavasrc/config
     "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "-J"]
   },
   "pandora": {
-    "cookie": "your cookie",
     "csrfToken": "your csrfToken",
-    "authToken": "your authToken",
     "searchLimit": 6
   }
 }
@@ -854,7 +848,7 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 ### Pandora
 
 <details>
-<summary>How to get the cookie, csrfToken, and authToken</summary>
+<summary>How to get the csrfToken</summary>
 
 1. Go to https://www.pandora.com/browse
 2. If Pandora isn't available in your region,
@@ -864,18 +858,16 @@ playerManager.registerSourceManager(new YTDLPSourceManager("path/to/yt-dlp"));
 5. Search for any song, artist, or album using Pandora’s search bar.
 6. Find a **POST** request related to **"search"** and click it.
 7. In the **"Headers"** section, look under **"Request Headers"** for:
-      • Cookie
-      • X-AuthToken
-      • X-CsrfToken
-8. Copy their values and paste them into the config.
+   • X-CsrfToken
+8. Copy its value and paste it into the config.
 
 </details>
 
 ```java
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-// create a new PandoraSourceManager with the cookie, csrfToken,and authToken and register it
-var pandora = new PandoraSourceManager(cookie, csrfToken, authToken, () -> playerManager, new DefaultMirroringAudioTrackResolver(providers));
+// create a new PandoraSourceManager with the csrfToken and register it
+var pandora = new PandoraSourceManager(csrfToken, () -> playerManager, new DefaultMirroringAudioTrackResolver(providers));
 
 playerManager.registerSourceManager(pandora);
 ```

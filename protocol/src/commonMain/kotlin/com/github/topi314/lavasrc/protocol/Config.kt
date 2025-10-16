@@ -72,8 +72,6 @@ data class YtdlpConfig(
 
 @Serializable
 data class PandoraConfig(
-    val cookie: String? = null,
     val csrfToken: String? = null,
-    val authToken: String? = null,
     val searchLimit: Int? = null,
 )
