@@ -490,10 +490,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		}
 		while (page.get("next").text() != null && ++pages < this.playlistPageLimit);
 
-		if (tracks.isEmpty()) {
-			return AudioReference.NO_TRACK;
-		}
-
 		return new SpotifyAudioPlaylist(json.get("name").safeText(), tracks, ExtendedAudioPlaylist.Type.PLAYLIST, json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("owner").get("display_name").text(), (int) json.get("tracks").get("total").asLong(0));
 	}
 
