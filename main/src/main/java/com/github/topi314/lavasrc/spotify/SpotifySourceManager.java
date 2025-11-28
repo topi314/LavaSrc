@@ -313,13 +313,23 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 		var albums = new ArrayList<AudioPlaylist>();
 		for (var album : json.get("albums").get("items").values()) {
+			var albumArtists = album.get("artists").values();
+			var albumAuthor = albumArtists.stream()
+				.map(artist -> artist.get("name").safeText())
+				.filter(name -> name != null && !name.isEmpty())
+				.collect(Collectors.joining(", "));
+			
+			if (albumAuthor.isEmpty()) {
+				albumAuthor = "Unknown";
+			}
+
 			albums.add(new SpotifyAudioPlaylist(
 				album.get("name").safeText(),
 				Collections.emptyList(),
 				ExtendedAudioPlaylist.Type.ALBUM,
 				album.get("external_urls").get("spotify").text(),
 				album.get("images").index(0).get("url").text(),
-				album.get("artists").index(0).get("name").text(),
+				albumAuthor,
 				(int) album.get("total_tracks").asLong(0)
 			));
 		}
@@ -457,7 +467,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		return new SpotifyAudioPlaylist(json.get("name").safeText(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), json.get("artists").index(0).get("name").text(), (int) json.get("total_tracks").asLong(0));
+		var albumArtists = json.get("artists").values();
+		var albumAuthor = albumArtists.stream()
+			.map(artist -> artist.get("name").safeText())
+			.filter(name -> name != null && !name.isEmpty())
+			.collect(Collectors.joining(", "));
+		
+		if (albumAuthor.isEmpty()) {
+			albumAuthor = "Unknown";
+		}
+
+		return new SpotifyAudioPlaylist(json.get("name").safeText(), tracks, ExtendedAudioPlaylist.Type.ALBUM, json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(), albumAuthor, (int) json.get("total_tracks").asLong(0));
 
 	}
 
@@ -545,10 +565,27 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
+		var artists = json.get("artists").values();
+		var author = artists.stream()
+			.map(artist -> artist.get("name").safeText())
+			.filter(name -> name != null && !name.isEmpty())
+			.collect(Collectors.joining(", "));
+		
+		if (author.isEmpty()) {
+			author = "Unknown";
+		}
+
+		var firstArtist = artists.isEmpty() ? null : artists.get(0);
+		var artistUrl = firstArtist != null && !firstArtist.get("external_urls").isNull() ? firstArtist.get("external_urls").get("spotify").text() : null;
+		String artistArtworkUrl = null;
+		if (firstArtist != null && !firstArtist.get("images").isNull() && !firstArtist.get("images").values().isEmpty()) {
+			artistArtworkUrl = firstArtist.get("images").index(0).get("url").text();
+		}
+
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
 				json.get("name").safeText(),
-				json.get("artists").index(0).get("name").safeText().isEmpty() ? "Unknown" : json.get("artists").index(0).get("name").safeText(),
+				author,
 				preview ? PREVIEW_LENGTH : json.get("duration_ms").asLong(0),
 				json.get("id").text() != null ? json.get("id").text() : "local",
 				false,
@@ -558,8 +595,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			),
 			json.get("album").get("name").text(),
 			json.get("album").get("external_urls").get("spotify").text(),
-			json.get("artists").index(0).get("external_urls").get("spotify").text(),
-			json.get("artists").index(0).get("images").index(0).get("url").text(),
+			artistUrl,
+			artistArtworkUrl,
 			json.get("preview_url").text(),
 			preview,
 			this
