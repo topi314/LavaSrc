@@ -21,7 +21,7 @@ public class PandoraTokenTracker {
     private static final String BASE_URL = "https://www.pandora.com";
     private static final String ANONYMOUS_LOGIN_ENDPOINT = "/api/v1/auth/anonymousLogin";
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
-    private static final long DEFAULT_TOKEN_REFRESH_INTERVAL = 24 * 60 * 60;
+    private static final long DEFAULT_TOKEN_REFRESH_INTERVAL = 24 * 60 * 60 * 1000;
     
     private final PandoraSourceManager sourceManager;
     private volatile String csrfToken;
