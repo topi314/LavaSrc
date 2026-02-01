@@ -185,6 +185,11 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 	public AudioItem getItem(String identifier) throws IOException {
 		var args = new ArrayList<>(List.of(this.customLoadArgs));
+		// If this is mix playlist from youtube, we need to limit the number of entries to avoid huge playlists
+		if (identifier.contains("list=RD")) {
+			args.add("--playlist-items");
+			args.add("1:25");
+		}
 		args.add(identifier);
 		var process = getProcess(args);
 		var json = getProcessJsonOutput(process);
