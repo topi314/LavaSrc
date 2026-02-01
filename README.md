@@ -191,7 +191,7 @@ plugins:
       path: "yt-dlp" # the path to the yt-dlp executable.
       searchLimit: 10 # How many search results should be returned
 #      customLoadArgs: ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
-#      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
+#      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "--skip-download", "-J"] # Custom arguments for yt-dlp
     jiosaavn:
       decryption: # The decryption configuration for the JioSaavn tracks
         secretKey: "??" # The required secret key used for decryption (Find your own secret key)
@@ -404,7 +404,7 @@ PATCH /v4/lavasrc/config
   "ytdlp": {
     "path": "yt-dlp",
     "customLoadArgs": ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"],
-    "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "-J"]
+    "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "--skip-download", "-J"]
   }
 }
 ```
