@@ -190,6 +190,8 @@ plugins:
     ytdlp:
       path: "yt-dlp" # the path to the yt-dlp executable.
       searchLimit: 10 # How many search results should be returned
+#      mixPlaylistLoadLimit: 25 # The number of tracks each for mix playlists. Default is 25 tracks
+#      playlistLoadLimit: 1000 # The number of tracks each for normal playlists. Default is 1000 tracks
 #      customLoadArgs: ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
 #      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "--skip-download", "-J"] # Custom arguments for yt-dlp
     jiosaavn:
