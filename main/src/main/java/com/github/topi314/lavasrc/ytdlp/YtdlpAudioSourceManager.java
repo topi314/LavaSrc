@@ -43,18 +43,18 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	private String[] customPlaybackArgs;
 
 	public YtdlpAudioSourceManager() {
-		this("yt-dlp", 0, 25, 1000, null, null);
+		this("yt-dlp", 0, null, null);
 	}
 
 	public YtdlpAudioSourceManager(String path) {
-		this(path, 0, 25, 1000, null, null);
+		this(path, 0, null, null);
 	}
 
-	public YtdlpAudioSourceManager(String path, int searchLimit, int mixPlaylistLoadLimit, int playlistLoadLimit, String[] customLoadArgs, String[] customPlaybackArgs) {
+	public YtdlpAudioSourceManager(String path, int searchLimit, String[] customLoadArgs, String[] customPlaybackArgs) {
 		this.path = path;
 		this.searchLimit = searchLimit == 0 ? 10 : searchLimit;
-		this.mixPlaylistLoadLimit = mixPlaylistLoadLimit == 0 ? 25 : mixPlaylistLoadLimit;
-		this.playlistLoadLimit = playlistLoadLimit == 0 ? 1000 : playlistLoadLimit;
+		this.mixPlaylistLoadLimit = 25;
+		this.playlistLoadLimit = 1000;
 		if (customLoadArgs == null || customLoadArgs.length == 0) {
 			this.customLoadArgs = new String[]{"-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"};
 		} else {
