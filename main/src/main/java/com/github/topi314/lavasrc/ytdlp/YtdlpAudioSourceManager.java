@@ -61,7 +61,7 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 			this.customLoadArgs = customLoadArgs;
 		}
 		if (customPlaybackArgs == null || customPlaybackArgs.length == 0) {
-			this.customPlaybackArgs = new String[]{"-q", "--no-warnings", "-f", "bestaudio", "--skip-download", "-J"};
+			this.customPlaybackArgs = new String[]{"-q", "--no-warnings", "-f", "bestaudio", "-J"};
 		} else {
 			this.customPlaybackArgs = customPlaybackArgs;
 		}

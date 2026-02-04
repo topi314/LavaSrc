@@ -193,7 +193,7 @@ plugins:
 #      mixPlaylistLoadLimit: 25 # The number of tracks each for mix playlists. Default is 25 tracks
 #      playlistLoadLimit: 1000 # The number of tracks each for normal playlists. Default is 1000 tracks
 #      customLoadArgs: ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
-#      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "--skip-download", "-J"] # Custom arguments for yt-dlp
+#      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
     jiosaavn:
       decryption: # The decryption configuration for the JioSaavn tracks
         secretKey: "??" # The required secret key used for decryption (Find your own secret key)
@@ -406,7 +406,7 @@ PATCH /v4/lavasrc/config
   "ytdlp": {
     "path": "yt-dlp",
     "customLoadArgs": ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"],
-    "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "--skip-download", "-J"]
+    "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "-J"]
   }
 }
 ```
