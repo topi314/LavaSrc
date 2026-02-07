@@ -9,6 +9,8 @@ public class YtdlpConfig {
 
 	private String path;
 	private int searchLimit = 10;
+	private int mixPlaylistLoadLimit = 25;
+	private int playlistLoadLimit = 1000;
 	private String[] customLoadArgs;
 	private String[] customPlaybackArgs;
 
@@ -26,6 +28,22 @@ public class YtdlpConfig {
 
 	public void setSearchLimit(int searchLimit) {
 		this.searchLimit = searchLimit;
+	}
+
+	public int getMixPlaylistLoadLimit() {
+		return mixPlaylistLoadLimit;
+	}
+
+	public void setMixPlaylistLoadLimit(int mixPlaylistLoadLimit) {
+		this.mixPlaylistLoadLimit = mixPlaylistLoadLimit;
+	}
+
+	public int getPlaylistLoadLimit() {
+		return playlistLoadLimit;
+	}
+
+	public void setPlaylistLoadLimit(int playlistLoadLimit) {
+		this.playlistLoadLimit = playlistLoadLimit;
 	}
 
 	public String[] getCustomLoadArgs() {
