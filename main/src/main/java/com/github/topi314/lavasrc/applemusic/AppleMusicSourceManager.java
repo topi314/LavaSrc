@@ -145,6 +145,9 @@ public class AppleMusicSourceManager extends MirroringAudioSourceManager impleme
 			}
 
 			var countryCode = matcher.group("countrycode");
+			if (countryCode == null || countryCode.isEmpty()) {
+				countryCode = this.countryCode;
+			}
 			var id = matcher.group("identifier");
 			switch (matcher.group("type")) {
 				case "song":
