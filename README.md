@@ -311,6 +311,7 @@ PATCH /v4/lavasrc/config
 | ?yandexMusic | [Yandex Music Config](#yandex-music-config-object) | The Yandex Music settings |
 | ?vkMusic     | [Vk Music Config](#vk-music-config-object)         | The Vk Music settings     |
 | ?qobuz       | [Qobuz Config](#qobuz-config-object)               | The Qobuz settings        |
+| ?ytdlp       | [Ytdlp Config](#ytdlp-config-object)               | The yt-dlp settings       |
 
 ##### Spotify Config Object
 
@@ -366,6 +367,17 @@ PATCH /v4/lavasrc/config
 | ?appId          | String | The Qobuz App ID     |
 | ?appSecret      | string | The Qobuz App Secret |
 
+#### Ytdlp Config Object
+
+| Field                | Type            | Description                                          |
+|----------------------|-----------------|------------------------------------------------------|
+| ?path                | string          | The path to the yt-dlp executable                    |
+| ?searchLimit         | int             | How many search results should be returned           |
+| ?mixPlaylistLoadLimit| int             | The number of tracks each for mix playlists         |
+| ?playlistLoadLimit   | int             | The number of tracks each for normal playlists      |
+| ?customLoadArgs      | array of string | Custom arguments to pass to yt-dlp                   |
+| ?customPlaybackArgs  | array of string | Custom arguments for yt-dlp during playback         |
+
 <details>
 <summary>Example Payload</summary>
 
@@ -405,6 +417,9 @@ PATCH /v4/lavasrc/config
   },
   "ytdlp": {
     "path": "yt-dlp",
+    "searchLimit": 10,
+    "mixPlaylistLoadLimit": 25,
+    "playlistLoadLimit": 1000,
     "customLoadArgs": ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"],
     "customPlaybackArgs": ["-q", "--no-warnings", "-f", "bestaudio", "-J"]
   }
