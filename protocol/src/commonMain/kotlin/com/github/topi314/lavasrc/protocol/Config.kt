@@ -65,6 +65,8 @@ data class QobuzConfig(
 data class YtdlpConfig(
     val path: String? = null,
     val searchLimit: Int? = null,
+    val mixPlaylistLoadLimit: Int? = null,
+    val playlistLoadLimit: Int? = null,
     val customLoadArgs: List<String>? = null,
     val customPlaybackArgs: List<String>? = null,
 )

@@ -33,24 +33,35 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	private static final Pattern URL_PATTERN = Pattern.compile("https?://(?:www\\.|m\\.|music\\.|)youtube\\.com/.*");
 	private static final Pattern SHORT_URL_PATTERN = Pattern.compile("https?://(?:www\\.|)youtu\\.be/.*");
 
+	private static final int DEFAULT_MIX_PLAYLIST_LOAD_LIMIT = 25;
+	private static final int DEFAULT_PLAYLIST_LOAD_LIMIT = 1000;
+
 	private static final Logger log = LoggerFactory.getLogger(YtdlpAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager;
 	private String path;
 	private int searchLimit;
+	private int mixPlaylistLoadLimit;
+	private int playlistLoadLimit;
 	private String[] customLoadArgs;
 	private String[] customPlaybackArgs;
 
 	public YtdlpAudioSourceManager() {
-		this("yt-dlp", 0, null, null);
+		this("yt-dlp", 0, 0, 0, null, null);
 	}
 
 	public YtdlpAudioSourceManager(String path) {
-		this(path, 0, null, null);
+		this(path, 0, 0, 0, null, null);
 	}
 
 	public YtdlpAudioSourceManager(String path, int searchLimit, String[] customLoadArgs, String[] customPlaybackArgs) {
+		this(path, searchLimit, 0, 0, customLoadArgs, customPlaybackArgs);
+	}
+
+	public YtdlpAudioSourceManager(String path, int searchLimit, int mixPlaylistLoadLimit, int playlistLoadLimit, String[] customLoadArgs, String[] customPlaybackArgs) {
 		this.path = path;
 		this.searchLimit = searchLimit == 0 ? 10 : searchLimit;
+		this.mixPlaylistLoadLimit = mixPlaylistLoadLimit == 0 ? DEFAULT_MIX_PLAYLIST_LOAD_LIMIT : mixPlaylistLoadLimit;
+		this.playlistLoadLimit = playlistLoadLimit == 0 ? DEFAULT_PLAYLIST_LOAD_LIMIT : playlistLoadLimit;
 		if (customLoadArgs == null || customLoadArgs.length == 0) {
 			this.customLoadArgs = new String[]{"-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"};
 		} else {
@@ -78,6 +89,22 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 	public void setSearchLimit(int searchLimit) {
 		this.searchLimit = searchLimit;
+	}
+
+	public int getMixPlaylistLoadLimit() {
+		return mixPlaylistLoadLimit;
+	}
+
+	public void setMixPlaylistLoadLimit(int mixPlaylistLoadLimit) {
+		this.mixPlaylistLoadLimit = mixPlaylistLoadLimit;
+	}
+
+	public int getPlaylistLoadLimit() {
+		return playlistLoadLimit;
+	}
+
+	public void setPlaylistLoadLimit(int playlistLoadLimit) {
+		this.playlistLoadLimit = playlistLoadLimit;
 	}
 
 	public String[] getCustomLoadArgs() {
@@ -185,6 +212,14 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 
 	public AudioItem getItem(String identifier) throws IOException {
 		var args = new ArrayList<>(List.of(this.customLoadArgs));
+		// If this is mix playlist from youtube, we need to limit the number of entries to avoid huge playlists
+		if (identifier.contains("list=RD")) {
+			args.add("--playlist-items");
+			args.add("1:" + this.mixPlaylistLoadLimit);
+		} else if (identifier.contains("list=")) {
+			args.add("--playlist-items");
+			args.add("1:" + this.playlistLoadLimit);
+		}
 		args.add(identifier);
 		var process = getProcess(args);
 		var json = getProcessJsonOutput(process);
