@@ -33,6 +33,9 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	private static final Pattern URL_PATTERN = Pattern.compile("https?://(?:www\\.|m\\.|music\\.|)youtube\\.com/.*");
 	private static final Pattern SHORT_URL_PATTERN = Pattern.compile("https?://(?:www\\.|)youtu\\.be/.*");
 
+	private static final int DEFAULT_MIX_PLAYLIST_LOAD_LIMIT = 25;
+	private static final int DEFAULT_PLAYLIST_LOAD_LIMIT = 1000;
+
 	private static final Logger log = LoggerFactory.getLogger(YtdlpAudioSourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager;
 	private String path;
@@ -57,8 +60,8 @@ public class YtdlpAudioSourceManager extends ExtendedAudioSourceManager implemen
 	public YtdlpAudioSourceManager(String path, int searchLimit, int mixPlaylistLoadLimit, int playlistLoadLimit, String[] customLoadArgs, String[] customPlaybackArgs) {
 		this.path = path;
 		this.searchLimit = searchLimit == 0 ? 10 : searchLimit;
-		this.mixPlaylistLoadLimit = mixPlaylistLoadLimit == 0 ? 25 : mixPlaylistLoadLimit;
-		this.playlistLoadLimit = playlistLoadLimit == 0 ? 1000 : playlistLoadLimit;
+		this.mixPlaylistLoadLimit = mixPlaylistLoadLimit == 0 ? DEFAULT_MIX_PLAYLIST_LOAD_LIMIT : mixPlaylistLoadLimit;
+		this.playlistLoadLimit = playlistLoadLimit == 0 ? DEFAULT_PLAYLIST_LOAD_LIMIT : playlistLoadLimit;
 		if (customLoadArgs == null || customLoadArgs.length == 0) {
 			this.customLoadArgs = new String[]{"-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"};
 		} else {
