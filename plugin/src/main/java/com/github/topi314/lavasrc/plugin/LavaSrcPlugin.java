@@ -100,6 +100,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		}
 		if (sourcesConfig.isDeezer() || lyricsSourcesConfig.isDeezer()) {
 			this.deezer = new DeezerAudioSourceManager(deezerConfig.getMasterDecryptionKey(), deezerConfig.getArl(), deezerConfig.getFormats());
+			if (deezerConfig.getLegacyCdnKey() != null && !deezerConfig.getLegacyCdnKey().isEmpty()) {
+				this.deezer.setLegacyCdnKey(deezerConfig.getLegacyCdnKey());
+			}
 		}
 
 		if (sourcesConfig.isYandexMusic() || lyricsSourcesConfig.isYandexMusic()) {
@@ -336,6 +339,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 					.map(deezerTrackFormat -> DeezerAudioTrack.TrackFormat.from(deezerTrackFormat.name()))
 					.toList()
 					.toArray(new DeezerAudioTrack.TrackFormat[0]));
+			}
+			if (deezerConfig.getLegacyCdnKey() != null) {
+				this.deezer.setLegacyCdnKey(deezerConfig.getLegacyCdnKey());
 			}
 		}
 

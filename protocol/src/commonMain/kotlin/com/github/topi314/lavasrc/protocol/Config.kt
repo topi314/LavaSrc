@@ -31,6 +31,7 @@ data class AppleMusicConfig(
 data class DeezerConfig(
     val arl: String? = null,
     val formats: List<DeezerTrackFormat>? = null,
+    val legacyCdnKey: String? = null,
 )
 
 @Suppress("unused")

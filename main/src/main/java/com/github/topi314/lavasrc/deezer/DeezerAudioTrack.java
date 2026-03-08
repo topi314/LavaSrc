@@ -27,9 +27,12 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -73,7 +76,7 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 	public SourceWithFormat getSource(HttpInterface httpInterface, String apiToken, String licenseToken) throws IOException, URISyntaxException {
 		var getTrackToken = new HttpPost(DeezerAudioSourceManager.PRIVATE_API_BASE + "?method=song.getData&input=3&api_version=1.0&api_token=" + apiToken);
-		getTrackToken.setEntity(new StringEntity("{\"sng_id\":\"" + this.trackInfo.identifier + "\"}", ContentType.APPLICATION_JSON));
+		getTrackToken.setEntity(new StringEntity("{\"SNG_ID\":\"" + this.trackInfo.identifier + "\"}", ContentType.APPLICATION_JSON));
 		var trackTokenJson = LavaSrcTools.fetchResponseAsJson(httpInterface, getTrackToken);
 		DeezerAudioSourceManager.checkResponse(trackTokenJson, "Failed to get track token");
 
@@ -82,10 +85,64 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		var getMediaURL = new HttpPost(DeezerAudioSourceManager.MEDIA_BASE + "/get_url");
 		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + licenseToken + "\",\"media\":[{\"type\":\"FULL\",\"formats\":[" + formatFormats(this.sourceManager.getFormats()) + "]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
 
-		var json = LavaSrcTools.fetchResponseAsJson(httpInterface, getMediaURL);
-		DeezerAudioSourceManager.checkResponse(json, "Failed to get media URL");
+		try {
+			var json = LavaSrcTools.fetchResponseAsJson(httpInterface, getMediaURL);
+			DeezerAudioSourceManager.checkResponse(json, "Failed to get media URL");
+			return SourceWithFormat.fromResponse(json, trackTokenJson);
+		} catch (Exception e) {
+			if (this.sourceManager.getLegacyCdnKey() == null || this.sourceManager.getLegacyCdnKey().isEmpty()) {
+				throw e;
+			}
+			try {
+				return buildLegacyCdnSource(trackTokenJson);
+			} catch (Exception fallbackException) {
+				log.error("Legacy CDN fallback failed: {}", fallbackException.getMessage());
+				throw e;
+			}
+		}
+	}
 
-		return SourceWithFormat.fromResponse(json, trackTokenJson);
+	private SourceWithFormat buildLegacyCdnSource(JsonBrowser trackTokenJson) throws URISyntaxException {
+		var results = trackTokenJson.get("results");
+		var md5Origin = results.get("MD5_ORIGIN").text();
+		if (md5Origin == null || md5Origin.isEmpty()) {
+			throw new IllegalStateException("Missing MD5_ORIGIN for legacy CDN URL construction");
+		}
+
+		var sngId = !results.get("SNG_ID").safeText().isEmpty() ? results.get("SNG_ID").safeText() : this.trackInfo.identifier;
+		var mediaVersion = results.get("MEDIA_VERSION").safeText();
+		var legacyCdnKey = this.sourceManager.getLegacyCdnKey();
+
+		for (var format : this.sourceManager.getFormats()) {
+			var contentLength = results.get("FILESIZE_" + format.name()).asLong(0);
+			if (contentLength > 0) {
+				return new SourceWithFormat(buildLegacyCdnUrl(md5Origin, format.getQualityCode(), sngId, mediaVersion, legacyCdnKey), format, contentLength);
+			}
+		}
+
+		throw new IllegalStateException("No suitable format found for legacy CDN fallback");
+	}
+
+	private static String buildLegacyCdnUrl(String md5Origin, int qualityCode, String sngId, String mediaVersion, String key) {
+		try {
+			var step1 = md5Origin + "\u00a4" + qualityCode + "\u00a4" + sngId + "\u00a4" + mediaVersion;
+			var step1Md5 = new String(Hex.encodeHex(MessageDigest.getInstance("MD5").digest(step1.getBytes(StandardCharsets.ISO_8859_1)), true));
+			var step2 = step1Md5 + "\u00a4" + step1 + "\u00a4";
+
+			var step2Bytes = step2.getBytes(StandardCharsets.ISO_8859_1);
+			var paddedLen = (step2Bytes.length + 15) / 16 * 16;
+			var padded = new byte[paddedLen];
+			Arrays.fill(padded, (byte) ' ');
+			System.arraycopy(step2Bytes, 0, padded, 0, step2Bytes.length);
+
+			var cipher = Cipher.getInstance("AES/ECB/NoPadding");
+			cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key.getBytes(StandardCharsets.ISO_8859_1), "AES"));
+			var encrypted = cipher.doFinal(padded);
+
+			return "https://e-cdns-proxy-" + md5Origin.charAt(0) + ".dzcdn.net/mobile/1/" + new String(Hex.encodeHex(encrypted, true));
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to build legacy CDN URL", e);
+		}
 	}
 
 	public byte[] getTrackDecryptionKey() throws NoSuchAlgorithmException {
@@ -164,20 +221,26 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 	}
 
 	public enum TrackFormat {
-		FLAC(true, FlacAudioTrack::new),
-		MP3_320(true, Mp3AudioTrack::new),
-		MP3_256(true, Mp3AudioTrack::new),
-		MP3_128(false, Mp3AudioTrack::new),
-		MP3_64(false, Mp3AudioTrack::new),
-		AAC_64(true, MpegAudioTrack::new); // not sure if this one is so better to be safe.
+		FLAC(true, 9, FlacAudioTrack::new),
+		MP3_320(true, 3, Mp3AudioTrack::new),
+		MP3_256(true, 5, Mp3AudioTrack::new),
+		MP3_128(false, 1, Mp3AudioTrack::new),
+		MP3_64(false, 10, Mp3AudioTrack::new),
+		AAC_64(true, 8, MpegAudioTrack::new); // not sure if this one is so better to be safe.
 
 		public static final TrackFormat[] DEFAULT_FORMATS = new TrackFormat[]{MP3_128, MP3_64};
 		private final boolean isPremiumFormat;
+		private final int qualityCode;
 		private final BiFunction<AudioTrackInfo, PersistentHttpStream, InternalAudioTrack> trackFactory;
 
-		TrackFormat(boolean isPremiumFormat, BiFunction<AudioTrackInfo, PersistentHttpStream, InternalAudioTrack> trackFactory) {
+		TrackFormat(boolean isPremiumFormat, int qualityCode, BiFunction<AudioTrackInfo, PersistentHttpStream, InternalAudioTrack> trackFactory) {
 			this.isPremiumFormat = isPremiumFormat;
+			this.qualityCode = qualityCode;
 			this.trackFactory = trackFactory;
+		}
+
+		public int getQualityCode() {
+			return this.qualityCode;
 		}
 
 		public static TrackFormat from(String format) {

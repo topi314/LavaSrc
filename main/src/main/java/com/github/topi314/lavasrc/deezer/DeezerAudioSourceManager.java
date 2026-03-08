@@ -63,6 +63,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	private final DeezerTokenTracker tokenTracker;
 	private final HttpInterfaceManager httpInterfaceManager;
 	private DeezerAudioTrack.TrackFormat[] formats;
+	private String legacyCdnKey;
 
 	public DeezerAudioSourceManager(String masterDecryptionKey) {
 		this(masterDecryptionKey, null);
@@ -73,6 +74,10 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	}
 
 	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl, @Nullable DeezerAudioTrack.TrackFormat[] formats) {
+		this(masterDecryptionKey, arl, formats, null);
+	}
+
+	public DeezerAudioSourceManager(String masterDecryptionKey, @Nullable String arl, @Nullable DeezerAudioTrack.TrackFormat[] formats, @Nullable String legacyCdnKey) {
 		if (masterDecryptionKey == null || masterDecryptionKey.isEmpty()) {
 			throw new IllegalArgumentException("Deezer master key must be set");
 		}
@@ -82,6 +87,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		}
 
 		this.masterDecryptionKey = masterDecryptionKey;
+		this.legacyCdnKey = legacyCdnKey;
 		this.tokenTracker = new DeezerTokenTracker(this, arl);
 		this.formats = formats != null && formats.length > 0 ? formats : DeezerAudioTrack.TrackFormat.DEFAULT_FORMATS;
 		this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
@@ -572,5 +578,13 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	public DeezerTokenTracker getTokenTracker() {
 		return this.tokenTracker;
+	}
+
+	public String getLegacyCdnKey() {
+		return this.legacyCdnKey;
+	}
+
+	public void setLegacyCdnKey(String legacyCdnKey) {
+		this.legacyCdnKey = legacyCdnKey;
 	}
 }

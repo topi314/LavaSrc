@@ -11,6 +11,7 @@ public class DeezerConfig {
 	private String masterDecryptionKey;
 	private String arl;
 	private DeezerAudioTrack.TrackFormat[] formats;
+	private String legacyCdnKey;
 
 	public String getMasterDecryptionKey() {
 		return this.masterDecryptionKey;
@@ -34,6 +35,14 @@ public class DeezerConfig {
 
 	public void setFormats(DeezerAudioTrack.TrackFormat[] formats) {
 		this.formats = formats;
+	}
+
+	public String getLegacyCdnKey() {
+		return this.legacyCdnKey;
+	}
+
+	public void setLegacyCdnKey(String legacyCdnKey) {
+		this.legacyCdnKey = legacyCdnKey;
 	}
 
 }
