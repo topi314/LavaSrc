@@ -16,6 +16,7 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.DataInput;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -53,11 +55,13 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String RECOMMENDATIONS_TRACK_PREFIX = "track=";
 	public static final long PREVIEW_LENGTH = 30000;
 	public static final String SHARE_URL = "https://deezer.page.link/";
+	public static final String NEW_SHARE_URL = "https://link.deezer.com/";
 	public static final String PUBLIC_API_BASE = "https://api.deezer.com/2.0";
 	public static final String PRIVATE_API_BASE = "https://www.deezer.com/ajax/gw-light.php";
 	public static final String MEDIA_BASE = "https://media.deezer.com/v1";
 	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST);
 	private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
+	private static final Pattern SHARE_REDIRECT_LOCATION_PATTERN = Pattern.compile("(?:dest|awf|gwf|iwf)=([^&]+)");
 
 	private final String masterDecryptionKey;
 	private final DeezerTokenTracker tokenTracker;
@@ -213,14 +217,22 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			}
 
 			// If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
-			if (identifier.startsWith(SHARE_URL)) {
+			if (identifier.startsWith(SHARE_URL) || identifier.startsWith(NEW_SHARE_URL)) {
 				var request = new HttpGet(identifier);
-				request.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build());
+				request.setConfig(RequestConfig.custom()
+					.setRedirectsEnabled(false)
+					.setCookieSpec(CookieSpecs.STANDARD)
+					.build());
 				try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
-					if (response.getStatusLine().getStatusCode() == 302) {
+					int status = response.getStatusLine().getStatusCode();
+					if (status == 301 || status == 302) {
 						var location = response.getFirstHeader("Location").getValue();
 						if (location.startsWith("https://www.deezer.com/")) {
 							return this.loadItem(location, preview);
+						}
+						String itemUrl = extractItemUrlFromLocation(location);
+						if (itemUrl != null) {
+							return this.loadItem(itemUrl, preview);
 						}
 					}
 					return null;
@@ -257,6 +269,26 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 		var request = new HttpGet(uri);
 		request.setHeader("Accept", "application/json");
 		return LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
+	}
+
+	private String extractItemUrlFromLocation(String location) {
+		var matcher = SHARE_REDIRECT_LOCATION_PATTERN.matcher(location);
+		if (matcher.find()) {
+			for (int i = 1; i <= matcher.groupCount(); i++) {
+				String groupValue = matcher.group(i);
+				if (groupValue != null && !groupValue.isEmpty()) {
+					try {
+						String decoded = URLDecoder.decode(groupValue, StandardCharsets.UTF_8);
+						if (decoded.startsWith("https://www.deezer.com/")) {
+							return decoded;
+						}
+					} catch (Exception e) {
+						// Try next group
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private List<AudioTrack> parseTracks(JsonBrowser json, boolean preview) {
