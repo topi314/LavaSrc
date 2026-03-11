@@ -266,7 +266,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 				continue;
 			}
 			if (!track.get("readable").asBoolean(false)) {
-				log.warn("Track {} by {} might fail because it is marked as not readable. Available countries: {}", track.get("title").text(), track.get("artist").get("name").safeText(), track.get("available_countries").text());
+				log.debug("Track {} by {} might fail because it is marked as not readable. Available countries: {}", track.get("title").text(), track.get("artist").get("name").safeText(), track.get("available_countries").text());
 			}
 			tracks.add(this.parseTrack(track, preview));
 		}
@@ -275,7 +275,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
 		if (!json.get("readable").asBoolean(false)) {
-			log.warn("This track might fail because is marked as not readable. Available countries: {}", json.get("available_countries").text());
+			log.debug("This track might fail because is marked as not readable. Available countries: {}", json.get("available_countries").text());
 		}
 		var id = json.get("id").text();
 		return new DeezerAudioTrack(

@@ -162,8 +162,8 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 			// TODO: figure out caching these for the arl provided in the config
 			var tokens = this.getTokens(httpInterface);
 			var source = this.getSource(httpInterface, tokens.api, tokens.license);
-			var decryptionKeyId = source.getFallbackId() != null ? source.getFallbackId() : this.trackInfo.identifier;
-			try (var stream = new DeezerPersistentHttpStream(httpInterface, source.url, source.contentLength, this.getTrackDecryptionKey(decryptionKeyId))) {
+			var trackId = source.getFallbackId() != null ? source.getFallbackId() : this.trackInfo.identifier;
+			try (var stream = new DeezerPersistentHttpStream(httpInterface, source.url, source.contentLength, this.getTrackDecryptionKey(trackId))) {
 				processDelegate(source.format.trackFactory.apply(this.trackInfo, stream), executor);
 			}
 		}
