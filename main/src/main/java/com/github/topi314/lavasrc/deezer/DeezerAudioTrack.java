@@ -77,7 +77,18 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		var trackTokenJson = LavaSrcTools.fetchResponseAsJson(httpInterface, getTrackToken);
 		DeezerAudioSourceManager.checkResponse(trackTokenJson, "Failed to get track token");
 
-		var trackToken = trackTokenJson.get("results").get("TRACK_TOKEN").text();
+		var results = trackTokenJson.get("results");
+
+		// If main track has no RIGHTS, use FALLBACK track if available
+		var rights = results.get("RIGHTS");
+		String fallbackId = null;
+		if ((rights.isNull() || rights.values().isEmpty()) && !results.get("FALLBACK").get("TRACK_TOKEN").isNull()) {
+			fallbackId = results.get("FALLBACK").get("SNG_ID").text();
+			log.debug("Track {} has no RIGHTS, using FALLBACK {}", this.trackInfo.identifier, fallbackId);
+			results = results.get("FALLBACK");
+		}
+
+		var trackToken = results.get("TRACK_TOKEN").text();
 
 		var getMediaURL = new HttpPost(DeezerAudioSourceManager.MEDIA_BASE + "/get_url");
 		getMediaURL.setEntity(new StringEntity("{\"license_token\":\"" + licenseToken + "\",\"media\":[{\"type\":\"FULL\",\"formats\":[" + formatFormats(this.sourceManager.getFormats()) + "]}],\"track_tokens\": [\"" + trackToken + "\"]}", ContentType.APPLICATION_JSON));
@@ -85,11 +96,11 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		var json = LavaSrcTools.fetchResponseAsJson(httpInterface, getMediaURL);
 		DeezerAudioSourceManager.checkResponse(json, "Failed to get media URL");
 
-		return SourceWithFormat.fromResponse(json, trackTokenJson);
+		return SourceWithFormat.fromResponse(json, results, fallbackId);
 	}
 
-	public byte[] getTrackDecryptionKey() throws NoSuchAlgorithmException {
-		var md5 = Hex.encodeHex(MessageDigest.getInstance("MD5").digest(this.trackInfo.identifier.getBytes()), true);
+	public byte[] getTrackDecryptionKey(String trackId) throws NoSuchAlgorithmException {
+		var md5 = Hex.encodeHex(MessageDigest.getInstance("MD5").digest(trackId.getBytes()), true);
 		var master_key = this.sourceManager.getMasterDecryptionKey().getBytes();
 
 		var key = new byte[16];
@@ -97,6 +108,10 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 			key[i] = (byte) (md5[i] ^ md5[i + 16] ^ master_key[i]);
 		}
 		return key;
+	}
+
+	public byte[] getTrackDecryptionKey() throws NoSuchAlgorithmException {
+		return getTrackDecryptionKey(this.trackInfo.identifier);
 	}
 
 	@Override
@@ -147,7 +162,8 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 			// TODO: figure out caching these for the arl provided in the config
 			var tokens = this.getTokens(httpInterface);
 			var source = this.getSource(httpInterface, tokens.api, tokens.license);
-			try (var stream = new DeezerPersistentHttpStream(httpInterface, source.url, source.contentLength, this.getTrackDecryptionKey())) {
+			var trackId = source.getFallbackId() != null ? source.getFallbackId() : this.trackInfo.identifier;
+			try (var stream = new DeezerPersistentHttpStream(httpInterface, source.url, source.contentLength, this.getTrackDecryptionKey(trackId))) {
 				processDelegate(source.format.trackFactory.apply(this.trackInfo, stream), executor);
 			}
 		}
@@ -202,14 +218,16 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 		private final URI url;
 		private final TrackFormat format;
 		private final long contentLength;
+		private final String fallbackId;
 
-		private SourceWithFormat(String url, TrackFormat format, long contentLength) throws URISyntaxException {
+		private SourceWithFormat(String url, TrackFormat format, long contentLength, String fallbackId) throws URISyntaxException {
 			this.url = new URI(url);
 			this.format = format;
 			this.contentLength = contentLength;
+			this.fallbackId = fallbackId;
 		}
 
-		private static SourceWithFormat fromResponse(JsonBrowser json, JsonBrowser trackJson) throws URISyntaxException {
+		private static SourceWithFormat fromResponse(JsonBrowser json, JsonBrowser trackData, String fallbackId) throws URISyntaxException {
 			var media = json.get("data").index(0).get("media").index(0);
 			if (media.isNull()) {
 				throw new IllegalStateException("No media found in response");
@@ -217,8 +235,8 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 			var format = media.get("format").text();
 			var url = media.get("sources").index(0).get("url").text();
-			var contentLength = trackJson.get("results").get("FILESIZE_" + format).asLong(Units.CONTENT_LENGTH_UNKNOWN);
-			return new SourceWithFormat(url, TrackFormat.from(format), contentLength);
+			var contentLength = trackData.get("FILESIZE_" + format).asLong(Units.CONTENT_LENGTH_UNKNOWN);
+			return new SourceWithFormat(url, TrackFormat.from(format), contentLength, fallbackId);
 		}
 
 		public URI getUrl() {
@@ -231,6 +249,10 @@ public class DeezerAudioTrack extends ExtendedAudioTrack {
 
 		public long getContentLength() {
 			return this.contentLength;
+		}
+
+		public String getFallbackId() {
+			return this.fallbackId;
 		}
 
 	}
