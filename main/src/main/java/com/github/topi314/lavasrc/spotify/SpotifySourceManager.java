@@ -736,6 +736,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getAlbum(String id, boolean preview) throws IOException {
+		if (this.preferPartnerApi) {
+			try {
+				var partnerAlbum = this.getPartnerAlbum(id, preview);
+				if (partnerAlbum != AudioReference.NO_TRACK) {
+					return partnerAlbum;
+				}
+			} catch (IOException e) {
+				log.warn("Partner API failed for album {}, falling back to Spotify v1 API", id, e);
+			}
+		}
+
 		try {
 			var json = this.getJson(API_BASE + "albums/" + id, false, false);
 			if (json == null) {
@@ -913,12 +924,18 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getPlaylist(String id, boolean preview) throws IOException {
+		if (this.preferPartnerApi) {
+			try {
+				var partnerPlaylist = this.getAnonymousPlaylist(id, preview);
+				if (partnerPlaylist != AudioReference.NO_TRACK) {
+					return partnerPlaylist;
+				}
+			} catch (IOException e) {
+				log.warn("Partner API failed for playlist {}, falling back to Spotify v1 API", id, e);
+			}
+		}
 
 		var anonymous = id.startsWith("37i9dQZ");
-
-		if (anonymous && this.preferPartnerApi) {
-			return this.getAnonymousPlaylist(id, preview);
-		}
 
 		JsonBrowser json;
 		try {
@@ -1025,6 +1042,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getArtist(String id, boolean preview) throws IOException {
+		if (this.preferPartnerApi) {
+			try {
+				var partnerArtist = this.getSearch("spotify artist " + id + " top tracks", preview);
+				if (partnerArtist != AudioReference.NO_TRACK) {
+					return partnerArtist;
+				}
+			} catch (IOException e) {
+				log.warn("Partner API failed for artist {}, falling back to Spotify v1 API", id, e);
+			}
+		}
+
 		try {
 			var json = this.getJson(API_BASE + "artists/" + id, false, false);
 			if (json == null) {
@@ -1067,6 +1095,17 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getTrack(String id, boolean preview) throws IOException {
+		if (this.preferPartnerApi) {
+			try {
+				var partnerTrack = this.getPartnerTrack(id, preview);
+				if (partnerTrack != AudioReference.NO_TRACK) {
+					return partnerTrack;
+				}
+			} catch (IOException e) {
+				log.warn("Partner API failed for track {}, falling back to Spotify v1 API", id, e);
+			}
+		}
+
 		try {
 			var json = this.getJson(API_BASE + "tracks/" + id, false, false);
 			if (json != null) {
