@@ -58,6 +58,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 	public static final String MEDIA_BASE = "https://media.deezer.com/v1";
 	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.TRACK, AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.ARTIST);
 	private static final Logger log = LoggerFactory.getLogger(DeezerAudioSourceManager.class);
+	private static final String FALLBACK_ARTWORK_URL_FORMAT = "https://cdn-images.dzcdn.net/images/cover/%s/1000x1000-000000-80-0-0.jpg";
 
 	private final String masterDecryptionKey;
 	private final DeezerTokenTracker tokenTracker;
@@ -278,6 +279,11 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 			log.debug("This track might fail because is marked as not readable. Available countries: {}", json.get("available_countries").text());
 		}
 		var id = json.get("id").text();
+
+		var trackArtworkUrl = !json.get("album").get("cover_xl").isNull()?
+			json.get("album").get("cover_xl").text() :
+			String.format(FALLBACK_ARTWORK_URL_FORMAT, json.get("md5_image").text());
+
 		return new DeezerAudioTrack(
 			new AudioTrackInfo(
 				json.get("title").safeText(),
@@ -286,7 +292,7 @@ public class DeezerAudioSourceManager extends ExtendedAudioSourceManager impleme
 				id,
 				false,
 				"https://deezer.com/track/" + id,
-				json.get("album").get("cover_xl").text(),
+				trackArtworkUrl,
 				json.get("isrc").text()
 			),
 			json.get("album").get("title").text(),
