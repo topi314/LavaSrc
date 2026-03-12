@@ -9,8 +9,6 @@ import com.github.topi314.lavasearch.result.AudioSearchResult;
 import com.github.topi314.lavasearch.result.BasicAudioSearchResult;
 import com.github.topi314.lavasrc.ExtendedAudioPlaylist;
 import com.github.topi314.lavasrc.LavaSrcTools;
-import com.github.topi314.lavasrc.RateLimitException;
-import com.github.topi314.lavasrc.SpotifyWebApiFallbackException;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.mirror.MirroringAudioSourceManager;
 import com.github.topi314.lavasrc.mirror.MirroringAudioTrackResolver;
@@ -22,7 +20,6 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -63,9 +60,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public static final int ALBUM_MAX_PAGE_ITEMS = 50;
 	public static final String API_BASE = "https://api.spotify.com/v1/";
 	public static final String CLIENT_API_BASE = "https://spclient.wg.spotify.com/";
-	private static final String TRACK_METADATA_ENDPOINT_PREFIX = CLIENT_API_BASE + "metadata/4/track/";
-	private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.178 Spotify/1.2.65.255 Safari/537.36";
 	public static final Set<AudioSearchResult.Type> SEARCH_TYPES = Set.of(AudioSearchResult.Type.ALBUM, AudioSearchResult.Type.ARTIST, AudioSearchResult.Type.PLAYLIST, AudioSearchResult.Type.TRACK);
+	private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.178 Spotify/1.2.65.255 Safari/537.36";
 	private static final Logger log = LoggerFactory.getLogger(SpotifySourceManager.class);
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	private final SpotifyTokenTracker tokenTracker;
@@ -76,90 +72,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private boolean localFiles;
 	private boolean resolveArtistsInSearch = true;
 	private boolean preferAnonymousToken = false;
-
-	private static boolean isNullOrBlank(@Nullable String value) {
-		return value == null || value.trim().isEmpty();
-	}
-
-	/**
-	 * Converts Spotify base62 id to 16-byte hex gid used by some internal Spotify APIs.
-	 */
-	static String spotifyIdToHex(@NotNull String base62Id) {
-		final String alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		java.math.BigInteger value = java.math.BigInteger.ZERO;
-		java.math.BigInteger base = java.math.BigInteger.valueOf(62);
-		for (int i = 0; i < base62Id.length(); i++) {
-			int idx = alphabet.indexOf(base62Id.charAt(i));
-			if (idx < 0) {
-				throw new IllegalArgumentException("Invalid base62 char in Spotify id: " + base62Id.charAt(i));
-			}
-			value = value.multiply(base).add(java.math.BigInteger.valueOf(idx));
-		}
-		String hex = value.toString(16);
-		// Spotify gids are 16 bytes => 32 hex chars
-		if (hex.length() > 32) {
-			// Keep the least significant 16 bytes.
-			hex = hex.substring(hex.length() - 32);
-		}
-		return "0".repeat(32 - hex.length()) + hex;
-	}
-
-	@Nullable
-	static String parseIsrcFromSpClientMetadata(@Nullable JsonBrowser json) {
-		if (json == null) {
-			return null;
-		}
-		JsonBrowser externalIds = json.get("external_id");
-		if (externalIds == null || !externalIds.isList()) {
-			return null;
-		}
-		for (JsonBrowser item : externalIds.values()) {
-			if (item == null || item.isNull()) {
-				continue;
-			}
-			String type = item.get("type").text();
-			if ("isrc".equalsIgnoreCase(type)) {
-				String id = item.get("id").text();
-				return isNullOrBlank(id) ? null : id;
-			}
-		}
-		return null;
-	}
-
-	@Nullable
-	private String fetchIsrcViaSpClientMetadata(@NotNull String trackId) {
-		if (isNullOrBlank(trackId)) {
-			return null;
-		}
-
-		String gid;
-		try {
-			gid = spotifyIdToHex(trackId);
-		} catch (IllegalArgumentException e) {
-			log.debug("Failed to convert Spotify id to hex gid: {}", e.getMessage());
-			return null;
-		}
-
-		var url = TRACK_METADATA_ENDPOINT_PREFIX + gid + "?market=from_token";
-		var request = new HttpGet(url);
-		request.setHeader("User-Agent", USER_AGENT);
-		request.setHeader("Accept", "application/json");
-		request.setHeader("Content-Type", "application/json");
-		try {
-			request.setHeader("Authorization", "Bearer " + this.tokenTracker.getAnonymousAccessToken());
-		} catch (IOException e) {
-			log.debug("Failed to get anonymous Spotify token for metadata isrc fallback: {}", e.getMessage());
-			return null;
-		}
-
-		try {
-			var json = LavaSrcTools.fetchResponseAsJson(this.httpInterfaceManager.getInterface(), request);
-			return parseIsrcFromSpClientMetadata(json);
-		} catch (Exception e) {
-			log.debug("Failed to fetch ISRC via spclient metadata: {}", e.getMessage());
-			return null;
-		}
-	}
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode,
 	                            Function<Void, AudioPlayerManager> audioPlayerManager) {
@@ -213,6 +125,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		}
 		this.countryCode = countryCode;
 		this.preferAnonymousToken = preferAnonymousToken;
+	}
+
+	private static boolean isNullOrBlank(@Nullable String value) {
+		return value == null || value.trim().isEmpty();
 	}
 
 	public void setPlaylistPageLimit(int playlistPageLimit) {
@@ -428,14 +344,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				log.error("Server responded with not content to '{}'", request.getURI());
 				return null;
 			} else if (statusCode == HttpStatus.SC_TOO_MANY_REQUESTS) {
-				Long retryAfterSeconds = parseRetryAfterSeconds(response.getFirstHeader("Retry-After"));
 				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
-				throw new RateLimitException(
-					"Server responded with an error.",
-					statusCode,
-					retryAfterSeconds,
-					data,
-					new IllegalStateException("Response code from channel info is " + statusCode));
+				throw new SpotifyWebApiFallbackException(statusCode, data);
 			} else if (SpotifyWebApiFallbackException.shouldFallbackToPartnerApi(statusCode, data)) {
 				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
 				throw new SpotifyWebApiFallbackException(statusCode, data);
@@ -447,19 +357,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 			log.debug("Response from '{}' was successful: {}", request.getURI(), data);
 			return data == null ? null : JsonBrowser.parse(data);
-		}
-	}
-
-	@Nullable
-	private static Long parseRetryAfterSeconds(@Nullable Header retryAfter) {
-		if (retryAfter == null) {
-			return null;
-		}
-
-		try {
-			return Long.parseLong(retryAfter.getValue().trim());
-		} catch (NumberFormatException ignored) {
-			return null;
 		}
 	}
 
@@ -662,7 +559,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			isrc = track.get("externalIds").get("isrc").text();
 		}
 		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
-			isrc = fetchIsrcViaSpClientMetadata(identifier);
+			isrc = this.partnerApiClient.fetchIsrcViaSpClientMetadata(identifier);
 		}
 		String previewUrl = null;
 		if (track.get("previews") != null && track.get("previews").get("audioPreviews") != null && track.get("previews").get("audioPreviews").get("items") != null && track.get("previews").get("audioPreviews").get("items").values().size() > 0) {
@@ -824,7 +721,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			try {
 				artistJson = this.getJson(API_BASE + "artists/" + json.get("artists").index(0).get("id").text(), false,
 					this.preferAnonymousToken);
-			} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+			} catch (SpotifyWebApiFallbackException e) {
 				log.warn("Spotify Web API unavailable while loading album artist {}, switching to partner API for album {}",
 					json.get("artists").index(0).get("id").text(), id);
 				return this.getPartnerAlbum(id, preview);
@@ -842,7 +739,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 					page = this.getJson(
 						API_BASE + "albums/" + id + "/tracks?limit=" + ALBUM_MAX_PAGE_ITEMS + "&offset=" + offset, false,
 						this.preferAnonymousToken);
-				} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+				} catch (SpotifyWebApiFallbackException e) {
 					log.warn("Spotify Web API unavailable while paging album tracks {}, switching to partner API", id);
 					return this.getPartnerAlbum(id, preview);
 				}
@@ -854,7 +751,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 						API_BASE + "tracks/?ids=" + page.get("items").values().stream()
 							.map(track -> track.get("id").text()).collect(Collectors.joining(",")),
 						false, this.preferAnonymousToken);
-				} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+				} catch (SpotifyWebApiFallbackException e) {
 					log.warn("Spotify Web API unavailable while loading album track details {}, switching to partner API", id);
 					return this.getPartnerAlbum(id, preview);
 				}
@@ -879,7 +776,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return new SpotifyAudioPlaylist(json.get("name").safeText(), tracks, ExtendedAudioPlaylist.Type.ALBUM,
 				json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(),
 				json.get("artists").index(0).get("name").text(), (int) json.get("total_tracks").asLong(0));
-		} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+		} catch (SpotifyWebApiFallbackException e) {
 			log.warn("Spotify Web API unavailable, switching to partner API for album {}", id);
 			return this.getPartnerAlbum(id, preview);
 		} catch (Exception e) {
@@ -963,7 +860,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			JsonBrowser tracksJson = playlistData.get("content").get("items");
 			List<AudioTrack> tracks = new ArrayList<>();
 			for (var item : tracksJson.values()) {
-				if (item.get("itemV2").get("data").get("__typename").text().toLowerCase().equals("track")) {
+				if (item.get("itemV2").get("data").get("__typename").text().equalsIgnoreCase("track")) {
 					tracks.add(this.parseTrackV2(item, preview));
 				}
 			}
@@ -985,7 +882,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		JsonBrowser json;
 		try {
 			json = this.getJson(API_BASE + "playlists/" + id, anonymous, this.preferAnonymousToken);
-		} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+		} catch (SpotifyWebApiFallbackException e) {
 			log.warn("Spotify Web API unavailable, switching to partner API for playlist {}", id);
 			return this.getAnonymousPlaylist(id, preview);
 		}
@@ -1003,7 +900,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				page = this.getJson(
 					API_BASE + "playlists/" + id + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset,
 					anonymous, this.preferAnonymousToken);
-			} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+			} catch (SpotifyWebApiFallbackException e) {
 				log.warn("Spotify Web API unavailable while paging playlist {}, switching to partner API", id);
 				return this.getAnonymousPlaylist(id, preview);
 			}
@@ -1029,6 +926,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public AudioTrack parseTrackV2(JsonBrowser data, boolean isPreview) {
 		return parseTrackV2(data, isPreview, null);
 	}
+
 	public AudioTrack parseTrackV2(JsonBrowser data, boolean isPreview, String albumArtworkUrl) {
 		JsonBrowser trackData = data.get("itemV2").get("data");
 		if (trackData.isNull()) {
@@ -1070,7 +968,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			isrc = trackData.get("external_ids").get("isrc").text();
 		}
 		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
-			isrc = fetchIsrcViaSpClientMetadata(identifier);
+			isrc = this.partnerApiClient.fetchIsrcViaSpClientMetadata(identifier);
 		}
 
 		return new SpotifyAudioTrack(
@@ -1100,7 +998,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				this.parseTracks(tracksJson, preview), ExtendedAudioPlaylist.Type.ARTIST,
 				json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(),
 				json.get("name").text(), (int) tracksJson.get("tracks").get("total").asLong(0));
-		} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+		} catch (SpotifyWebApiFallbackException e) {
 			try {
 				var artistJson = this.getJson(API_BASE + "artists/" + id, false, this.preferAnonymousToken);
 				String artistName = (artistJson != null) ? artistJson.get("name").safeText() : null;
@@ -1110,7 +1008,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				log.warn("Spotify Web API unavailable, switching to partner API search fallback for artist {} ({})", id,
 					artistName);
 				return this.getSearch(artistName + " top tracks", preview);
-			} catch (RateLimitException | SpotifyWebApiFallbackException ignored) {
+			} catch (SpotifyWebApiFallbackException ignored) {
 				log.warn("Spotify Web API unavailable, switching to partner API search fallback for artist {}", id);
 				return this.getSearch("spotify artist " + id + " top tracks", preview);
 			}
@@ -1130,7 +1028,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			}
 			log.warn("Main API failed for track {}, trying partner API as fallback", id);
 			return this.getPartnerTrack(id, preview);
-		} catch (RateLimitException | SpotifyWebApiFallbackException e) {
+		} catch (SpotifyWebApiFallbackException e) {
 			log.warn("Spotify Web API unavailable, switching to partner API for track {}", id);
 			return this.getPartnerTrack(id, preview);
 		} catch (Exception e) {
@@ -1176,7 +1074,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		String isrc = json.get("external_ids").get("isrc").text();
 		String id = json.get("id").text() != null ? json.get("id").text() : "local";
 		if (isNullOrBlank(isrc) && !"local".equals(id)) {
-			String fallbackIsrc = fetchIsrcViaSpClientMetadata(id);
+			String fallbackIsrc = this.partnerApiClient.fetchIsrcViaSpClientMetadata(id);
 			if (!isNullOrBlank(fallbackIsrc)) {
 				isrc = fallbackIsrc;
 			}
