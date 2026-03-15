@@ -344,12 +344,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			} else if (statusCode == HttpStatus.SC_NO_CONTENT) {
 				log.error("Server responded with not content to '{}'", request.getURI());
 				return null;
-			} else if (statusCode == HttpStatus.SC_TOO_MANY_REQUESTS) {
-				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
-				throw new SpotifyWebApiFallbackException(statusCode, data);
-			} else if (SpotifyWebApiFallbackException.shouldFallbackToPartnerApi(statusCode, data)) {
-				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
-				throw new SpotifyWebApiFallbackException(statusCode, data);
 			} else if (!HttpClientTools.isSuccessWithContent(statusCode)) {
 				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
 				throw new FriendlyException("Server responded with an error.", FriendlyException.Severity.SUSPICIOUS,
@@ -758,18 +752,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				return AudioReference.NO_TRACK;
 			}
 
-			JsonBrowser artistJson;
-			try {
-				artistJson = this.getJson(API_BASE + "artists/" + json.get("artists").index(0).get("id").text(), false,
-					false);
-			} catch (SpotifyWebApiFallbackException e) {
-				if (this.preferPartnerApi) {
-					log.warn("Spotify Web API unavailable while loading album artist {}, switching to partner API for album {}",
-						json.get("artists").index(0).get("id").text(), id);
-					return this.getPartnerAlbum(id, preview);
-				}
-				throw e;
-			}
+			JsonBrowser artistJson = this.getJson(API_BASE + "artists/" + json.get("artists").index(0).get("id").text(), false,
+				false);
 			if (artistJson == null) {
 				artistJson = JsonBrowser.newMap();
 			}
@@ -779,32 +763,15 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			var offset = 0;
 			var pages = 0;
 			do {
-				try {
-					page = this.getJson(
-						API_BASE + "albums/" + id + "/tracks?limit=" + ALBUM_MAX_PAGE_ITEMS + "&offset=" + offset, false,
-							false);
-				} catch (SpotifyWebApiFallbackException e) {
-						if (this.preferPartnerApi) {
-							log.warn("Spotify Web API unavailable while paging album tracks {}, switching to partner API", id);
-							return this.getPartnerAlbum(id, preview);
-						}
-						throw e;
-				}
+				page = this.getJson(
+					API_BASE + "albums/" + id + "/tracks?limit=" + ALBUM_MAX_PAGE_ITEMS + "&offset=" + offset, false,
+						false);
 				offset += ALBUM_MAX_PAGE_ITEMS;
 
-				JsonBrowser tracksPage;
-				try {
-					tracksPage = this.getJson(
-						API_BASE + "tracks/?ids=" + page.get("items").values().stream()
-							.map(track -> track.get("id").text()).collect(Collectors.joining(",")),
-						false, false);
-				} catch (SpotifyWebApiFallbackException e) {
-					if (this.preferPartnerApi) {
-						log.warn("Spotify Web API unavailable while loading album track details {}, switching to partner API", id);
-						return this.getPartnerAlbum(id, preview);
-					}
-					throw e;
-				}
+				JsonBrowser tracksPage = this.getJson(
+					API_BASE + "tracks/?ids=" + page.get("items").values().stream()
+						.map(track -> track.get("id").text()).collect(Collectors.joining(",")),
+					false, false);
 
 				for (var track : tracksPage.get("tracks").values()) {
 					var albumJson = JsonBrowser.newMap();
@@ -826,12 +793,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return new SpotifyAudioPlaylist(json.get("name").safeText(), tracks, ExtendedAudioPlaylist.Type.ALBUM,
 				json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(),
 				json.get("artists").index(0).get("name").text(), (int) json.get("total_tracks").asLong(0));
-		} catch (SpotifyWebApiFallbackException e) {
-			if (this.preferPartnerApi) {
-				log.warn("Spotify Web API unavailable, switching to partner API for album {}", id);
-				return this.getPartnerAlbum(id, preview);
-			}
-			throw new IOException("Spotify Web API unavailable for album " + id + ": " + e.getReason(), e);
 		} catch (Exception e) {
 			if (e instanceof IOException) throw (IOException) e;
 			throw new IOException(e);
@@ -938,16 +899,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 		var anonymous = id.startsWith("37i9dQZ");
 
-		JsonBrowser json;
-		try {
-			json = this.getJson(API_BASE + "playlists/" + id, anonymous, false);
-		} catch (SpotifyWebApiFallbackException e) {
-			if (this.preferPartnerApi) {
-				log.warn("Spotify Web API unavailable, switching to partner API for playlist {}", id);
-				return this.getAnonymousPlaylist(id, preview);
-			}
-			throw new IOException("Spotify Web API unavailable for playlist " + id + ": " + e.getReason(), e);
-		}
+		JsonBrowser json = this.getJson(API_BASE + "playlists/" + id, anonymous, false);
 
 		if (json == null) {
 			return AudioReference.NO_TRACK;
@@ -958,17 +910,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		var offset = 0;
 		var pages = 0;
 		do {
-			try {
-				page = this.getJson(
-					API_BASE + "playlists/" + id + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset,
-						anonymous, false);
-			} catch (SpotifyWebApiFallbackException e) {
-					if (this.preferPartnerApi) {
-						log.warn("Spotify Web API unavailable while paging playlist {}, switching to partner API", id);
-						return this.getAnonymousPlaylist(id, preview);
-					}
-					throw new IOException("Spotify Web API unavailable while paging playlist " + id + ": " + e.getReason(), e);
-			}
+			page = this.getJson(
+				API_BASE + "playlists/" + id + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset,
+					anonymous, false);
 			offset += PLAYLIST_MAX_PAGE_ITEMS;
 
 			for (var value : page.get("items").values()) {
@@ -1054,45 +998,25 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			}
 		}
 
-		try {
-			var json = this.getJson(API_BASE + "artists/" + id, false, false);
-			if (json == null) {
-				return AudioReference.NO_TRACK;
-			}
-
-			var tracksJson = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode, false,
-				false);
-			if (tracksJson == null || tracksJson.get("tracks").values().isEmpty()) {
-				return AudioReference.NO_TRACK;
-			}
-
-			for (var track : tracksJson.get("tracks").values()) {
-				track.get("artists").index(0).put("images", json.get("images"));
-			}
-
-			return new SpotifyAudioPlaylist(json.get("name").safeText() + "'s Top Tracks",
-				this.parseTracks(tracksJson, preview), ExtendedAudioPlaylist.Type.ARTIST,
-				json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(),
-				json.get("name").text(), (int) tracksJson.get("tracks").get("total").asLong(0));
-		} catch (SpotifyWebApiFallbackException e) {
-			if (!this.preferPartnerApi) {
-				throw new IOException("Spotify Web API unavailable for artist " + id + ": " + e.getReason(), e);
-			}
-
-			try {
-				var artistJson = this.getJson(API_BASE + "artists/" + id, false, false);
-				String artistName = (artistJson != null) ? artistJson.get("name").safeText() : null;
-				if (artistName == null || artistName.isEmpty()) {
-					artistName = "spotify artist " + id;
-				}
-				log.warn("Spotify Web API unavailable, switching to partner API search fallback for artist {} ({})", id,
-					artistName);
-				return this.getSearch(artistName + " top tracks", preview);
-			} catch (SpotifyWebApiFallbackException ignored) {
-				log.warn("Spotify Web API unavailable, switching to partner API search fallback for artist {}", id);
-				return this.getSearch("spotify artist " + id + " top tracks", preview);
-			}
+		var json = this.getJson(API_BASE + "artists/" + id, false, false);
+		if (json == null) {
+			return AudioReference.NO_TRACK;
 		}
+
+		var tracksJson = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode, false,
+			false);
+		if (tracksJson == null || tracksJson.get("tracks").values().isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+
+		for (var track : tracksJson.get("tracks").values()) {
+			track.get("artists").index(0).put("images", json.get("images"));
+		}
+
+		return new SpotifyAudioPlaylist(json.get("name").safeText() + "'s Top Tracks",
+			this.parseTracks(tracksJson, preview), ExtendedAudioPlaylist.Type.ARTIST,
+			json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(),
+			json.get("name").text(), (int) tracksJson.get("tracks").get("total").asLong(0));
 	}
 
 	public AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -1122,12 +1046,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				return this.getPartnerTrack(id, preview);
 			}
 			return AudioReference.NO_TRACK;
-		} catch (SpotifyWebApiFallbackException e) {
-			if (this.preferPartnerApi) {
-				log.warn("Spotify Web API unavailable, switching to partner API for track {}", id);
-				return this.getPartnerTrack(id, preview);
-			}
-			throw new IOException("Spotify Web API unavailable for track " + id + ": " + e.getReason(), e);
 		} catch (Exception e) {
 			if (e instanceof IOException) throw (IOException) e;
 			throw new IOException(e);
