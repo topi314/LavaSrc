@@ -1,7 +1,5 @@
 package com.github.topi314.lavasrc.spotify;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.topi314.lavasrc.LavaSrcTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
@@ -32,7 +30,7 @@ public class SpotifyPartnerApiClient {
         this.httpInterface = httpInterface;
     }
 
-    private HttpPost createBaseRequest(ObjectNode extensions, ObjectNode variables, String operationName) throws IOException {
+    private HttpPost createBaseRequest(SpotifyRequestPayload payload) throws IOException {
         var request = new HttpPost(PARTNER_API_BASE);
 
         request.setHeader("User-Agent", USER_AGENT);
@@ -41,22 +39,7 @@ public class SpotifyPartnerApiClient {
         request.setHeader("Spotify-App-Version", "1.2.80.289.gd6b01cc3");
         request.setHeader("Referer", "https://open.spotify.com/");
 
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode persistedQuery = mapper.createObjectNode();
-        persistedQuery.put("version", 1);
-        persistedQuery.put("sha256Hash", extensions.get("sha256Hash").asText());
-
-        ObjectNode extensionsNode = mapper.createObjectNode();
-        extensionsNode.set("persistedQuery", persistedQuery);
-
-        ObjectNode body = mapper.createObjectNode();
-        body.set("variables", variables);
-        body.put("operationName", operationName);
-        body.set("extensions", extensionsNode);
-
-        String jsonBody = mapper.writeValueAsString(body);
-        request.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
+        request.setEntity(new StringEntity(payload.serialize(), StandardCharsets.UTF_8));
 
         return request;
     }
@@ -64,76 +47,35 @@ public class SpotifyPartnerApiClient {
     public JsonBrowser search(String query, int offset, int limit, boolean includeAudiobooks,
                             boolean includeArtistHasConcertsField, boolean includePreReleases,
                             boolean includeAuthors, int numberOfTopResults) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode variables = mapper.createObjectNode();
-        variables.put("searchTerm", query);
-        variables.put("offset", offset);
-        variables.put("limit", limit);
-        variables.put("numberOfTopResults", numberOfTopResults);
-        variables.put("includeAudiobooks", includeAudiobooks);
-        variables.put("includeArtistHasConcertsField", includeArtistHasConcertsField);
-        variables.put("includePreReleases", includePreReleases);
-        variables.put("includeAuthors", includeAuthors);
-
-        ObjectNode extensions = mapper.createObjectNode();
-        extensions.put("sha256Hash", "fcad5a3e0d5af727fb76966f06971c19cfa2275e6ff7671196753e008611873c");
-
-        var request = createBaseRequest(extensions, variables, "searchDesktop");
+        var request = createBaseRequest(SpotifyRequestPayload.forSearch(
+            query,
+            offset,
+            limit,
+            includeAudiobooks,
+            includeArtistHasConcertsField,
+            includePreReleases,
+            includeAuthors,
+            numberOfTopResults));
         return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
     }
 
     public JsonBrowser getRecommendations(String uri) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode variables = mapper.createObjectNode();
-        variables.put("uri", uri);
-
-        ObjectNode extensions = mapper.createObjectNode();
-        extensions.put("sha256Hash", "c77098ee9d6ee8ad3eb844938722db60570d040b49f41f5ec6e7be9160a7c86b");
-
-        var request = createBaseRequest(extensions, variables, "internalLinkRecommenderTrack");
+        var request = createBaseRequest(SpotifyRequestPayload.forRecommendations(uri));
         return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
     }
 
     public JsonBrowser getTrack(String uri) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode variables = mapper.createObjectNode();
-        variables.put("uri", uri);
-
-        ObjectNode extensions = mapper.createObjectNode();
-        extensions.put("sha256Hash", "612585ae06ba435ad26369870deaae23b5c8800a256cd8a57e08eddc25a37294");
-
-        var request = createBaseRequest(extensions, variables, "getTrack");
+        var request = createBaseRequest(SpotifyRequestPayload.forTrack(uri));
         return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
     }
 
     public JsonBrowser getPlaylist(String uri, int offset, int limit) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode variables = mapper.createObjectNode();
-        variables.put("uri", uri);
-        variables.put("offset", offset);
-        variables.put("limit", limit);
-        variables.put("enableWatchFeedEntrypoint", false);
-
-        ObjectNode extensions = mapper.createObjectNode();
-        extensions.put("sha256Hash", "bb67e0af06e8d6f52b531f97468ee4acd44cd0f82b988e15c2ea47b1148efc77");
-
-        var request = createBaseRequest(extensions, variables, "fetchPlaylist");
+        var request = createBaseRequest(SpotifyRequestPayload.forPlaylist(uri, offset, limit));
         return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
     }
 
     public JsonBrowser getAlbum(String id, int offset, int limit) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode variables = mapper.createObjectNode();
-        variables.put("uri", "spotify:album:" + id);
-        variables.put("offset", offset);
-        variables.put("limit", limit);
-        ObjectNode extensions = mapper.createObjectNode();
-        extensions.put("sha256Hash", "b9bfabef66ed756e5e13f68a942deb60bd4125ec1f1be8cc42769dc0259b4b10");
-        HttpPost request = createBaseRequest(extensions, variables, "getAlbum");
+        HttpPost request = createBaseRequest(SpotifyRequestPayload.forAlbum(id, offset, limit));
         return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
     }
 
