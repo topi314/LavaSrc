@@ -33,18 +33,8 @@ public class SpotifyRequestPayload {
         this.variables = MAPPER.createObjectNode();
     }
 
-    public SpotifyRequestPayload withVariable(String key, String value) {
-        this.variables.put(key, value);
-        return this;
-    }
-
-    public SpotifyRequestPayload withVariable(String key, int value) {
-        this.variables.put(key, value);
-        return this;
-    }
-
-    public SpotifyRequestPayload withVariable(String key, boolean value) {
-        this.variables.put(key, value);
+    public SpotifyRequestPayload withVariable(String key, Object value) {
+        this.variables.set(key, MAPPER.valueToTree(value));
         return this;
     }
 
