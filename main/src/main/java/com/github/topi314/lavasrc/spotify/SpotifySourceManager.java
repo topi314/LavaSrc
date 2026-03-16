@@ -711,6 +711,14 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			}
 		}
 
+		String isrc = null;
+		if (track.get("externalIds") != null && track.get("externalIds").get("isrc") != null) {
+			isrc = track.get("externalIds").get("isrc").text();
+		}
+		if (this.preferPartnerApi && isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
+			isrc = this.partnerApiClient.fetchIsrcViaSpClientMetadata(identifier);
+		}
+
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(
 				title,
@@ -720,7 +728,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				false,
 				uri,
 				artworkUrl,
-				null),
+				isrc),
 			albumName,
 			albumUrl,
 			null,
