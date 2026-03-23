@@ -960,7 +960,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		}
 
 		String author = trackData.get("artists").get("items").values().stream()
-			.map(m -> m.get("profile").get("name").text()).collect(Collectors.joining(","));
+			.map(m -> m.get("profile").get("name").text()).collect(Collectors.joining(", "));
 
 		String spotifyUri = trackData.get("uri").text();
 		String identifier = spotifyUri != null ? spotifyUri.replace("spotify:track:", "") : trackData.get("id").text();
