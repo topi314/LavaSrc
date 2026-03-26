@@ -16,6 +16,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 public class SpotifyPartnerApiClient {
+
 	public static final String PARTNER_API_BASE = "https://api-partner.spotify.com/pathfinder/v1/query";
 	public static final String CLIENT_API_BASE = "https://spclient.wg.spotify.com/";
 	private static final String TRACK_METADATA_ENDPOINT_PREFIX = CLIENT_API_BASE + "metadata/4/track/";

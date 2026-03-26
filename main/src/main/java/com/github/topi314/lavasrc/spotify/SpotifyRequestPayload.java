@@ -54,9 +54,7 @@ public class SpotifyRequestPayload {
 		return MAPPER.writeValueAsString(body);
 	}
 
-	public static SpotifyRequestPayload forSearch(String query, int offset, int limit, boolean includeAudiobooks,
-	                                              boolean includeArtistHasConcertsField, boolean includePreReleases,
-	                                              boolean includeAuthors, int numberOfTopResults) {
+	public static SpotifyRequestPayload forSearch(String query, int offset, int limit, boolean includeAudiobooks, boolean includeArtistHasConcertsField, boolean includePreReleases, boolean includeAuthors, int numberOfTopResults) {
 		return new SpotifyRequestPayload(SEARCH_OPERATION, SEARCH_HASH)
 			.withVariable("searchTerm", query)
 			.withVariable("offset", offset)
