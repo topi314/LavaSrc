@@ -403,8 +403,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			}
 		}
 
-		var url = API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track&limit=10";
-		var json = this.getJson(url, false, false);
+		var json = this.getJson(API_BASE + "search?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&type=track", false, false);
 		if (json == null || json.get("tracks").get("items").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -922,8 +921,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			return AudioReference.NO_TRACK;
 		}
 
-		var tracksJson = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode, false,
-			false);
+		var tracksJson = this.getJson(API_BASE + "artists/" + id + "/top-tracks?market=" + this.countryCode, false, false);
 		if (tracksJson == null || tracksJson.get("tracks").values().isEmpty()) {
 			return AudioReference.NO_TRACK;
 		}
@@ -935,7 +933,8 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		return new SpotifyAudioPlaylist(json.get("name").safeText() + "'s Top Tracks",
 			this.parseTracks(tracksJson, preview), ExtendedAudioPlaylist.Type.ARTIST,
 			json.get("external_urls").get("spotify").text(), json.get("images").index(0).get("url").text(),
-			json.get("name").text(), (int) tracksJson.get("tracks").get("total").asLong(0));
+			json.get("name").text(), (int) tracksJson.get("tracks").get("total").asLong(0)
+		);
 	}
 
 	public AudioItem getTrack(String id, boolean preview) throws IOException {
@@ -952,8 +951,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 		var json = this.getJson(API_BASE + "tracks/" + id, false, false);
 		if (json != null) {
-			var artistJson = this.getJson(API_BASE + "artists/" + json.get("artists").index(0).get("id").text(), false,
-				false);
+			var artistJson = this.getJson(API_BASE + "artists/" + json.get("artists").index(0).get("id").text(), false, false);
 			if (artistJson != null) {
 				json.get("artists").index(0).put("images", artistJson.get("images"));
 			}
