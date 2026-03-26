@@ -72,8 +72,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager) {
-		this(clientId, clientSecret, null, countryCode, audioPlayerManager,
-			new DefaultMirroringAudioTrackResolver(providers));
+		this(clientId, clientSecret, null, countryCode, audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
 	}
 
 	public SpotifySourceManager(String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
@@ -89,16 +88,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public SpotifySourceManager(String clientId, String clientSecret, boolean preferPartnerApi, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
-		super(audioPlayerManager, mirroringAudioTrackResolver);
-
-		this.tokenTracker = new SpotifyTokenTracker(this, clientId, clientSecret, spDc);
-		this.partnerApiClient = new SpotifyPartnerApiClient(tokenTracker, httpInterfaceManager.getInterface());
-
-		if (countryCode == null || countryCode.isEmpty()) {
-			countryCode = "US";
-		}
-		this.countryCode = countryCode;
-		this.preferPartnerApi = preferPartnerApi;
+		this(clientId, clientSecret, preferPartnerApi, null, spDc, countryCode, audioPlayerManager, mirroringAudioTrackResolver);
 	}
 
 	public SpotifySourceManager(String clientId, String clientSecret, boolean preferPartnerApi, String customTokenEndpoint, String spDc, String countryCode, Function<Void, AudioPlayerManager> audioPlayerManager, MirroringAudioTrackResolver mirroringAudioTrackResolver) {
