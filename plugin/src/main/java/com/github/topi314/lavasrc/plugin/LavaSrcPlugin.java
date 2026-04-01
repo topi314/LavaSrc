@@ -82,6 +82,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (spotifyConfig.getAlbumLoadLimit() > 0) {
 				this.spotify.setAlbumPageLimit(spotifyConfig.getAlbumLoadLimit());
 			}
+			if (spotifyConfig.getPartnerApiPageLimit() > 0) {
+				this.spotify.setPartnerApiPageLimit(spotifyConfig.getPartnerApiPageLimit());
+			}
 			if (!spotifyConfig.isResolveArtistsInSearch()) {
 				this.spotify.setResolveArtistsInSearch(spotifyConfig.isResolveArtistsInSearch());
 			}

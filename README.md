@@ -135,6 +135,7 @@ plugins:
       resolveArtistsInSearch: true # Whether to resolve artists in track search results (can be slow)
       localFiles: false # Enable local files support with Spotify playlists. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`
       preferPartnerApi: false # Whether to prefer Spotify partner API first and fall back to v1 API when needed. When false, only v1 API is used.
+      partnerApiPageLimit: 200 # Max number of tracks requested per Spotify partner API playlist/album call.
       customTokenEndpoint: "http://localhost:8080/api/token" # Optional custom endpoint for getting the anonymous token. If not set, spotify's default endpoint will be used which might not work. The response must match spotify's anonymous token response format.
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
