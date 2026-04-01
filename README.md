@@ -130,12 +130,11 @@ plugins:
 #      clientSecret: "your client secret"
       # spDc: "your sp dc cookie" # the sp dc cookie used for accessing the spotify lyrics api
       countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-      playlistLoadLimit: 6 # The number of pages at 100 tracks each
-      albumLoadLimit: 6 # The number of pages at 50 tracks each
+      playlistLoadLimit: 6 # The number of pages at 100 tracks each (also used to derive Spotify Partner API playlist track limit)
+      albumLoadLimit: 6 # The number of pages at 50 tracks each (also used to derive Spotify Partner API album track limit)
       resolveArtistsInSearch: true # Whether to resolve artists in track search results (can be slow)
       localFiles: false # Enable local files support with Spotify playlists. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`
       preferPartnerApi: false # Whether to prefer Spotify partner API first and fall back to v1 API when needed. When false, only v1 API is used.
-      partnerApiPageLimit: 200 # Max number of tracks requested per Spotify partner API playlist/album call.
       customTokenEndpoint: "http://localhost:8080/api/token" # Optional custom endpoint for getting the anonymous token. If not set, spotify's default endpoint will be used which might not work. The response must match spotify's anonymous token response format.
     applemusic:
       countryCode: "US" # the country code you want to use for filtering the artists top tracks and language. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2

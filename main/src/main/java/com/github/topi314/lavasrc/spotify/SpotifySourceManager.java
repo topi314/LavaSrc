@@ -64,7 +64,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private boolean localFiles;
 	private boolean resolveArtistsInSearch = true;
 	private boolean preferPartnerApi = false;
-	private int partnerApiPageLimit = 200;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
 		this(clientId, clientSecret, null, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -133,10 +132,6 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setPreferPartnerApi(boolean preferPartnerApi) {
 		this.preferPartnerApi = preferPartnerApi;
-	}
-
-	public void setPartnerApiPageLimit(int partnerApiPageLimit) {
-		this.partnerApiPageLimit = partnerApiPageLimit;
 	}
 
 	public void setCustomTokenEndpoint(String customTokenEndpoint) {
@@ -469,7 +464,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public AudioItem getAlbum(String id, boolean preview) throws IOException {
 		if (this.preferPartnerApi) {
 			try {
-				var partnerAlbum = this.partnerApiClient.loadPartnerAlbum(id, preview, this.partnerApiPageLimit, this);
+				var partnerAlbum = this.partnerApiClient.loadPartnerAlbum(id, preview, Math.max(1, this.albumPageLimit) * ALBUM_MAX_PAGE_ITEMS, this);
 				if (partnerAlbum != AudioReference.NO_TRACK) {
 					return partnerAlbum;
 				}
@@ -482,7 +477,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		if (json == null) {
 			if (this.preferPartnerApi) {
 				log.warn("Main API failed for album {}, trying partner API as fallback", id);
-				return this.partnerApiClient.loadPartnerAlbum(id, preview, this.partnerApiPageLimit, this);
+				return this.partnerApiClient.loadPartnerAlbum(id, preview, Math.max(1, this.albumPageLimit) * ALBUM_MAX_PAGE_ITEMS, this);
 			}
 			return AudioReference.NO_TRACK;
 		}
@@ -529,7 +524,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public AudioItem getPlaylist(String id, boolean preview) throws IOException {
 		if (this.preferPartnerApi) {
 			try {
-				var playlist = this.partnerApiClient.loadPartnerPlaylist(id, preview, this.partnerApiPageLimit, this);
+				var playlist = this.partnerApiClient.loadPartnerPlaylist(id, preview, Math.max(1, this.playlistPageLimit) * PLAYLIST_MAX_PAGE_ITEMS, this);
 				if (playlist != AudioReference.NO_TRACK) {
 					return playlist;
 				}

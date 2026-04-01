@@ -16,7 +16,6 @@ public class SpotifyConfig {
 	private boolean resolveArtistsInSearch = true;
 	private boolean localFiles = false;
 	private boolean preferPartnerApi = false;
-	private int partnerApiPageLimit = 200;
 	private String customTokenEndpoint;
 
 	public String getClientId() {
@@ -91,13 +90,6 @@ public class SpotifyConfig {
 		this.preferPartnerApi = preferPartnerApi;
 	}
 
-	public int getPartnerApiPageLimit() {
-		return this.partnerApiPageLimit;
-	}
-
-	public void setPartnerApiPageLimit(int partnerApiPageLimit) {
-		this.partnerApiPageLimit = partnerApiPageLimit;
-	}
 
 	public String getCustomTokenEndpoint() {
 		return this.customTokenEndpoint;
