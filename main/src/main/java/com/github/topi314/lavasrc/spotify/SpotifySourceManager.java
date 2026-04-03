@@ -570,7 +570,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	public AudioItem getArtist(String id, boolean preview) throws IOException {
 		if (this.preferPartnerApi) {
 			try {
-				var partnerArtist = this.getSearch("spotify artist " + id + " top tracks", preview);
+				var partnerArtist = this.partnerApiClient.loadPartnerArtist(id, preview, this);
 				if (partnerArtist != AudioReference.NO_TRACK) {
 					return partnerArtist;
 				}

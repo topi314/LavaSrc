@@ -23,6 +23,9 @@ public class SpotifyRequestPayload {
 	private static final String ALBUM_OPERATION = "getAlbum";
 	private static final String ALBUM_HASH = "b9bfabef66ed756e5e13f68a942deb60bd4125ec1f1be8cc42769dc0259b4b10";
 
+	private static final String ARTIST_OPERATION = "queryArtistOverview";
+	private static final String ARTIST_HASH = "35648a112beb1794e39ab931365f6ae4a8d45e65396d641eeda94e4003d41497";
+
 	private final String operationName;
 	private final String sha256Hash;
 	private final ObjectNode variables;
@@ -89,5 +92,12 @@ public class SpotifyRequestPayload {
 			.withVariable("uri", "spotify:album:" + id)
 			.withVariable("offset", offset)
 			.withVariable("limit", limit);
+	}
+
+	public static SpotifyRequestPayload forArtist(String id) {
+		return new SpotifyRequestPayload(ARTIST_OPERATION, ARTIST_HASH)
+			.withVariable("uri", "spotify:artist:" + id)
+			.withVariable("locale", "en")
+			.withVariable("includePrerelease", true);
 	}
 }

@@ -331,6 +331,94 @@ public class SpotifyPartnerApiClient {
 		return new SpotifyAudioPlaylist(albumName, tracks, ExtendedAudioPlaylist.Type.ALBUM, albumUrl, albumImage, albumArtist, tracks.size());
 	}
 
+	public JsonBrowser getArtist(String id) throws IOException {
+		var request = createBaseRequest(SpotifyRequestPayload.forArtist(id));
+		return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
+	}
+
+	@Nullable
+	public JsonBrowser getArtistUnion(String artistId) throws IOException {
+		var json = this.getArtist(artistId);
+		if (json == null) {
+			return null;
+		}
+
+		var artistUnion = json.get("data").get("artistUnion");
+		return artistUnion.isNull() ? null : artistUnion;
+	}
+
+	public List<JsonBrowser> getArtistTopTrackItems(@Nullable JsonBrowser artistUnion) {
+		var tracks = new ArrayList<JsonBrowser>();
+		if (artistUnion == null) {
+			return tracks;
+		}
+
+		for (var item : artistUnion.get("discography").get("topTracks").get("items").values()) {
+			var trackData = item.get("track");
+			if (trackData.isNull()) {
+				trackData = item.get("item").get("data");
+			}
+			if (trackData.isNull()) {
+				trackData = item.get("itemV2").get("data");
+			}
+			if (trackData.isNull()) {
+				trackData = item.get("data");
+			}
+
+			if (!trackData.isNull() && trackData.get("uri").text() != null) {
+				tracks.add(trackData);
+			}
+		}
+
+		return tracks;
+	}
+
+	public AudioItem loadPartnerArtist(String id, boolean preview, SpotifySourceManager sourceManager) throws IOException {
+		var artistData = this.getArtistUnion(id);
+		if (artistData == null) {
+			return AudioReference.NO_TRACK;
+		}
+
+		var artistName = artistData.get("profile").get("name").safeText();
+		if (artistName.isEmpty()) {
+			artistName = "Unknown Artist";
+		}
+
+		String artistArtworkUrl = null;
+		var avatarSources = artistData.get("visuals").get("avatarImage").get("sources");
+		if (!avatarSources.isList() || avatarSources.values().isEmpty()) {
+			avatarSources = artistData.get("visuals").get("avatar").get("sources");
+		}
+		if (avatarSources.isList() && !avatarSources.values().isEmpty()) {
+			var best = avatarSources.values().get(0);
+			for (var src : avatarSources.values()) {
+				if (src.get("height").asLong(0) > best.get("height").asLong(0)) {
+					best = src;
+				}
+			}
+			artistArtworkUrl = best.get("url").text();
+		}
+
+		var tracks = new ArrayList<AudioTrack>();
+		for (var trackData : this.getArtistTopTrackItems(artistData)) {
+			tracks.add(this.parsePartnerTrack(trackData, preview, null, sourceManager));
+		}
+
+		if (tracks.isEmpty()) {
+			return AudioReference.NO_TRACK;
+		}
+
+		return new SpotifyAudioPlaylist(
+			artistName + "'s Top Tracks",
+			tracks,
+			ExtendedAudioPlaylist.Type.ARTIST,
+			"https://open.spotify.com/artist/" + id,
+			artistArtworkUrl,
+			artistName,
+			tracks.size()
+		);
+	}
+
 	private AudioTrack parsePartnerTrack(JsonBrowser track, boolean preview, @Nullable String albumArtworkUrl, SpotifySourceManager sourceManager) {
 		var title = track.get("name").safeText();
 		if (title.isEmpty()) {
