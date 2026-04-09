@@ -168,7 +168,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			this.qobuz = new QobuzAudioSourceManager(qobuzConfig.getUserOauthToken(), qobuzConfig.getAppId(), qobuzConfig.getAppSecret());
 		}
 		if (sourcesConfig.isYtdlp()) {
-			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getSearchLimit(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
+			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getSearchLimit(), ytdlpConfig.getMixPlaylistLoadLimit(), ytdlpConfig.getPlaylistLoadLimit(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
 		}
 
 		if (lyricsSourcesConfig.isLrcLib()) {
@@ -371,6 +371,12 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 			if (ytdlpConfig.getSearchLimit() > 0) {
 				this.ytdlp.setSearchLimit(ytdlpConfig.getSearchLimit());
+			}
+			if (ytdlpConfig.getMixPlaylistLoadLimit() != null && ytdlpConfig.getMixPlaylistLoadLimit() > 0) {
+				this.ytdlp.setMixPlaylistLoadLimit(ytdlpConfig.getMixPlaylistLoadLimit());
+			}
+			if (ytdlpConfig.getPlaylistLoadLimit() != null && ytdlpConfig.getPlaylistLoadLimit() > 0) {
+				this.ytdlp.setPlaylistLoadLimit(ytdlpConfig.getPlaylistLoadLimit());
 			}
 			if (ytdlpConfig.getCustomLoadArgs() != null) {
 				this.ytdlp.setCustomLoadArgs(ytdlpConfig.getCustomLoadArgs().toArray(String[]::new));
