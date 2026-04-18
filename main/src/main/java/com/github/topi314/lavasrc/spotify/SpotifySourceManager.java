@@ -356,19 +356,31 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getSearch(String query, boolean preview) throws IOException {
-		if (this.preferPartnerApi) {
-			try {
-				var partnerSearch = this.partnerApiClient.loadPartnerSearch(query, preview, this);
-				if (partnerSearch != AudioReference.NO_TRACK) {
-					return partnerSearch;
+		JsonBrowser json = null;
+		try {
+			json = this.getJson(API_BASE + "search?q=" + URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8) + "&type=track&limit=10");
+		} catch (IOException | FriendlyException e) {
+			if (!this.preferPartnerApi) {
+				if (e instanceof IOException) {
+					throw (IOException) e;
 				}
-			} catch (IOException e) {
-				log.warn("Partner API search failed for '{}', falling back to Spotify v1 API", query, e);
+				throw e;
 			}
+			log.warn("Spotify v1 search failed for '{}', falling back to partner API search", query, e);
 		}
 
-		var json = this.getJson(API_BASE + "search?q=" + URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8) + "&type=track&limit=10");
 		if (json == null || json.get("tracks").get("items").values().isEmpty()) {
+			if (this.preferPartnerApi) {
+				log.warn("Spotify v1 search returned no results for '{}', falling back to partner API search", query);
+				try {
+					var partnerSearch = this.partnerApiClient.loadPartnerSearch(query, preview, this);
+					if (partnerSearch != AudioReference.NO_TRACK) {
+						return partnerSearch;
+					}
+				} catch (IOException e) {
+					log.warn("Partner API search failed for '{}' after Spotify v1 fallback", query, e);
+				}
+			}
 			return AudioReference.NO_TRACK;
 		}
 
