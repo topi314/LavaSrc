@@ -76,6 +76,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 
 		if (sourcesConfig.isSpotify() || lyricsSourcesConfig.isSpotify()) {
 			this.spotify = new SpotifySourceManager(spotifyConfig.getClientId(), spotifyConfig.getClientSecret(), spotifyConfig.isPreferPartnerApi(), spotifyConfig.getCustomTokenEndpoint(), spotifyConfig.getSpDc(), spotifyConfig.getCountryCode(), unused -> manager, new DefaultMirroringAudioTrackResolver(pluginConfig.getProviders()));
+			this.spotify.setPreferV1SearchApi(spotifyConfig.isPreferV1SearchApi());
 			if (spotifyConfig.getPlaylistLoadLimit() > 0) {
 				this.spotify.setPlaylistPageLimit(spotifyConfig.getPlaylistLoadLimit());
 			}
@@ -314,6 +315,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 			if (spotifyConfig.getPreferPartnerApi() != null) {
 				this.spotify.setPreferPartnerApi(spotifyConfig.getPreferPartnerApi());
+			}
+			if (spotifyConfig.getPreferV1SearchApi() != null) {
+				this.spotify.setPreferV1SearchApi(spotifyConfig.getPreferV1SearchApi());
 			}
 			if (spotifyConfig.getCustomTokenEndpoint() != null) {
 				this.spotify.setCustomTokenEndpoint(spotifyConfig.getCustomTokenEndpoint());

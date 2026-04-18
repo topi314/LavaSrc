@@ -19,6 +19,7 @@ data class SpotifyConfig(
     val clientSecret: String? = null,
     val spDc: String? = null,
     val preferPartnerApi: Boolean? = null,
+    val preferV1SearchApi: Boolean? = null,
     val customTokenEndpoint: String? = null,
 )
 

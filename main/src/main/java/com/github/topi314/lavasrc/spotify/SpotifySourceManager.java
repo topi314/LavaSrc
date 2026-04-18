@@ -64,6 +64,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private boolean localFiles;
 	private boolean resolveArtistsInSearch = true;
 	private boolean preferPartnerApi = false;
+	private boolean preferV1SearchApi = false;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
 		this(clientId, clientSecret, null, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -132,6 +133,10 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setPreferPartnerApi(boolean preferPartnerApi) {
 		this.preferPartnerApi = preferPartnerApi;
+	}
+
+	public void setPreferV1SearchApi(boolean preferV1SearchApi) {
+		this.preferV1SearchApi = preferV1SearchApi;
 	}
 
 	public void setCustomTokenEndpoint(String customTokenEndpoint) {
@@ -356,31 +361,21 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	}
 
 	public AudioItem getSearch(String query, boolean preview) throws IOException {
-		JsonBrowser json = null;
-		try {
-			json = this.getJson(API_BASE + "search?q=" + URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8) + "&type=track&limit=10");
-		} catch (IOException | FriendlyException e) {
-			if (!this.preferPartnerApi) {
-				if (e instanceof IOException) {
-					throw (IOException) e;
+		if (this.preferPartnerApi && !this.preferV1SearchApi) {
+			try {
+				var partnerSearch = this.partnerApiClient.loadPartnerSearch(query, preview, this);
+				if (partnerSearch != AudioReference.NO_TRACK) {
+					return partnerSearch;
 				}
-				throw e;
+				log.warn("Partner API search returned no results for '{}', falling back to v1 search", query);
+			} catch (IOException | FriendlyException e) {
+				log.warn("Partner API search failed for '{}', falling back to v1 search", query, e);
 			}
-			log.warn("Spotify v1 search failed for '{}', falling back to partner API search", query, e);
 		}
 
+		var json = this.getJson(API_BASE + "search?q=" + URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8) + "&type=track&limit=10");
+
 		if (json == null || json.get("tracks").get("items").values().isEmpty()) {
-			if (this.preferPartnerApi) {
-				log.warn("Spotify v1 search returned no results for '{}', falling back to partner API search", query);
-				try {
-					var partnerSearch = this.partnerApiClient.loadPartnerSearch(query, preview, this);
-					if (partnerSearch != AudioReference.NO_TRACK) {
-						return partnerSearch;
-					}
-				} catch (IOException e) {
-					log.warn("Partner API search failed for '{}' after Spotify v1 fallback", query, e);
-				}
-			}
 			return AudioReference.NO_TRACK;
 		}
 
