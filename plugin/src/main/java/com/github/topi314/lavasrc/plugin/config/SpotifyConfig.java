@@ -15,7 +15,8 @@ public class SpotifyConfig {
 	private int albumLoadLimit = 6;
 	private boolean resolveArtistsInSearch = true;
 	private boolean localFiles = false;
-	private boolean preferAnonymousToken = false;
+	private boolean preferPartnerApi = false;
+	private boolean preferV1SearchApi = false;
 	private String customTokenEndpoint;
 
 	public String getClientId() {
@@ -82,13 +83,22 @@ public class SpotifyConfig {
 		this.localFiles = localFiles;
 	}
 
-	public boolean isPreferAnonymousToken() {
-		return this.preferAnonymousToken;
+	public boolean isPreferPartnerApi() {
+		return this.preferPartnerApi;
 	}
 
-	public void setPreferAnonymousToken(boolean preferAnonymousToken) {
-		this.preferAnonymousToken = preferAnonymousToken;
+	public void setPreferPartnerApi(boolean preferPartnerApi) {
+		this.preferPartnerApi = preferPartnerApi;
 	}
+
+	public boolean isPreferV1SearchApi() {
+		return this.preferV1SearchApi;
+	}
+
+	public void setPreferV1SearchApi(boolean preferV1SearchApi) {
+		this.preferV1SearchApi = preferV1SearchApi;
+	}
+
 
 	public String getCustomTokenEndpoint() {
 		return this.customTokenEndpoint;
