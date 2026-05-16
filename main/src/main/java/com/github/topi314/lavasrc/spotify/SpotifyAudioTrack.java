@@ -30,7 +30,7 @@ public class SpotifyAudioTrack extends MirroringAudioTrack {
 	}
 
 	public boolean isLocal() {
-        return this.trackInfo.identifier.equals("local");
-    }
+		return this.trackInfo.identifier.equals("local");
+	}
 
 }
