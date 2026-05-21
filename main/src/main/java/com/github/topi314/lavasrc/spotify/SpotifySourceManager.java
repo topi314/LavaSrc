@@ -555,7 +555,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		var offset = 0;
 		var pages = 0;
 		do {
-			page = this.getJson(API_BASE + "playlists/" + id + "/tracks?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset);
+			page = this.getJson(API_BASE + "playlists/" + id + "/items?limit=" + PLAYLIST_MAX_PAGE_ITEMS + "&offset=" + offset);
 			offset += PLAYLIST_MAX_PAGE_ITEMS;
 
 			for (var value : page.get("items").values()) {
