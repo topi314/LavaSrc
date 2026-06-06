@@ -57,7 +57,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	private final HttpInterfaceManager httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 	private final SpotifyTokenTracker tokenTracker;
-	private final SpotifyPartnerApiClient partnerApiClient;
+	public final SpotifyPartnerApiClient partnerApiClient;
 	private final String countryCode;
 	private int playlistPageLimit = 6;
 	private int albumPageLimit = 6;

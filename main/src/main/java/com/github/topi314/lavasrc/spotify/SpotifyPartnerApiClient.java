@@ -483,9 +483,6 @@ public class SpotifyPartnerApiClient {
 		if (track.get("externalIds") != null && track.get("externalIds").get("isrc") != null) {
 			isrc = track.get("externalIds").get("isrc").text();
 		}
-		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
-			isrc = this.fetchIsrcViaSpClientMetadata(identifier);
-		}
 
 		String previewUrl = null;
 		if (track.get("previews") != null && track.get("previews").get("audioPreviews") != null && track.get("previews").get("audioPreviews").get("items") != null && !track.get("previews").get("audioPreviews").get("items").values().isEmpty()) {
@@ -567,9 +564,6 @@ public class SpotifyPartnerApiClient {
 		if (track.get("externalIds") != null && track.get("externalIds").get("isrc") != null) {
 			isrc = track.get("externalIds").get("isrc").text();
 		}
-		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
-			isrc = this.fetchIsrcViaSpClientMetadata(identifier);
-		}
 
 		return new SpotifyAudioTrack(
 			new AudioTrackInfo(title, author, preview ? PREVIEW_LENGTH : length, identifier, false, uri, artworkUrl, isrc),
@@ -623,9 +617,6 @@ public class SpotifyPartnerApiClient {
 		var isrc = trackData.get("externalIds").get("isrc").text();
 		if (isNullOrBlank(isrc)) {
 			isrc = trackData.get("external_ids").get("isrc").text();
-		}
-		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
-			isrc = this.fetchIsrcViaSpClientMetadata(identifier);
 		}
 
 		return new SpotifyAudioTrack(
