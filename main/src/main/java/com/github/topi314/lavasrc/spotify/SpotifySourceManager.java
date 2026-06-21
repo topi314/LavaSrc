@@ -65,6 +65,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private boolean resolveArtistsInSearch = true;
 	private boolean preferPartnerApi = false;
 	private boolean preferV1SearchApi = false;
+	private boolean fetchMissingIsrc = false;
 
 	public SpotifySourceManager(String[] providers, String clientId, String clientSecret, String countryCode, AudioPlayerManager audioPlayerManager) {
 		this(clientId, clientSecret, null, countryCode, unused -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(providers));
@@ -137,6 +138,15 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 
 	public void setPreferV1SearchApi(boolean preferV1SearchApi) {
 		this.preferV1SearchApi = preferV1SearchApi;
+	}
+
+	public void setFetchMissingIsrc(boolean fetchMissingIsrc) {
+		this.fetchMissingIsrc = fetchMissingIsrc;
+		this.partnerApiClient.setFetchMissingIsrc(fetchMissingIsrc);
+	}
+
+	public void refreshQueryHashes() {
+		this.partnerApiClient.refreshQueryHashes();
 	}
 
 	public void setCustomTokenEndpoint(String customTokenEndpoint) {
@@ -653,7 +663,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 	private AudioTrack parseTrack(JsonBrowser json, boolean preview) {
 		var isrc = json.get("external_ids").get("isrc").text();
 		var id = json.get("id").text() != null ? json.get("id").text() : "local";
-		if (this.preferPartnerApi && isNullOrBlank(isrc) && !id.equals("local")) {
+		if (this.fetchMissingIsrc && isNullOrBlank(isrc) && !id.equals("local")) {
 			var fallbackIsrc = this.partnerApiClient.fetchIsrcViaSpClientMetadata(id);
 			if (!isNullOrBlank(fallbackIsrc)) {
 				isrc = fallbackIsrc;
