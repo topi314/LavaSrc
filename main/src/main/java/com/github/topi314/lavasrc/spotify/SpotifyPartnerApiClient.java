@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class SpotifyPartnerApiClient {
 
-	public static final String PARTNER_API_BASE = "https://api-partner.spotify.com/pathfinder/v1/query";
+	public static final String PARTNER_API_BASE = "https://api-partner.spotify.com/pathfinder/v2/query";
 	public static final String CLIENT_API_BASE = "https://spclient.wg.spotify.com/";
 	private static final String TRACK_METADATA_ENDPOINT_PREFIX = CLIENT_API_BASE + "metadata/4/track/";
 	private static final long PREVIEW_LENGTH = 30000;
