@@ -29,7 +29,7 @@ plugins:
       # clientId & clientSecret are required for using spsearch
 #      clientId: "your client id"
 #      clientSecret: "your client secret"
-      # spDc: "your sp dc cookie" # the sp dc cookie used for accessing the spotify lyrics api
+      # spDc: "your sp dc cookie" # the sp dc cookie used for accessing generated playlists and lyrics
       countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       playlistLoadLimit: 6 # The number of pages at 100 tracks each (also used to derive Spotify Partner API playlist track limit)
       albumLoadLimit: 6 # The number of pages at 50 tracks each (also used to derive Spotify Partner API album track limit)

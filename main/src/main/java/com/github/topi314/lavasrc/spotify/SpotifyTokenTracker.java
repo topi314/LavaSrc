@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 public class SpotifyTokenTracker {
 	private static final Logger log = LoggerFactory.getLogger(SpotifyTokenTracker.class);
 
-	private static final Pattern SECRET_PATTERN = Pattern.compile("\"secret\":\\[(\\d+(?:,\\d+)+)]");
+	private static final Pattern SECRET_PATTERN = Pattern.compile("secret:\\s*(['\"])(.*?)\\1");
 
 	private final SpotifySourceManager sourceManager;
 
@@ -207,7 +207,14 @@ public class SpotifyTokenTracker {
 		var hexSecret = toHexString(transformedSecret);
 		var totp = generateTOTP(hexSecret, 30, 6);
 		var ts = System.currentTimeMillis();
-		return "https://open.spotify.com/api/token?reason=init&productType=web-player&totp=" + totp + "&totpVer=7&ts=" + ts;
+		return "https://open.spotify.com/api/token?reason=transport&productType=web-player&totp=" + totp + "&totpVer=61&ts=" + ts;
+	}
+
+	public String getPreferredAccessToken() throws IOException {
+		if (hasValidAccountCredentials()) {
+			return getAccountAccessToken();
+		}
+		return getAnonymousAccessToken();
 	}
 
 	private byte[] requestSecret() throws IOException {
@@ -280,16 +287,15 @@ public class SpotifyTokenTracker {
 
 			var matcher = SECRET_PATTERN.matcher(scriptContent);
 			if (matcher.find()) {
-				var secretArrayString = matcher.group(1);
-				var secretArray = secretArrayString.split(",");
-				byte[] secretByteArray = new byte[secretArray.length];
-				for (int i = 0; i < secretArray.length; i++) {
-					secretByteArray[i] = (byte) Integer.parseInt(secretArray[i].trim());
+				var secret = matcher.group(2);
+				byte[] secretByteArray = new byte[secret.length()];
+				for (int i = 0; i < secret.length(); i++) {
+					secretByteArray[i] = (byte) secret.charAt(i);
 				}
 
 				return secretByteArray;
 			} else {
-				log.error("No secret array found in script: {}", scriptUrl);
+				log.error("No secret found in script: {}", scriptUrl);
 				return null;
 			}
 		}

@@ -47,7 +47,7 @@ public class SpotifyPartnerApiClient {
 
 		request.setHeader("User-Agent", USER_AGENT);
 		request.setHeader("Content-Type", "application/json");
-		request.setHeader("Authorization", "Bearer " + this.tokenTracker.getAnonymousAccessToken());
+		request.setHeader("Authorization", "Bearer " + this.tokenTracker.getPreferredAccessToken());
 		request.setHeader("Spotify-App-Version", "1.2.80.289.gd6b01cc3");
 		request.setHeader("Referer", "https://open.spotify.com/");
 
@@ -673,7 +673,7 @@ public class SpotifyPartnerApiClient {
 		request.setHeader("Accept", "application/json");
 		request.setHeader("Content-Type", "application/json");
 		try {
-			request.setHeader("Authorization", "Bearer " + this.tokenTracker.getAnonymousAccessToken());
+			request.setHeader("Authorization", "Bearer " + this.tokenTracker.getPreferredAccessToken());
 		} catch (IOException e) {
 			log.debug("Failed to get anonymous Spotify token for metadata isrc fallback: {}", e.getMessage());
 			return null;

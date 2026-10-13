@@ -541,7 +541,9 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 		}
 
 		if (id.startsWith("37i9dQZ")) {
-			throw new FriendlyException("Spotify generated playlists are no longer accessible via anonymous tokens.", FriendlyException.Severity.COMMON, null);
+			if (!this.tokenTracker.hasValidAccountCredentials()) {
+				throw new FriendlyException("Spotify generated playlists require spDc; anonymous tokens no longer work.", FriendlyException.Severity.COMMON, null);
+			}
 		}
 
 		JsonBrowser json = this.getJson(API_BASE + "playlists/" + id);
