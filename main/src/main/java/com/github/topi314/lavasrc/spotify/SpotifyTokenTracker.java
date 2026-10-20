@@ -1,6 +1,8 @@
 package com.github.topi314.lavasrc.spotify;
 
 import com.github.topi314.lavasrc.LavaSrcTools;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -23,6 +25,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -34,6 +37,9 @@ public class SpotifyTokenTracker {
 
 	private static final Pattern SECRET_PATTERN = Pattern.compile("\"secret\":\\[(\\d+(?:,\\d+)+)]");
 
+	private static final Duration ANONYMOUS_TOKEN_RETRY_DELAY = Duration.ofSeconds(1);
+	private static final Duration ANONYMOUS_TOKEN_RETRY_COOLDOWN = Duration.ofSeconds(30);
+
 	private final SpotifySourceManager sourceManager;
 
 	private String clientId;
@@ -44,6 +50,7 @@ public class SpotifyTokenTracker {
 	private String customTokenEndpoint;
 	private String anonymousAccessToken;
 	private Instant anonymousExpires;
+	private Instant anonymousLastFailure;
 
 	private String spDc;
 	private String accountAccessToken;
@@ -81,6 +88,7 @@ public class SpotifyTokenTracker {
 		this.customTokenEndpoint = customTokenEndpoint;
 		this.anonymousAccessToken = null;
 		this.anonymousExpires = null;
+		this.anonymousLastFailure = null;
 		this.accountAccessToken = null;
 		this.accountAccessTokenExpire = null;
 	}
@@ -134,9 +142,34 @@ public class SpotifyTokenTracker {
 	}
 
 	private void refreshAnonymousAccessToken() throws IOException {
-		var request = new HttpGet(generateGetAccessTokenURL());
+		var url = generateGetAccessTokenURL();
 
-		var json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), request);
+		JsonBrowser json;
+		try {
+			json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), new HttpGet(url));
+		} catch (IOException | FriendlyException e) {
+			var now = Instant.now();
+			var recentlyFailed = this.anonymousLastFailure != null && this.anonymousLastFailure.plus(ANONYMOUS_TOKEN_RETRY_COOLDOWN).isAfter(now);
+			this.anonymousLastFailure = now;
+			if (recentlyFailed) {
+				throw e;
+			}
+			log.debug("Failed to fetch anonymous access token, retrying once", e);
+			try {
+				Thread.sleep(ANONYMOUS_TOKEN_RETRY_DELAY.toMillis());
+			} catch (InterruptedException ie) {
+				Thread.currentThread().interrupt();
+				e.addSuppressed(ie);
+				throw e;
+			}
+			try {
+				json = LavaSrcTools.fetchResponseAsJson(sourceManager.getHttpInterface(), new HttpGet(url));
+			} catch (IOException | FriendlyException retryException) {
+				retryException.addSuppressed(e);
+				throw retryException;
+			}
+		}
+		this.anonymousLastFailure = null;
 		if (json == null) {
 			throw new RuntimeException("No response from Spotify API while fetching anonymous access token.");
 		}
