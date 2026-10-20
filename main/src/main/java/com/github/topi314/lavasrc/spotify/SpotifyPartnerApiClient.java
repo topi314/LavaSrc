@@ -674,7 +674,7 @@ public class SpotifyPartnerApiClient {
 		request.setHeader("Content-Type", "application/json");
 		try {
 			request.setHeader("Authorization", "Bearer " + this.tokenTracker.getAnonymousAccessToken());
-		} catch (IOException e) {
+		} catch (Exception e) {
 			log.debug("Failed to get anonymous Spotify token for metadata isrc fallback: {}", e.getMessage());
 			return null;
 		}

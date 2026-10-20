@@ -441,7 +441,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				if (partnerRecommendations != AudioReference.NO_TRACK) {
 					return partnerRecommendations;
 				}
-			} catch (IOException e) {
+			} catch (IOException | FriendlyException e) {
 				log.warn("Partner API recommendations failed for '{}', falling back to Spotify v1 API", seedTrackId, e);
 			}
 		}
@@ -475,7 +475,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				if (partnerAlbum != AudioReference.NO_TRACK) {
 					return partnerAlbum;
 				}
-			} catch (IOException e) {
+			} catch (IOException | FriendlyException e) {
 				log.warn("Partner API failed for album {}, falling back to Spotify v1 API", id, e);
 			}
 		}
@@ -535,7 +535,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				if (playlist != AudioReference.NO_TRACK) {
 					return playlist;
 				}
-			} catch (IOException e) {
+			} catch (IOException | FriendlyException e) {
 				log.warn("Partner API failed for playlist {}, falling back to Spotify v1 API", id, e);
 			}
 		}
@@ -581,7 +581,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				if (partnerArtist != AudioReference.NO_TRACK) {
 					return partnerArtist;
 				}
-			} catch (IOException e) {
+			} catch (IOException | FriendlyException e) {
 				log.warn("Partner API failed for artist {}, falling back to Spotify v1 API", id, e);
 			}
 		}
@@ -614,7 +614,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 				if (partnerTrack != AudioReference.NO_TRACK) {
 					return partnerTrack;
 				}
-			} catch (IOException e) {
+			} catch (IOException | FriendlyException e) {
 				log.warn("Partner API failed for track {}, falling back to Spotify v1 API", id, e);
 			}
 		}
