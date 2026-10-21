@@ -54,20 +54,20 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private LrcLibLyricsManager lrcLib;
 
 	public LavaSrcPlugin(
-		LavaSrcConfig pluginConfig,
-		SourcesConfig sourcesConfig,
-		LyricsSourcesConfig lyricsSourcesConfig,
-		SpotifyConfig spotifyConfig,
-		AppleMusicConfig appleMusicConfig,
-		DeezerConfig deezerConfig,
-		YandexMusicConfig yandexMusicConfig,
-		FloweryTTSConfig floweryTTSConfig,
-		YouTubeConfig youTubeConfig,
-		VkMusicConfig vkMusicConfig,
-		TidalConfig tidalConfig,
-		QobuzConfig qobuzConfig,
-		YtdlpConfig ytdlpConfig,
-		JioSaavnConfig jioSaavnConfig,
+			LavaSrcConfig pluginConfig,
+			SourcesConfig sourcesConfig,
+			LyricsSourcesConfig lyricsSourcesConfig,
+			SpotifyConfig spotifyConfig,
+			AppleMusicConfig appleMusicConfig,
+			DeezerConfig deezerConfig,
+			YandexMusicConfig yandexMusicConfig,
+			FloweryTTSConfig floweryTTSConfig,
+			YouTubeConfig youTubeConfig,
+			VkMusicConfig vkMusicConfig,
+			TidalConfig tidalConfig,
+			QobuzConfig qobuzConfig,
+			YtdlpConfig ytdlpConfig,
+			JioSaavnConfig jioSaavnConfig,
 		ProxyConfigurationService proxyConfigurationService
 	) {
 		log.info("Loading LavaSrc plugin...");
@@ -88,6 +88,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 			if (spotifyConfig.isLocalFiles()) {
 				this.spotify.setLocalFiles(spotifyConfig.isLocalFiles());
+			}
+			if (spotifyConfig.isFetchMissingIsrc()) {
+				this.spotify.setFetchMissingIsrc(spotifyConfig.isFetchMissingIsrc());
 			}
 		}
 		if (sourcesConfig.isAppleMusic()) {
@@ -319,6 +322,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			if (spotifyConfig.getPreferV1SearchApi() != null) {
 				this.spotify.setPreferV1SearchApi(spotifyConfig.getPreferV1SearchApi());
 			}
+			if (spotifyConfig.getFetchMissingIsrc() != null) {
+				this.spotify.setFetchMissingIsrc(spotifyConfig.getFetchMissingIsrc());
+			}
 			if (spotifyConfig.getCustomTokenEndpoint() != null) {
 				this.spotify.setCustomTokenEndpoint(spotifyConfig.getCustomTokenEndpoint());
 			}
@@ -336,10 +342,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			}
 			if (deezerConfig.getFormats() != null) {
 				this.deezer.setFormats(deezerConfig.getFormats()
-					.stream()
-					.map(deezerTrackFormat -> DeezerAudioTrack.TrackFormat.from(deezerTrackFormat.name()))
-					.toList()
-					.toArray(new DeezerAudioTrack.TrackFormat[0]));
+						.stream()
+						.map(deezerTrackFormat -> DeezerAudioTrack.TrackFormat.from(deezerTrackFormat.name()))
+						.toList()
+						.toArray(new DeezerAudioTrack.TrackFormat[0]));
 			}
 		}
 

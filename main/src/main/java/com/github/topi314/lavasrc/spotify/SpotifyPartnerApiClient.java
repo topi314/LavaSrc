@@ -36,10 +36,26 @@ public class SpotifyPartnerApiClient {
 
 	private final SpotifyTokenTracker tokenTracker;
 	private final HttpInterface httpInterface;
+	private final SpotifyQueryHashes queryHashes;
+	private boolean fetchMissingIsrc = false;
 
 	public SpotifyPartnerApiClient(SpotifyTokenTracker tokenTracker, HttpInterface httpInterface) {
 		this.tokenTracker = tokenTracker;
 		this.httpInterface = httpInterface;
+		this.queryHashes = new SpotifyQueryHashes();
+		this.queryHashes.refresh();
+	}
+
+	/**
+	 * Re-fetches query hashes from Spotify's live service-worker JS.
+	 * Call this if the partner API starts returning 400 errors due to stale hashes.
+	 */
+	public void refreshQueryHashes() {
+		this.queryHashes.refresh();
+	}
+
+	public void setFetchMissingIsrc(boolean fetchMissingIsrc) {
+		this.fetchMissingIsrc = fetchMissingIsrc;
 	}
 
 	private HttpPost createBaseRequest(SpotifyRequestPayload payload) throws IOException {
@@ -60,6 +76,7 @@ public class SpotifyPartnerApiClient {
 	                          boolean includeArtistHasConcertsField, boolean includePreReleases,
 	                          boolean includeAuthors, int numberOfTopResults) throws IOException {
 		var request = createBaseRequest(SpotifyRequestPayload.forSearch(
+			queryHashes,
 			query,
 			offset,
 			limit,
@@ -166,7 +183,7 @@ public class SpotifyPartnerApiClient {
 	}
 
 	public JsonBrowser getTrack(String uri) throws IOException {
-		var request = createBaseRequest(SpotifyRequestPayload.forTrack(uri));
+		var request = createBaseRequest(SpotifyRequestPayload.forTrack(queryHashes, uri));
 		return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
 	}
 
@@ -191,7 +208,7 @@ public class SpotifyPartnerApiClient {
 	}
 
 	public JsonBrowser getPlaylist(String uri, int offset, int limit) throws IOException {
-		var request = createBaseRequest(SpotifyRequestPayload.forPlaylist(uri, offset, limit));
+		var request = createBaseRequest(SpotifyRequestPayload.forPlaylist(queryHashes, uri, offset, limit));
 		return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
 	}
 
@@ -249,7 +266,7 @@ public class SpotifyPartnerApiClient {
 	}
 
 	public JsonBrowser getAlbum(String id, int offset, int limit) throws IOException {
-		HttpPost request = createBaseRequest(SpotifyRequestPayload.forAlbum(id, offset, limit));
+		HttpPost request = createBaseRequest(SpotifyRequestPayload.forAlbum(queryHashes, id, offset, limit));
 		return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
 	}
 
@@ -332,7 +349,7 @@ public class SpotifyPartnerApiClient {
 	}
 
 	public JsonBrowser getArtist(String id) throws IOException {
-		var request = createBaseRequest(SpotifyRequestPayload.forArtist(id));
+		var request = createBaseRequest(SpotifyRequestPayload.forArtist(queryHashes, id));
 		return LavaSrcTools.fetchResponseAsJson(httpInterface, request);
 	}
 
@@ -483,7 +500,7 @@ public class SpotifyPartnerApiClient {
 		if (track.get("externalIds") != null && track.get("externalIds").get("isrc") != null) {
 			isrc = track.get("externalIds").get("isrc").text();
 		}
-		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
+		if (this.fetchMissingIsrc && isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
 			isrc = this.fetchIsrcViaSpClientMetadata(identifier);
 		}
 
@@ -567,7 +584,7 @@ public class SpotifyPartnerApiClient {
 		if (track.get("externalIds") != null && track.get("externalIds").get("isrc") != null) {
 			isrc = track.get("externalIds").get("isrc").text();
 		}
-		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
+		if (this.fetchMissingIsrc && isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
 			isrc = this.fetchIsrcViaSpClientMetadata(identifier);
 		}
 
@@ -624,7 +641,7 @@ public class SpotifyPartnerApiClient {
 		if (isNullOrBlank(isrc)) {
 			isrc = trackData.get("external_ids").get("isrc").text();
 		}
-		if (isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
+		if (this.fetchMissingIsrc && isNullOrBlank(isrc) && !isNullOrBlank(identifier)) {
 			isrc = this.fetchIsrcViaSpClientMetadata(identifier);
 		}
 
