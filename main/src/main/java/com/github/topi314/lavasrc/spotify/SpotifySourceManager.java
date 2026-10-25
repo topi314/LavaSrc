@@ -261,7 +261,7 @@ public class SpotifySourceManager extends MirroringAudioSourceManager implements
 			}
 
 			// If the identifier is a share URL, we need to follow the redirect to find out the real url behind it
-			if (SHARE_URL_PATTERN.matcher(identifier).lookingAt())) {
+			if (SHARE_URL_PATTERN.matcher(identifier).lookingAt()) {
 				var request = new HttpHead(identifier);
 				request.setConfig(RequestConfig.custom().setRedirectsEnabled(false).build());
 				try (var response = this.httpInterfaceManager.getInterface().execute(request)) {
