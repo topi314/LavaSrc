@@ -32,7 +32,7 @@ public class LrcLibLyricsManager implements AudioLyricsManager {
 	@NotNull
 	@Override
 	public String getSourceName() {
-		return "";
+		return "lrclib";
 	}
 
 	@Override
