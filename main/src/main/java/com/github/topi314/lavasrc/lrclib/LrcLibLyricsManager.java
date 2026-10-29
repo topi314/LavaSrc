@@ -78,11 +78,11 @@ public class LrcLibLyricsManager implements AudioLyricsManager {
 		var lyricsText = result.get("plainLyrics").text();
 		var lyrics = new ArrayList<AudioLyrics.Line>();
 		for (var line : result.get("syncedLyrics").safeText().split("\\n")) {
-			var parts = line.split(" ", 2);
-			if (parts.length < 2) {
+			var end = line.indexOf(']');
+			if (!line.startsWith("[") || end == -1) {
 				continue;
 			}
-			var timePart = parts[0].substring(1, parts[0].length() - 1);
+			var timePart = line.substring(1, end);
 			var timeParts = timePart.split(":");
 			if (timeParts.length != 2) {
 				continue;
@@ -97,7 +97,7 @@ public class LrcLibLyricsManager implements AudioLyricsManager {
 			lyrics.add(new BasicAudioLyrics.BasicLine(
 				timestamp,
 				null,
-				parts[1]
+				line.substring(end + 1).strip()
 			));
 		}
 
