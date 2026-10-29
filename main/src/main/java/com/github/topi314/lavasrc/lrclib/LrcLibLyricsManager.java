@@ -18,13 +18,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 public class LrcLibLyricsManager implements AudioLyricsManager {
 
 	private static final String API_BASE = "https://lrclib.net/api/";
-	// [mm:ss.xx] followed by the line, the space after the timestamp is optional
-	private static final Pattern SYNCED_LINE_PATTERN = Pattern.compile("^\\[(\\d+):(\\d+(?:\\.\\d+)?)](.*)$");
 
 	private final HttpInterfaceManager httpInterfaceManager;
 
@@ -81,16 +78,26 @@ public class LrcLibLyricsManager implements AudioLyricsManager {
 		var lyricsText = result.get("plainLyrics").text();
 		var lyrics = new ArrayList<AudioLyrics.Line>();
 		for (var line : result.get("syncedLyrics").safeText().split("\\n")) {
-			var matcher = SYNCED_LINE_PATTERN.matcher(line);
-			if (!matcher.matches()) {
+			var end = line.indexOf(']');
+			if (!line.startsWith("[") || end == -1) {
 				continue;
 			}
-			var timestamp = Duration.ofMinutes(Integer.parseInt(matcher.group(1)))
-				.plusMillis(Math.round(Double.parseDouble(matcher.group(2)) * 1000));
+			var timePart = line.substring(1, end);
+			var timeParts = timePart.split(":");
+			if (timeParts.length != 2) {
+				continue;
+			}
+			Duration timestamp;
+			try {
+				timestamp = Duration.ofMinutes(Integer.parseInt(timeParts[0]))
+					.plusMillis((long) (Double.parseDouble(timeParts[1]) * 1000));
+			} catch (NumberFormatException e) {
+				throw new RuntimeException("Invalid timestamp format: " + timePart, e);
+			}
 			lyrics.add(new BasicAudioLyrics.BasicLine(
 				timestamp,
 				null,
-				matcher.group(3).strip()
+				line.substring(end + 1).strip()
 			));
 		}
 
