@@ -37,7 +37,7 @@ public class LavaSrcTools {
 				var data = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
 				log.error("Server responded with an error to '{}': {}", request.getURI(), data);
 				throw new FriendlyException("Server responded with an error.", SUSPICIOUS,
-					new IllegalStateException("Response code from channel info is " + statusCode));
+					new HttpStatusException("Response code from channel info is " + statusCode, statusCode));
 			}
 
 			var data = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
