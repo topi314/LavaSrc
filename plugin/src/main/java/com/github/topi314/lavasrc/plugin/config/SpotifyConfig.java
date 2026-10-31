@@ -17,6 +17,7 @@ public class SpotifyConfig {
 	private boolean localFiles = false;
 	private boolean preferPartnerApi = false;
 	private boolean preferV1SearchApi = false;
+	private boolean fetchMissingIsrc = false;
 	private String customTokenEndpoint;
 
 	public String getClientId() {
@@ -97,6 +98,14 @@ public class SpotifyConfig {
 
 	public void setPreferV1SearchApi(boolean preferV1SearchApi) {
 		this.preferV1SearchApi = preferV1SearchApi;
+	}
+
+	public boolean isFetchMissingIsrc() {
+		return this.fetchMissingIsrc;
+	}
+
+	public void setFetchMissingIsrc(boolean fetchMissingIsrc) {
+		this.fetchMissingIsrc = fetchMissingIsrc;
 	}
 
 
