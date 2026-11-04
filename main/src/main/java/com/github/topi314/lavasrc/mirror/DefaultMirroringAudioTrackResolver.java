@@ -5,6 +5,7 @@ import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,12 @@ public class DefaultMirroringAudioTrackResolver implements MirroringAudioTrackRe
 			}
 			// If the track is an empty playlist, skip the provider
 			if (item instanceof AudioPlaylist && ((AudioPlaylist) item).getTracks().isEmpty() || item == AudioReference.NO_TRACK) {
+				continue;
+			}
+			// If this mirror already failed to play, try the next provider
+			var track = item instanceof AudioPlaylist ? ((AudioPlaylist) item).getTracks().get(0) : item;
+			if (track instanceof AudioTrack && mirroringAudioTrack.hasMirrorFailed((AudioTrack) track)) {
+				log.debug("Skipping provider \"{}\" because its track already failed to play", provider);
 				continue;
 			}
 			return item;
